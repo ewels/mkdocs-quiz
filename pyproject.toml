@@ -30,6 +30,8 @@ classifiers = [
 ]
 dependencies = [
     "mkdocs>=1.0.0",
+    "typer>=0.20.0",
+    "rich>=13.0.0",
 ]
 
 [project.optional-dependencies]
@@ -49,6 +51,9 @@ Issues = "https://github.com/skyface753/mkdocs-quiz/issues"
 
 [project.entry-points."mkdocs.plugins"]
 mkdocs-quiz = "mkdocs_quiz.plugin:MkDocsQuizPlugin"
+
+[project.scripts]
+mkdocs-quiz = "mkdocs_quiz.cli:app"
 
 [tool.setuptools]
 packages = ["mkdocs_quiz"]

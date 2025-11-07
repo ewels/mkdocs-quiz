@@ -38,10 +38,10 @@ Some additional content here
 ```
 
 **Migration:**
-- A migration script is provided at `migrate_quiz_syntax.sh`
-- Run: `./migrate_quiz_syntax.sh docs/` to automatically convert all quiz blocks
-- The script creates `.backup` files for safety
-- Review changes before committing
+- A CLI migration tool is provided: `mkdocs-quiz migrate`
+- Run: `mkdocs-quiz migrate docs/` to automatically convert all quiz blocks
+- Use `--dry-run` flag to preview changes without modifying files
+- Use git tracked changes to review before committing
 
 #### Changed Defaults
 
