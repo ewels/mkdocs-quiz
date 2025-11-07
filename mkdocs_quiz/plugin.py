@@ -150,13 +150,18 @@ class MkDocsQuizPlugin(BasePlugin):
         question = quiz_lines[0].split("question: ", 1)[1]
         question = convert_inline_markdown(question)
 
-        # Parse quiz options (show-correct, etc.)
+        # Parse quiz options (show-correct, auto-submit, etc.)
         show_correct = False
+        auto_submit = False
         option_lines = []
         for line in quiz_lines[1:]:
             if line.startswith("show-correct:"):
                 show_correct_value = line.split("show-correct:", 1)[1].strip().lower()
                 show_correct = show_correct_value in ["true", "yes", "1"]
+                option_lines.append(line)
+            elif line.startswith("auto-submit:"):
+                auto_submit_value = line.split("auto-submit:", 1)[1].strip().lower()
+                auto_submit = auto_submit_value in ["true", "yes", "1"]
                 option_lines.append(line)
             elif not line.startswith("answer") and line != "content:":
                 # Check if this looks like an option line (key: value format)
@@ -213,12 +218,21 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Build final quiz HTML
         show_correct_attr = 'data-show-correct="true"' if show_correct else ""
+        auto_submit_attr = 'data-auto-submit="true"' if auto_submit else ""
+        # Combine attributes
+        attrs = " ".join(filter(None, [show_correct_attr, auto_submit_attr]))
+        # Hide submit button if auto-submit is enabled
+        submit_button = (
+            ""
+            if auto_submit
+            else '<button type="submit" class="quiz-button">Submit</button>'
+        )
         quiz_html = (
-            f'<div class="quiz" {show_correct_attr}>'
+            f'<div class="quiz" {attrs}>'
             f"<h3>{question}</h3>"
             f"<form>"
             f"<fieldset>{''.join(answer_html_list)}</fieldset>"
-            f'<button type="submit" class="quiz-button">Submit</button>'
+            f"{submit_button}"
             f"</form>"
             f'<section class="content hidden">{content_html}</section>'
             f"</div>"

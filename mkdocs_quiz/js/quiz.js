@@ -1,6 +1,18 @@
 document.querySelectorAll(".quiz").forEach((quiz) => {
   let form = quiz.querySelector("form");
   let fieldset = form.querySelector("fieldset");
+
+  // Auto-submit on radio button change if enabled
+  if (quiz.hasAttribute("data-auto-submit")) {
+    let radioButtons = fieldset.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach((radio) => {
+      radio.addEventListener("change", () => {
+        // Trigger form submission
+        form.dispatchEvent(new Event("submit"));
+      });
+    });
+  }
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     let selectedAnswers = form.querySelectorAll('input[name="answer"]:checked');

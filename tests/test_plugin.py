@@ -213,6 +213,26 @@ content:
     assert "What is 2+2?" in result
 
 
+def test_auto_submit_option(plugin, mock_page, mock_config):
+    """Test that auto-submit option adds data attribute and hides button."""
+    markdown = """
+<?quiz?>
+question: What is 2+2?
+auto-submit: true
+answer-correct: 4
+answer: 3
+answer: 5
+<?/quiz?>
+"""
+
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+    assert 'data-auto-submit="true"' in result
+    assert "What is 2+2?" in result
+    # Submit button should not be present
+    assert "Submit" not in result
+
+
 def test_invalid_quiz_format(plugin, mock_page, mock_config):
     """Test that invalid quiz format is handled gracefully."""
     markdown = """
