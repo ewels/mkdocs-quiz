@@ -72,3 +72,15 @@ input[type="radio"].wrong {
 .quiz h3:hover .quiz-header-link {
   opacity: 1;
 }
+
+/* Auto-numbering with CSS counters */
+.quiz-auto-number {
+  counter-reset: quiz-counter;
+}
+.quiz-auto-number .quiz {
+  counter-increment: quiz-counter;
+}
+.quiz-auto-number .quiz h3::before {
+  content: "Question " counter(quiz-counter) ": ";
+  font-weight: bold;
+}

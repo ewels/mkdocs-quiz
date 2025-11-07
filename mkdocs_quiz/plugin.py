@@ -75,6 +75,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
     config_scheme = (
         ("enabled_by_default", config_options.Type(bool, default=True)),
+        ("auto_number", config_options.Type(bool, default=False)),
     )
 
     def __init__(self) -> None:
@@ -286,4 +287,16 @@ class MkDocsQuizPlugin(BasePlugin):
             if quiz_meta != "enable":
                 return html
 
-        return html + style + js_script
+        # Add auto-numbering class if enabled
+        auto_number_script = ""
+        if self.config.get("auto_number", False):
+            auto_number_script = (
+                '<script type="text/javascript">'
+                'document.addEventListener("DOMContentLoaded", function() {'
+                '  var article = document.querySelector("article") || document.querySelector("main") || document.body;'
+                '  article.classList.add("quiz-auto-number");'
+                "});"
+                "</script>"
+            )
+
+        return html + style + js_script + auto_number_script
