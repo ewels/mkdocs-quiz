@@ -61,11 +61,11 @@ def test_single_choice_quiz(plugin, mock_page, mock_config):
     """Test processing a single choice quiz."""
     markdown = """
 <?quiz?>
-question: What is 2+2?
-answer-correct: 4
-answer: 3
-answer: 5
-content:
+What is 2+2?
+- [x] 4
+- [ ] 3
+- [ ] 5
+
 <p>Correct! 2+2 equals 4.</p>
 <?/quiz?>
 """
@@ -82,11 +82,11 @@ def test_multiple_choice_quiz(plugin, mock_page, mock_config):
     """Test processing a multiple choice quiz."""
     markdown = """
 <?quiz?>
-question: Which are even numbers?
-answer-correct: 2
-answer: 3
-answer-correct: 4
-content:
+Which are even numbers?
+- [x] 2
+- [ ] 3
+- [x] 4
+
 <p>2 and 4 are even!</p>
 <?/quiz?>
 """
@@ -102,20 +102,20 @@ def test_multiple_quizzes(plugin, mock_page, mock_config):
     """Test processing multiple quizzes on the same page."""
     markdown = """
 <?quiz?>
-question: First quiz?
-answer-correct: Yes
-answer: No
-content:
+First quiz?
+- [x] Yes
+- [ ] No
+
 <p>First content</p>
 <?/quiz?>
 
 Some text between quizzes.
 
 <?quiz?>
-question: Second quiz?
-answer-correct: Yes
-answer: No
-content:
+Second quiz?
+- [x] Yes
+- [ ] No
+
 <p>Second content</p>
 <?/quiz?>
 """
@@ -136,10 +136,10 @@ def test_quiz_with_html_in_answers(plugin, mock_page, mock_config):
     """Test that HTML in answers is preserved."""
     markdown = """
 <?quiz?>
-question: Which is <strong>bold</strong>?
-answer-correct: <code>Code</code>
-answer: Plain text
-content:
+Which is <strong>bold</strong>?
+- [x] <code>Code</code>
+- [ ] Plain text
+
 <p>HTML works!</p>
 <?/quiz?>
 """
@@ -151,13 +151,13 @@ content:
 
 
 def test_quiz_without_content_section(plugin, mock_page, mock_config):
-    """Test that content: section is optional."""
+    """Test that content section is optional."""
     markdown = """
 <?quiz?>
-question: What is 2+2?
-answer-correct: 4
-answer: 3
-answer: 5
+What is 2+2?
+- [x] 4
+- [ ] 3
+- [ ] 5
 <?/quiz?>
 """
 
@@ -167,7 +167,7 @@ answer: 5
     assert "What is 2+2?" in result
     assert 'type="radio"' in result
     assert "correct" in result
-    # Content section should still be present but empty
+    # Content section should be present but empty
     assert '<section class="content hidden"></section>' in result
 
 
@@ -175,11 +175,11 @@ def test_markdown_in_questions_and_answers(plugin, mock_page, mock_config):
     """Test that markdown is parsed in questions and answers."""
     markdown = """
 <?quiz?>
-question: What is **bold** text?
-answer-correct: Text with `<strong>` tags
-answer: Text with *emphasis*
-answer: Normal text
-content:
+What is **bold** text?
+- [x] Text with `<strong>` tags
+- [ ] Text with *emphasis*
+- [ ] Normal text
+
 <p>Correct!</p>
 <?/quiz?>
 """
@@ -193,44 +193,46 @@ content:
     assert "<em>emphasis</em>" in result
 
 
-def test_show_correct_option(plugin, mock_page, mock_config):
-    """Test that show-correct option adds the data attribute."""
+def test_show_correct_disabled(plugin, mock_page, mock_config):
+    """Test that show-correct can be disabled (defaults to true)."""
     markdown = """
 <?quiz?>
-question: What is 2+2?
-show-correct: true
-answer-correct: 4
-answer: 3
-answer: 5
-content:
+What is 2+2?
+show-correct: false
+- [x] 4
+- [ ] 3
+- [ ] 5
+
 <p>Correct!</p>
 <?/quiz?>
 """
 
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
 
-    assert 'data-show-correct="true"' in result
+    # Should NOT have the data attribute when disabled
+    assert 'data-show-correct="true"' not in result
     assert "What is 2+2?" in result
 
 
-def test_auto_submit_option(plugin, mock_page, mock_config):
-    """Test that auto-submit option adds data attribute and hides button."""
+def test_auto_submit_disabled(plugin, mock_page, mock_config):
+    """Test that auto-submit can be disabled (defaults to true)."""
     markdown = """
 <?quiz?>
-question: What is 2+2?
-auto-submit: true
-answer-correct: 4
-answer: 3
-answer: 5
+What is 2+2?
+auto-submit: false
+- [x] 4
+- [ ] 3
+- [ ] 5
 <?/quiz?>
 """
 
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
 
-    assert 'data-auto-submit="true"' in result
+    # Should NOT have the data attribute when disabled
+    assert 'data-auto-submit="true"' not in result
     assert "What is 2+2?" in result
-    # Submit button should not be present
-    assert "Submit" not in result
+    # Submit button SHOULD be present when auto-submit is disabled
+    assert "Submit" in result
 
 
 def test_opt_in_mode_enabled(mock_config):
@@ -251,9 +253,9 @@ def test_opt_in_mode_enabled(mock_config):
 
     markdown = """
 <?quiz?>
-question: What is 2+2?
-answer-correct: 4
-answer: 3
+What is 2+2?
+- [x] 4
+- [ ] 3
 <?/quiz?>
 """
 
@@ -282,9 +284,9 @@ def test_opt_in_mode_not_enabled(mock_config):
 
     markdown = """
 <?quiz?>
-question: What is 2+2?
-answer-correct: 4
-answer: 3
+What is 2+2?
+- [x] 4
+- [ ] 3
 <?/quiz?>
 """
 
@@ -298,15 +300,15 @@ def test_quiz_header_ids(plugin, mock_page, mock_config):
     """Test that quiz headers have IDs with links."""
     markdown = """
 <?quiz?>
-question: First question?
-answer-correct: Yes
-answer: No
+First question?
+- [x] Yes
+- [ ] No
 <?/quiz?>
 
 <?quiz?>
-question: Second question?
-answer-correct: Yes
-answer: No
+Second question?
+- [x] Yes
+- [ ] No
 <?/quiz?>
 """
 

@@ -37,14 +37,15 @@ except Exception as e:
 # Initialize markdown converter for inline content (questions and answers)
 markdown_converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
 
-# Quiz tag format:
+# Quiz tag format (new markdown-style syntax):
 # <?quiz?>
-# question: Are you ready?
-# answer-correct: Yes!
-# answer: No!
-# answer: Maybe!
-# content: (optional)
-# <h2>Provide some additional content</h2>
+# Are you ready?
+# - [x] Yes!
+# - [ ] No!
+# - [ ] Maybe!
+#
+# Optional content section (supports full markdown)
+# Can include **bold**, *italic*, `code`, etc.
 # <?/quiz?>
 
 QUIZ_START_TAG = "<?quiz?>"
@@ -162,60 +163,73 @@ class MkDocsQuizPlugin(BasePlugin):
         if not quiz_lines:
             raise ValueError("Quiz content is empty")
 
-        # Parse question
-        if not quiz_lines[0].startswith("question: "):
-            raise ValueError("Quiz must start with 'question: '")
-        question = quiz_lines[0].split("question: ", 1)[1]
+        # First line is the question
+        question = quiz_lines[0]
         question = convert_inline_markdown(question)
 
         # Parse quiz options (show-correct, auto-submit, disable-after-submit, etc.)
-        show_correct = False
-        auto_submit = False
-        disable_after_submit = False
+        # Defaults are now TRUE (opt-out instead of opt-in)
+        show_correct = True
+        auto_submit = True
+        disable_after_submit = True
         option_lines = []
+
         for line in quiz_lines[1:]:
             if line.startswith("show-correct:"):
                 show_correct_value = line.split("show-correct:", 1)[1].strip().lower()
-                show_correct = show_correct_value in ["true", "yes", "1"]
+                show_correct = show_correct_value not in ["false", "no", "0"]
                 option_lines.append(line)
             elif line.startswith("auto-submit:"):
                 auto_submit_value = line.split("auto-submit:", 1)[1].strip().lower()
-                auto_submit = auto_submit_value in ["true", "yes", "1"]
+                auto_submit = auto_submit_value not in ["false", "no", "0"]
                 option_lines.append(line)
             elif line.startswith("disable-after-submit:"):
                 disable_value = line.split("disable-after-submit:", 1)[1].strip().lower()
-                disable_after_submit = disable_value in ["true", "yes", "1"]
+                disable_after_submit = disable_value not in ["false", "no", "0"]
                 option_lines.append(line)
-            elif not line.startswith("answer") and line != "content:":
-                # Check if this looks like an option line (key: value format)
-                if ":" in line and not line.startswith(" "):
-                    option_lines.append(line)
 
         # Remove option lines from quiz_lines for further processing
         for option_line in option_lines:
             if option_line in quiz_lines:
                 quiz_lines.remove(option_line)
 
-        # Find content separator (optional)
-        if "content:" in quiz_lines:
-            content_index = quiz_lines.index("content:")
-            answer_lines = quiz_lines[1:content_index]
-        else:
-            # No content section, all lines after question are answers
-            answer_lines = quiz_lines[1:]
-            content_index = len(quiz_lines)
+        # Parse answers (markdown checkbox syntax: - [x] or - [ ])
+        # Everything after question and options until we stop seeing list items is answers
+        answer_lines = []
+        content_start_index = 1  # Start after question
+
+        for i, line in enumerate(quiz_lines[1:], start=1):
+            # Check if this is a checkbox list item
+            if line.startswith("- [x]") or line.startswith("- [X]") or line.startswith("- [ ]"):
+                answer_lines.append(line)
+                content_start_index = i + 1
+            elif not line.strip():
+                # Empty line, continue
+                continue
+            else:
+                # Not a checkbox item and not empty, must be content
+                break
+
         # Parse all answers and convert to markdown
         all_answers = []
         correct_answers = []
         for line in answer_lines:
-            if line.startswith("answer-correct: "):
-                answer_text = line.split("answer-correct: ", 1)[1]
+            if line.startswith("- [x]") or line.startswith("- [X]"):
+                # Correct answer
+                answer_text = line[5:].strip()  # Remove "- [x]" prefix
                 answer_html = convert_inline_markdown(answer_text)
                 all_answers.append(answer_html)
                 correct_answers.append(answer_html)
-            elif line.startswith("answer: "):
-                answer_text = line.split("answer: ", 1)[1]
-                all_answers.append(convert_inline_markdown(answer_text))
+            elif line.startswith("- [ ]"):
+                # Incorrect answer
+                answer_text = line[5:].strip()  # Remove "- [ ]" prefix
+                answer_html = convert_inline_markdown(answer_text)
+                all_answers.append(answer_html)
+
+        if not all_answers:
+            raise ValueError("Quiz must have at least one answer")
+        if not correct_answers:
+            raise ValueError("Quiz must have at least one correct answer")
 
         # Determine if multiple choice (checkboxes) or single choice (radio)
         as_checkboxes = len(correct_answers) > 1
@@ -235,9 +249,15 @@ class MkDocsQuizPlugin(BasePlugin):
             )
             answer_html_list.append(answer_html)
 
-        # Get quiz content
-        content_lines = quiz_lines[content_index + 1 :]
-        content_html = "\n".join(content_lines)
+        # Get quiz content (everything after the last answer)
+        content_lines = quiz_lines[content_start_index:]
+        # Convert content markdown to HTML
+        content_html = ""
+        if content_lines:
+            content_text = "\n".join(content_lines)
+            # Use full markdown conversion for content section
+            markdown_converter.reset()
+            content_html = markdown_converter.convert(content_text)
 
         # Build final quiz HTML
         show_correct_attr = 'data-show-correct="true"' if show_correct else ""
