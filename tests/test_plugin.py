@@ -233,6 +233,67 @@ answer: 5
     assert "Submit" not in result
 
 
+def test_opt_in_mode_enabled(mock_config):
+    """Test that opt-in mode only processes when quiz: enable is set."""
+    plugin = MkDocsQuizPlugin()
+    plugin.config = {"enabled_by_default": False}
+
+    from mkdocs.structure.files import File
+
+    file = File(
+        path="test.md",
+        src_dir="docs",
+        dest_dir="site",
+        use_directory_urls=True,
+    )
+    page = Page(None, file, mock_config)
+    page.meta = {"quiz": "enable"}
+
+    markdown = """
+<?quiz?>
+question: What is 2+2?
+answer-correct: 4
+answer: 3
+<?/quiz?>
+"""
+
+    result = plugin.on_page_markdown(markdown, page, mock_config)
+
+    # Quiz should be processed
+    assert "quiz" in result
+    assert "What is 2+2?" in result
+
+
+def test_opt_in_mode_not_enabled(mock_config):
+    """Test that opt-in mode does not process when quiz: enable is not set."""
+    plugin = MkDocsQuizPlugin()
+    plugin.config = {"enabled_by_default": False}
+
+    from mkdocs.structure.files import File
+
+    file = File(
+        path="test.md",
+        src_dir="docs",
+        dest_dir="site",
+        use_directory_urls=True,
+    )
+    page = Page(None, file, mock_config)
+    page.meta = {}
+
+    markdown = """
+<?quiz?>
+question: What is 2+2?
+answer-correct: 4
+answer: 3
+<?/quiz?>
+"""
+
+    result = plugin.on_page_markdown(markdown, page, mock_config)
+
+    # Quiz should NOT be processed
+    assert "<?quiz?>" in result
+
+
 def test_invalid_quiz_format(plugin, mock_page, mock_config):
     """Test that invalid quiz format is handled gracefully."""
     markdown = """

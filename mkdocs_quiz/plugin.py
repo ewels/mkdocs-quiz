@@ -8,6 +8,7 @@ from importlib import resources as impresources
 from typing import Any
 
 import markdown as md
+from mkdocs.config import config_options
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.plugins import BasePlugin
 from mkdocs.structure.files import Files
@@ -72,6 +73,10 @@ def convert_inline_markdown(text: str) -> str:
 class MkDocsQuizPlugin(BasePlugin):
     """MkDocs plugin to create interactive quizzes in markdown documents."""
 
+    config_scheme = (
+        ("enabled_by_default", config_options.Type(bool, default=True)),
+    )
+
     def __init__(self) -> None:
         """Initialize the plugin."""
         super().__init__()
@@ -101,9 +106,18 @@ class MkDocsQuizPlugin(BasePlugin):
         Returns:
             The processed markdown with quiz HTML.
         """
-        # Check if quizzes are disabled for this page
-        if "quiz" in page.meta and page.meta["quiz"] == "disable":
-            return markdown
+        # Check if quizzes should be processed on this page
+        enabled_by_default = self.config.get("enabled_by_default", True)
+        quiz_meta = page.meta.get("quiz", None)
+
+        if enabled_by_default:
+            # Opt-out mode: process unless explicitly disabled
+            if quiz_meta == "disable":
+                return markdown
+        else:
+            # Opt-in mode: only process if explicitly enabled
+            if quiz_meta != "enable":
+                return markdown
 
         matches = re.findall(QUIZ_REGEX, markdown, re.DOTALL)
         quiz_id = 0
@@ -254,8 +268,17 @@ class MkDocsQuizPlugin(BasePlugin):
         Returns:
             The HTML with added styles and scripts.
         """
-        # Check if quizzes are disabled for this page
-        if "quiz" in page.meta and page.meta["quiz"] == "disable":
-            return html
+        # Check if quizzes should be processed on this page
+        enabled_by_default = self.config.get("enabled_by_default", True)
+        quiz_meta = page.meta.get("quiz", None)
+
+        if enabled_by_default:
+            # Opt-out mode: process unless explicitly disabled
+            if quiz_meta == "disable":
+                return html
+        else:
+            # Opt-in mode: only process if explicitly enabled
+            if quiz_meta != "enable":
+                return html
 
         return html + style + js_script
