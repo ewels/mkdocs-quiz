@@ -58,7 +58,12 @@ input[type="radio"].wrong {
 }
 
 /* Quiz header link styling */
-.quiz h3 {
+.quiz h1,
+.quiz h2,
+.quiz h3,
+.quiz h4,
+.quiz h5,
+.quiz h6 {
   position: relative;
 }
 .quiz-header-link {
@@ -69,7 +74,12 @@ input[type="radio"].wrong {
   color: var(--md-default-fg-color--light, #888);
   transition: opacity 0.2s;
 }
-.quiz h3:hover .quiz-header-link {
+.quiz h1:hover .quiz-header-link,
+.quiz h2:hover .quiz-header-link,
+.quiz h3:hover .quiz-header-link,
+.quiz h4:hover .quiz-header-link,
+.quiz h5:hover .quiz-header-link,
+.quiz h6:hover .quiz-header-link {
   opacity: 1;
 }
 
@@ -80,7 +90,12 @@ input[type="radio"].wrong {
 .quiz-auto-number .quiz {
   counter-increment: quiz-counter;
 }
-.quiz-auto-number .quiz h3::before {
+.quiz-auto-number .quiz h1::before,
+.quiz-auto-number .quiz h2::before,
+.quiz-auto-number .quiz h3::before,
+.quiz-auto-number .quiz h4::before,
+.quiz-auto-number .quiz h5::before,
+.quiz-auto-number .quiz h6::before {
   content: "Question " counter(quiz-counter) ": ";
   font-weight: bold;
 }

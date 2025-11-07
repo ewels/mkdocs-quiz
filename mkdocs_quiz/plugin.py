@@ -76,6 +76,7 @@ class MkDocsQuizPlugin(BasePlugin):
     config_scheme = (
         ("enabled_by_default", config_options.Type(bool, default=True)),
         ("auto_number", config_options.Type(bool, default=False)),
+        ("question_tag", config_options.Type(str, default="h3")),
     )
 
     def __init__(self) -> None:
@@ -122,10 +123,11 @@ class MkDocsQuizPlugin(BasePlugin):
 
         matches = re.findall(QUIZ_REGEX, markdown, re.DOTALL)
         quiz_id = 0
+        question_tag = self.config.get("question_tag", "h3")
 
         for match in matches:
             try:
-                quiz_html = self._process_quiz(match, quiz_id)
+                quiz_html = self._process_quiz(match, quiz_id, question_tag)
                 old_quiz = QUIZ_START_TAG + match + QUIZ_END_TAG
                 markdown = markdown.replace(old_quiz, quiz_html)
                 quiz_id += 1
@@ -135,12 +137,13 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return markdown
 
-    def _process_quiz(self, quiz_content: str, quiz_id: int) -> str:
+    def _process_quiz(self, quiz_content: str, quiz_id: int, question_tag: str = "h3") -> str:
         """Process a single quiz and convert it to HTML.
 
         Args:
             quiz_content: The content inside the quiz tags.
             quiz_id: The unique ID for this quiz.
+            question_tag: The HTML tag to use for the question (default: "h3").
 
         Returns:
             The HTML representation of the quiz.
@@ -246,10 +249,10 @@ class MkDocsQuizPlugin(BasePlugin):
         quiz_header_id = f"quiz-{quiz_id}"
         quiz_html = (
             f'<div class="quiz" {attrs}>'
-            f'<h3 id="{quiz_header_id}">'
+            f'<{question_tag} id="{quiz_header_id}">'
             f'{question}'
             f'<a href="#{quiz_header_id}" class="quiz-header-link">#</a>'
-            f"</h3>"
+            f"</{question_tag}>"
             f"<form>"
             f"<fieldset>{''.join(answer_html_list)}</fieldset>"
             f"{submit_button}"
