@@ -11,17 +11,26 @@ const quizTracker = {
     this.updateDisplay();
   },
 
-  markQuiz: function (quizId, isCorrect) {
-    if (!this.quizzes[quizId]) {
+  markQuiz: function (quizId, isCorrect, selectedValues = []) {
+    const wasAnswered = !!this.quizzes[quizId];
+    const wasCorrect = this.wasPreviouslyCorrect(quizId);
+
+    if (!wasAnswered) {
       this.answeredQuizzes++;
     }
+
     this.quizzes[quizId] = {
       answered: true,
       correct: isCorrect,
+      selectedValues: selectedValues,
     };
-    if (isCorrect && !this.wasPreviouslyCorrect(quizId)) {
+
+    if (isCorrect && !wasCorrect) {
       this.correctQuizzes++;
+    } else if (!isCorrect && wasCorrect) {
+      this.correctQuizzes--;
     }
+
     this.saveToStorage();
     this.updateDisplay();
   },
@@ -40,6 +49,53 @@ const quizTracker = {
       this.saveToStorage();
       this.updateDisplay();
     }
+  },
+
+  resetAllQuiz: function () {
+    this.quizzes = {};
+    this.answeredQuizzes = 0;
+    this.correctQuizzes = 0;
+    this.saveToStorage();
+    this.updateDisplay();
+
+    // Reset all quiz forms on the page
+    document.querySelectorAll(".quiz").forEach((quiz) => {
+      const form = quiz.querySelector("form");
+      const fieldset = form.querySelector("fieldset");
+      const submitButton = form.querySelector('button[type="submit"]');
+      const resetButton = form.querySelector(".quiz-reset-button");
+      const feedbackDiv = form.querySelector(".quiz-feedback");
+      const section = quiz.querySelector("section");
+
+      // Clear all selections
+      const allInputs = fieldset.querySelectorAll('input[name="answer"]');
+      allInputs.forEach((input) => {
+        input.checked = false;
+        input.disabled = false;
+      });
+
+      // Reset colors
+      resetFieldset(fieldset);
+
+      // Hide content section
+      if (section) {
+        section.classList.add("hidden");
+      }
+
+      // Hide feedback message
+      feedbackDiv.classList.add("hidden");
+      feedbackDiv.classList.remove("correct", "incorrect");
+      feedbackDiv.textContent = "";
+
+      // Show submit button, hide reset button
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.classList.remove("hidden");
+      }
+      if (resetButton) {
+        resetButton.classList.add("hidden");
+      }
+    });
   },
 
   getProgress: function () {
@@ -99,16 +155,48 @@ const quizTracker = {
     const sidebar = document.getElementById("quiz-progress-sidebar");
     if (sidebar) {
       const progress = this.getProgress();
-      sidebar.querySelector(".quiz-progress-answered").textContent = progress.answered;
-      sidebar.querySelector(".quiz-progress-total").textContent = progress.total;
-      sidebar.querySelector(".quiz-progress-percentage").textContent = progress.percentage + "%";
-      sidebar.querySelector(".quiz-progress-score").textContent = progress.correct;
-      sidebar.querySelector(".quiz-progress-score-percentage").textContent = progress.score + "%";
 
-      // Update progress bar
-      const progressBar = sidebar.querySelector(".quiz-progress-bar-fill");
-      if (progressBar) {
-        progressBar.style.width = progress.percentage + "%";
+      // Update answered count
+      const answeredEl = sidebar.querySelector(".quiz-progress-answered");
+      if (answeredEl) {
+        answeredEl.textContent = progress.answered;
+      }
+
+      // Update answered percentage
+      const answeredPercentageEl = sidebar.querySelector(".quiz-progress-answered-percentage");
+      if (answeredPercentageEl) {
+        answeredPercentageEl.textContent = progress.percentage + "%";
+      }
+
+      // Update all .quiz-progress-total elements
+      const totalElements = sidebar.querySelectorAll(".quiz-progress-total");
+      totalElements.forEach((el) => {
+        el.textContent = progress.total;
+      });
+
+      // Update correct count
+      const scoreEl = sidebar.querySelector(".quiz-progress-score");
+      if (scoreEl) {
+        scoreEl.textContent = progress.correct;
+      }
+
+      // Update correct percentage
+      const scorePercentageEl = sidebar.querySelector(".quiz-progress-score-percentage");
+      if (scorePercentageEl) {
+        scorePercentageEl.textContent = progress.score + "%";
+      }
+
+      // Update progress bars (incorrect and correct)
+      const correctBar = sidebar.querySelector(".quiz-progress-bar-correct");
+      const incorrectBar = sidebar.querySelector(".quiz-progress-bar-incorrect");
+
+      if (correctBar && incorrectBar) {
+        const incorrectCount = progress.answered - progress.correct;
+        const correctPercentage = progress.total > 0 ? (progress.correct / progress.total) * 100 : 0;
+        const incorrectPercentage = progress.total > 0 ? (incorrectCount / progress.total) * 100 : 0;
+
+        incorrectBar.style.width = incorrectPercentage + "%";
+        correctBar.style.width = correctPercentage + "%";
       }
     }
   },
@@ -136,29 +224,26 @@ const quizTracker = {
         <li class="md-nav__item">
           <div class="md-nav__link">
             <span class="md-ellipsis">
-              Answered: <span class="quiz-progress-answered">${progress.answered}</span> / <span class="quiz-progress-total">${progress.total}</span>
+              Answered: <span class="quiz-progress-answered">${progress.answered}</span> / <span class="quiz-progress-total">${progress.total}</span> (<span class="quiz-progress-answered-percentage">${progress.percentage}%</span>)
             </span>
           </div>
         </li>
         <li class="md-nav__item">
           <div class="md-nav__link">
             <div class="quiz-progress-bar">
-              <div class="quiz-progress-bar-fill" style="width: ${progress.percentage}%"></div>
+              <div class="quiz-progress-bar-incorrect" style="width: ${progress.answered > progress.correct ? ((progress.answered - progress.correct) / progress.total) * 100 : 0}%"></div>
+              <div class="quiz-progress-bar-correct" style="width: ${progress.score}%"></div>
             </div>
           </div>
         </li>
         <li class="md-nav__item">
-          <div class="md-nav__link">
-            <span class="md-ellipsis">
-              <span class="quiz-progress-percentage">${progress.percentage}%</span> Complete
-            </span>
-          </div>
-        </li>
-        <li class="md-nav__item">
-          <div class="md-nav__link">
+          <div class="md-nav__link quiz-correct-reset">
             <span class="md-ellipsis">
               Correct: <span class="quiz-progress-score">${progress.correct}</span> / <span class="quiz-progress-total">${progress.total}</span> (<span class="quiz-progress-score-percentage">${progress.score}%</span>)
             </span>
+            <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
+              Reset
+            </a>
           </div>
         </li>
       </ul>
@@ -174,6 +259,17 @@ const quizTracker = {
       // Fallback: append to article/body if no placeholder found
       const container = document.querySelector("article") || document.querySelector("main") || document.body;
       container.appendChild(nav);
+    }
+
+    // Add event listener for reset link
+    const resetLink = nav.querySelector(".quiz-reset-all-link");
+    if (resetLink) {
+      resetLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (confirm("Are you sure you want to reset the quiz? This will clear your progress.")) {
+          quizTracker.resetAllQuiz();
+        }
+      });
     }
   },
 };
@@ -209,6 +305,105 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
     submitButton.parentNode.insertBefore(resetButton, submitButton.nextSibling);
   } else {
     form.appendChild(resetButton);
+  }
+
+  // Restore quiz state from localStorage if available
+  if (quizId && quizTracker.quizzes[quizId]) {
+    const savedState = quizTracker.quizzes[quizId];
+    const section = quiz.querySelector("section");
+    const allAnswers = fieldset.querySelectorAll('input[name="answer"]');
+    const correctAnswers = fieldset.querySelectorAll('input[name="answer"][correct]');
+
+    if (savedState.answered) {
+      // Restore selected answers based on saved values
+      if (savedState.selectedValues && savedState.selectedValues.length > 0) {
+        allAnswers.forEach((input) => {
+          if (savedState.selectedValues.includes(input.value)) {
+            input.checked = true;
+          }
+        });
+      }
+
+      if (savedState.correct) {
+        // Show the content section
+        section.classList.remove("hidden");
+
+        // Mark all answers with colors
+        allAnswers.forEach((input) => {
+          if (input.hasAttribute("correct")) {
+            input.parentElement.classList.add("correct");
+          } else {
+            input.parentElement.classList.add("wrong");
+          }
+        });
+
+        // Show correct feedback
+        feedbackDiv.classList.remove("hidden", "incorrect");
+        feedbackDiv.classList.add("correct");
+        feedbackDiv.textContent = "Correct answer!";
+
+        // Disable inputs if disable-after-submit is enabled
+        if (quiz.hasAttribute("data-disable-after-submit")) {
+          allAnswers.forEach((input) => {
+            input.disabled = true;
+          });
+          if (submitButton) {
+            submitButton.disabled = true;
+          }
+          resetButton.classList.add("hidden");
+        } else {
+          // Show reset button, hide submit button
+          resetButton.classList.remove("hidden");
+          if (submitButton) {
+            submitButton.classList.add("hidden");
+          }
+        }
+      } else {
+        // Restore incorrect answer state
+        const selectedInputs = Array.from(allAnswers).filter((input) =>
+          savedState.selectedValues.includes(input.value),
+        );
+
+        // Mark selected answers
+        selectedInputs.forEach((input) => {
+          if (input.hasAttribute("correct")) {
+            input.parentElement.classList.add("correct");
+          } else {
+            input.parentElement.classList.add("wrong");
+          }
+        });
+
+        // Show correct answers if show-correct is enabled
+        if (quiz.hasAttribute("data-show-correct")) {
+          correctAnswers.forEach((input) => {
+            input.parentElement.classList.add("correct");
+          });
+        }
+
+        // Show incorrect feedback
+        feedbackDiv.classList.remove("hidden", "correct");
+        feedbackDiv.classList.add("incorrect");
+        const canRetry = !quiz.hasAttribute("data-disable-after-submit");
+        feedbackDiv.textContent = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+
+        // Disable inputs if disable-after-submit is enabled
+        if (quiz.hasAttribute("data-disable-after-submit")) {
+          allAnswers.forEach((input) => {
+            input.disabled = true;
+          });
+          if (submitButton) {
+            submitButton.disabled = true;
+          }
+          resetButton.classList.add("hidden");
+        } else {
+          // Show reset button, hide submit button
+          resetButton.classList.remove("hidden");
+          if (submitButton) {
+            submitButton.classList.add("hidden");
+          }
+        }
+      }
+    }
   }
 
   // Auto-submit on radio button change if enabled
@@ -307,7 +502,9 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
 
     // Update tracker
     if (quizId) {
-      quizTracker.markQuiz(quizId, is_correct);
+      // Get selected values to save
+      const selectedValues = Array.from(selectedAnswers).map((input) => input.value);
+      quizTracker.markQuiz(quizId, is_correct, selectedValues);
     }
 
     // Disable quiz after submission if option is enabled

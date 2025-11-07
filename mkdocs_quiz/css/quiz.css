@@ -147,11 +147,22 @@ input[type="radio"].wrong {
   border-radius: 3px;
   overflow: hidden;
   margin: 0.2rem 0;
+  display: flex;
 }
 
-.quiz-progress-bar-fill {
+.quiz-progress-bar-incorrect {
   height: 100%;
-  background: var(--md-primary-fg-color, #4051b5);
+  background: rgba(244, 67, 54, 0.8);
   transition: width 0.3s ease;
-  border-radius: 3px;
+}
+
+.quiz-progress-bar-correct {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.3s ease;
+}
+
+.quiz-correct-reset {
+  display: flex;
+  justify-content: space-between;
 }
