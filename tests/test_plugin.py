@@ -193,6 +193,26 @@ content:
     assert "<em>emphasis</em>" in result
 
 
+def test_show_correct_option(plugin, mock_page, mock_config):
+    """Test that show-correct option adds the data attribute."""
+    markdown = """
+<?quiz?>
+question: What is 2+2?
+show-correct: true
+answer-correct: 4
+answer: 3
+answer: 5
+content:
+<p>Correct!</p>
+<?/quiz?>
+"""
+
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+    assert 'data-show-correct="true"' in result
+    assert "What is 2+2?" in result
+
+
 def test_invalid_quiz_format(plugin, mock_page, mock_config):
     """Test that invalid quiz format is handled gracefully."""
     markdown = """

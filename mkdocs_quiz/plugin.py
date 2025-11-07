@@ -150,6 +150,24 @@ class MkDocsQuizPlugin(BasePlugin):
         question = quiz_lines[0].split("question: ", 1)[1]
         question = convert_inline_markdown(question)
 
+        # Parse quiz options (show-correct, etc.)
+        show_correct = False
+        option_lines = []
+        for line in quiz_lines[1:]:
+            if line.startswith("show-correct:"):
+                show_correct_value = line.split("show-correct:", 1)[1].strip().lower()
+                show_correct = show_correct_value in ["true", "yes", "1"]
+                option_lines.append(line)
+            elif not line.startswith("answer") and line != "content:":
+                # Check if this looks like an option line (key: value format)
+                if ":" in line and not line.startswith(" "):
+                    option_lines.append(line)
+
+        # Remove option lines from quiz_lines for further processing
+        for option_line in option_lines:
+            if option_line in quiz_lines:
+                quiz_lines.remove(option_line)
+
         # Find content separator (optional)
         if "content:" in quiz_lines:
             content_index = quiz_lines.index("content:")
@@ -194,8 +212,9 @@ class MkDocsQuizPlugin(BasePlugin):
         content_html = "\n".join(content_lines)
 
         # Build final quiz HTML
+        show_correct_attr = 'data-show-correct="true"' if show_correct else ""
         quiz_html = (
-            f'<div class="quiz">'
+            f'<div class="quiz" {show_correct_attr}>'
             f"<h3>{question}</h3>"
             f"<form>"
             f"<fieldset>{''.join(answer_html_list)}</fieldset>"

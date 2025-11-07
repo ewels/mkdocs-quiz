@@ -37,6 +37,12 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
           selectedAnswers[i].parentElement.classList.add("correct");
         }
       }
+      // If show-correct is enabled, also show all correct answers
+      if (quiz.hasAttribute("data-show-correct")) {
+        for (let i = 0; i < correctAnswers.length; i++) {
+          correctAnswers[i].parentElement.classList.add("correct");
+        }
+      }
     }
   });
 });
