@@ -56,6 +56,18 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
         }
       }
     }
+
+    // Disable quiz after submission if option is enabled
+    if (quiz.hasAttribute("data-disable-after-submit")) {
+      const allInputs = fieldset.querySelectorAll('input[name="answer"]');
+      for (let i = 0; i < allInputs.length; i++) {
+        allInputs[i].disabled = true;
+      }
+      const submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+    }
   });
 });
 

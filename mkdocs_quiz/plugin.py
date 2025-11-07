@@ -168,9 +168,10 @@ class MkDocsQuizPlugin(BasePlugin):
         question = quiz_lines[0].split("question: ", 1)[1]
         question = convert_inline_markdown(question)
 
-        # Parse quiz options (show-correct, auto-submit, etc.)
+        # Parse quiz options (show-correct, auto-submit, disable-after-submit, etc.)
         show_correct = False
         auto_submit = False
+        disable_after_submit = False
         option_lines = []
         for line in quiz_lines[1:]:
             if line.startswith("show-correct:"):
@@ -180,6 +181,10 @@ class MkDocsQuizPlugin(BasePlugin):
             elif line.startswith("auto-submit:"):
                 auto_submit_value = line.split("auto-submit:", 1)[1].strip().lower()
                 auto_submit = auto_submit_value in ["true", "yes", "1"]
+                option_lines.append(line)
+            elif line.startswith("disable-after-submit:"):
+                disable_value = line.split("disable-after-submit:", 1)[1].strip().lower()
+                disable_after_submit = disable_value in ["true", "yes", "1"]
                 option_lines.append(line)
             elif not line.startswith("answer") and line != "content:":
                 # Check if this looks like an option line (key: value format)
@@ -237,8 +242,11 @@ class MkDocsQuizPlugin(BasePlugin):
         # Build final quiz HTML
         show_correct_attr = 'data-show-correct="true"' if show_correct else ""
         auto_submit_attr = 'data-auto-submit="true"' if auto_submit else ""
+        disable_after_submit_attr = 'data-disable-after-submit="true"' if disable_after_submit else ""
         # Combine attributes
-        attrs = " ".join(filter(None, [show_correct_attr, auto_submit_attr]))
+        attrs = " ".join(
+            filter(None, [show_correct_attr, auto_submit_attr, disable_after_submit_attr])
+        )
         # Hide submit button if auto-submit is enabled
         submit_button = (
             ""
