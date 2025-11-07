@@ -1,6 +1,18 @@
 document.querySelectorAll(".quiz").forEach((quiz) => {
   let form = quiz.querySelector("form");
   let fieldset = form.querySelector("fieldset");
+  let submitButton = form.querySelector('button[type="submit"]');
+
+  // Create reset button (initially hidden)
+  let resetButton = document.createElement("button");
+  resetButton.type = "button";
+  resetButton.className = "quiz-button quiz-reset-button hidden";
+  resetButton.textContent = "Try Again";
+  if (submitButton) {
+    submitButton.parentNode.insertBefore(resetButton, submitButton.nextSibling);
+  } else {
+    form.appendChild(resetButton);
+  }
 
   // Auto-submit on radio button change if enabled
   if (quiz.hasAttribute("data-auto-submit")) {
@@ -12,6 +24,27 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
       });
     });
   }
+
+  // Reset button handler
+  resetButton.addEventListener("click", () => {
+    // Clear all selections
+    const allInputs = fieldset.querySelectorAll('input[name="answer"]');
+    for (let i = 0; i < allInputs.length; i++) {
+      allInputs[i].checked = false;
+      allInputs[i].disabled = false;
+    }
+    // Reset colors
+    resetFieldset(fieldset);
+    // Hide content section
+    let section = quiz.querySelector("section");
+    section.classList.add("hidden");
+    // Show submit button, hide reset button
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.classList.remove("hidden");
+    }
+    resetButton.classList.add("hidden");
+  });
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -63,9 +96,16 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
       for (let i = 0; i < allInputs.length; i++) {
         allInputs[i].disabled = true;
       }
-      const submitButton = form.querySelector('button[type="submit"]');
       if (submitButton) {
         submitButton.disabled = true;
+      }
+      // Hide reset button if disable-after-submit is enabled
+      resetButton.classList.add("hidden");
+    } else {
+      // Show reset button and hide submit button
+      resetButton.classList.remove("hidden");
+      if (submitButton) {
+        submitButton.classList.add("hidden");
       }
     }
   });
