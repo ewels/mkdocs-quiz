@@ -42,6 +42,9 @@ dev = [
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
 ]
+docs = [
+    "mkdocs-material"
+]
 
 [project.urls]
 Homepage = "https://github.com/skyface753/mkdocs-quiz"
