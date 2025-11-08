@@ -183,10 +183,17 @@ const quizTracker = {
         scoreEl.textContent = progress.correct;
       }
 
-      // Update correct percentage
+      // Update correct denominator (answered count)
+      const scoreTotalEl = sidebar.querySelector(".quiz-progress-score-total");
+      if (scoreTotalEl) {
+        scoreTotalEl.textContent = progress.answered;
+      }
+
+      // Update correct percentage (based on answered quizzes, not total)
       const scorePercentageEl = sidebar.querySelector(".quiz-progress-score-percentage");
       if (scorePercentageEl) {
-        scorePercentageEl.textContent = progress.score + "%";
+        const scorePercentage = progress.answered > 0 ? Math.round((progress.correct / progress.answered) * 100) : 0;
+        scorePercentageEl.textContent = scorePercentage + "%";
       }
 
       // Update progress bars (incorrect and correct)
@@ -242,7 +249,7 @@ const quizTracker = {
         <li class="md-nav__item">
           <div class="md-nav__link quiz-correct-reset">
             <span class="md-ellipsis">
-              Correct: <span class="quiz-progress-score">${progress.correct}</span> / <span class="quiz-progress-total">${progress.total}</span> (<span class="quiz-progress-score-percentage">${progress.score}%</span>)
+              Correct: <span class="quiz-progress-score">${progress.correct}</span> / <span class="quiz-progress-score-total">${progress.answered}</span> (<span class="quiz-progress-score-percentage">${progress.answered > 0 ? Math.round((progress.correct / progress.answered) * 100) : 0}%</span>)
             </span>
             <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
               Reset

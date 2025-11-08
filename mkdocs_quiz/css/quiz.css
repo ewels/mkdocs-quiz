@@ -44,11 +44,11 @@ form button:disabled {
 
 .wrong label,
 .wrong label * {
-  color: red;
+  color: #dc3545;
 }
 .correct label,
 .correct label * {
-  color: green;
+  color: #198754;
 }
 
 fieldset {
@@ -64,10 +64,10 @@ fieldset label {
 }
 
 input[type="radio"].correct {
-  accent-color: green;
+  accent-color: #198754;
 }
 input[type="radio"].wrong {
-  accent-color: red;
+  accent-color: #dc3545;
 }
 .content {
   margin: 10px;
@@ -82,15 +82,25 @@ input[type="radio"].wrong {
 }
 
 .quiz-feedback.correct {
-  background-color: rgba(0, 128, 0, 0.1);
-  border: 1px solid rgba(0, 128, 0, 0.3);
-  color: green;
+  background-color: #d1e7dd;
+  border: 1px solid #a3cfbb;
+  color: #198754;
 }
 
 .quiz-feedback.incorrect {
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid rgba(255, 0, 0, 0.3);
-  color: red;
+  background-color: #f8d7da;
+  border: 1px solid #f1aeb5;
+  color: #dc3545;
+}
+
+[data-md-color-scheme=slate] .quiz-feedback.correct {
+  background-color: #051b11;
+  border: 1px solid #0f5132;
+}
+
+[data-md-color-scheme=slate]  .quiz-feedback.incorrect {
+  background-color: #2c0b0e;
+  border: 1px solid #842029;
 }
 
 /* Quiz header link styling - positioned in top right corner */

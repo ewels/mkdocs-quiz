@@ -275,7 +275,7 @@ You can include code examples in the content section:
     - [ ] JavaScript
     - [ ] Ruby
 
-    ![Quiz Example](images/quiz.png)
+    ![Random cat photo](https://cataas.com/cat)
 
     Python's logo features two intertwined snakes!
     <?/quiz?>
@@ -289,7 +289,7 @@ You can include code examples in the content section:
     - [ ] JavaScript
     - [ ] Ruby
 
-    ![Quiz Example](images/quiz.png)
+    ![Random cat photo](https://cataas.com/cat)
 
     Python's logo features two intertwined snakes!
     <?/quiz?>
@@ -337,129 +337,6 @@ You can include code examples in the content section:
     <?/quiz?>
     ```
 
-## Multiple Quizzes
-
-You can have multiple quizzes on the same page. They are automatically tracked independently:
-
-=== "Example"
-
-    <?quiz?>
-    Question 1: What is 1 + 1?
-    - [ ] 1
-    - [x] 2
-    - [ ] 3
-    <?/quiz?>
-
-    <?quiz?>
-    Question 2: What is 2 × 2?
-    - [ ] 2
-    - [x] 4
-    - [ ] 6
-    <?/quiz?>
-
-    <?quiz?>
-    Question 3: What is 10 - 5?
-    - [ ] 3
-    - [x] 5
-    - [ ] 7
-    <?/quiz?>
-
-=== "Syntax"
-
-    ```markdown
-    <?quiz?>
-    Question 1: What is 1 + 1?
-    - [ ] 1
-    - [x] 2
-    - [ ] 3
-    <?/quiz?>
-
-    <?quiz?>
-    Question 2: What is 2 × 2?
-    - [ ] 2
-    - [x] 4
-    - [ ] 6
-    <?/quiz?>
-
-    <?quiz?>
-    Question 3: What is 10 - 5?
-    - [ ] 3
-    - [x] 5
-    - [ ] 7
-    <?/quiz?>
-    ```
-
-## Edge Cases
-
-### Long Questions
-
-=== "Example"
-
-    <?quiz?>
-    According to the theory of relativity, what would happen to time for an observer traveling at speeds approaching the speed of light, relative to an observer at rest?
-    - [ ] Time would speed up
-    - [x] Time would slow down (time dilation)
-    - [ ] Time would remain the same
-    - [ ] Time would stop completely
-
-    This is known as **time dilation**, one of the key predictions of Einstein's special relativity. The faster you move, the slower time passes for you relative to stationary observers.
-    <?/quiz?>
-
-=== "Syntax"
-
-    ```markdown
-    <?quiz?>
-    According to the theory of relativity, what would happen to time for an observer traveling at speeds approaching the speed of light, relative to an observer at rest?
-    - [ ] Time would speed up
-    - [x] Time would slow down (time dilation)
-    - [ ] Time would remain the same
-    - [ ] Time would stop completely
-
-    This is known as **time dilation**, one of the key predictions of Einstein's special relativity.
-    <?/quiz?>
-    ```
-
-### Many Answer Options
-
-=== "Example"
-
-    <?quiz?>
-    Which of these is a valid HTTP status code?
-    - [x] 200
-    - [ ] 299
-    - [ ] 150
-    - [x] 404
-    - [ ] 405
-    - [x] 500
-    - [ ] 600
-    - [ ] 700
-
-    Common HTTP status codes:
-    - **200**: OK
-    - **404**: Not Found
-    - **500**: Internal Server Error
-    <?/quiz?>
-
-=== "Syntax"
-
-    ```markdown
-    <?quiz?>
-    Which of these is a valid HTTP status code?
-    - [x] 200
-    - [ ] 299
-    - [ ] 150
-    - [x] 404
-    - [ ] 405
-    - [x] 500
-    - [ ] 600
-    - [ ] 700
-
-    Common HTTP status codes:
-    - **200**: OK
-    - **404**: Not Found
-    - **500**: Internal Server Error
-    <?/quiz?>
-    ```
 
 ## Important Notes
 
