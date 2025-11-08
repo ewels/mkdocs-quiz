@@ -295,9 +295,8 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
   let submitButton = form.querySelector('button[type="submit"]');
   let feedbackDiv = form.querySelector(".quiz-feedback");
 
-  // Get quiz ID from header
-  const header = quiz.querySelector("h1, h2, h3, h4, h5, h6");
-  const quizId = header ? header.id : null;
+  // Get quiz ID from the quiz div itself
+  const quizId = quiz.id;
 
   // Create reset button (initially hidden)
   let resetButton = document.createElement("button");
