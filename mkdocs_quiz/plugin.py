@@ -85,6 +85,12 @@ class MkDocsQuizPlugin(BasePlugin):
         ("disable_after_submit", config_options.Type(bool, default=True)),
     )
 
+    def __init__(self) -> None:
+        """Initialize the plugin."""
+        super().__init__()
+        # Store quiz HTML for each page to be injected later
+        self._quiz_storage: dict[str, dict[str, str]] = {}
+
     def on_env(self, env, config, files):
         """Add our template directory to the Jinja2 environment.
 
@@ -294,7 +300,10 @@ class MkDocsQuizPlugin(BasePlugin):
     def on_page_markdown(
         self, markdown: str, page: Page, config: MkDocsConfig, **kwargs: Any
     ) -> str:
-        """Process markdown to convert quiz tags to HTML.
+        """Process markdown to convert quiz tags to placeholders.
+
+        The quiz HTML is generated and stored, then placeholders are inserted.
+        The actual HTML is injected later in on_page_content.
 
         Args:
             markdown: The markdown content of the page.
@@ -303,17 +312,20 @@ class MkDocsQuizPlugin(BasePlugin):
             **kwargs: Additional keyword arguments.
 
         Returns:
-            The processed markdown with quiz HTML.
+            The processed markdown with quiz placeholders.
         """
         # Check if quizzes should be processed on this page
         if not self._should_process_page(page):
             return markdown
 
+        # Initialize storage for this page
+        page_key = page.file.src_path
+        self._quiz_storage[page_key] = {}
+
         # Mask code blocks to prevent processing quiz tags inside them
         masked_markdown, placeholders = self._mask_code_blocks(markdown)
 
-        # Process quizzes and replace with HTML
-        # Must handle indentation carefully to work with content tabs
+        # Process quizzes and replace with placeholders
         quiz_id = 0
         options = self._get_quiz_options(page)
 
@@ -321,34 +333,20 @@ class MkDocsQuizPlugin(BasePlugin):
         matches = list(re.finditer(QUIZ_REGEX, masked_markdown, re.DOTALL))
         for match in reversed(matches):
             try:
+                # Generate quiz HTML
                 quiz_html = self._process_quiz(match.group(1), quiz_id, options)
 
-                # Find the line start (including indentation) before the quiz
-                start_pos = match.start()
-                line_start = masked_markdown.rfind('\n', 0, start_pos)
-                line_start = 0 if line_start == -1 else line_start + 1
+                # Create a markdown-safe placeholder
+                # Using a format that won't be affected by markdown processing
+                placeholder = f"<!-- MKDOCS_QUIZ_PLACEHOLDER_{quiz_id} -->"
 
-                # Get indentation
-                indent = masked_markdown[line_start:start_pos]
+                # Store the quiz HTML for later injection
+                self._quiz_storage[page_key][placeholder] = quiz_html
 
-                # Check if quiz is indented (e.g., inside content tabs)
-                if indent and indent.isspace():
-                    # Quiz is indented - wrap in markdown="block" div to allow HTML in indented context
-                    # This allows raw HTML to work inside content tabs
-                    wrapped = f'<div markdown="block">\n\n{quiz_html}\n\n</div>'
-                    # Keep the same indentation
-                    masked_markdown = (
-                        masked_markdown[:match.start()] +
-                        wrapped +
-                        masked_markdown[match.end():]
-                    )
-                else:
-                    # Quiz is not indented, no wrapper needed
-                    masked_markdown = (
-                        masked_markdown[:match.start()] +
-                        quiz_html +
-                        masked_markdown[match.end():]
-                    )
+                # Replace quiz tag with placeholder
+                masked_markdown = (
+                    masked_markdown[: match.start()] + placeholder + masked_markdown[match.end() :]
+                )
 
                 quiz_id += 1
             except Exception as e:
@@ -460,7 +458,7 @@ class MkDocsQuizPlugin(BasePlugin):
     def on_page_content(
         self, html: str, *, page: Page, config: MkDocsConfig, files: Files
     ) -> str | None:
-        """Add CSS and JS to the page content.
+        """Replace quiz placeholders with actual HTML and add CSS/JS to the page.
 
         Args:
             html: The HTML content of the page.
@@ -469,11 +467,20 @@ class MkDocsQuizPlugin(BasePlugin):
             files: The files object.
 
         Returns:
-            The HTML with added styles and scripts.
+            The HTML with quiz content, styles and scripts.
         """
         # Check if quizzes should be processed on this page
         if not self._should_process_page(page):
             return html
+
+        # Replace placeholders with actual quiz HTML
+        page_key = page.file.src_path
+        if page_key in self._quiz_storage:
+            for placeholder, quiz_html in self._quiz_storage[page_key].items():
+                html = html.replace(placeholder, quiz_html)
+
+            # Clean up storage for this page
+            del self._quiz_storage[page_key]
 
         # Get quiz options to check auto_number setting
         options = self._get_quiz_options(page)
@@ -481,13 +488,15 @@ class MkDocsQuizPlugin(BasePlugin):
         # Add auto-numbering class if enabled
         auto_number_script = ""
         if options["auto_number"]:
-            auto_number_script = dedent("""
+            auto_number_script = dedent(
+                """
                 <script type="text/javascript">
                 document.addEventListener("DOMContentLoaded", function() {
                   var article = document.querySelector("article") || document.querySelector("main") || document.body;
                   article.classList.add("quiz-auto-number");
                 });
                 </script>
-            """).strip()
+            """
+            ).strip()
 
         return html + style + js_script + auto_number_script
