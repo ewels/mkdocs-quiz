@@ -305,6 +305,16 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
   // Get quiz ID from the quiz div itself
   const quizId = quiz.id;
 
+  // Prevent anchor link from triggering page navigation/reload
+  const headerLink = quiz.querySelector(".quiz-header-link");
+  if (headerLink) {
+    headerLink.addEventListener("click", (e) => {
+      // Let the browser handle the anchor navigation normally
+      // This prevents Material for MkDocs from intercepting it as a page navigation
+      e.stopPropagation();
+    });
+  }
+
   // Create reset button (initially hidden)
   let resetButton = document.createElement("button");
   resetButton.type = "button";
