@@ -1,3 +1,5 @@
+.playwright-mcp
+
 # Build artifacts
 site/
 build/

@@ -82,6 +82,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("show_correct", config_options.Type(bool, default=True)),
         ("auto_submit", config_options.Type(bool, default=True)),
         ("disable_after_submit", config_options.Type(bool, default=True)),
+        ("confetti", config_options.Type(bool, default=True)),
     )
 
     def __init__(self) -> None:
@@ -89,6 +90,8 @@ class MkDocsQuizPlugin(BasePlugin):
         super().__init__()
         # Store quiz HTML for each page to be injected later
         self._quiz_storage: dict[str, dict[str, str]] = {}
+        # Track if results div is present on each page
+        self._has_results_div: dict[str, bool] = {}
 
     def on_env(self, env, config, files):
         """Add our template directory to the Jinja2 environment.
@@ -340,6 +343,10 @@ class MkDocsQuizPlugin(BasePlugin):
         page_key = page.file.src_path
         self._quiz_storage[page_key] = {}
 
+        # Check for results div comment
+        results_comment = "<!-- mkdocs-quiz results -->"
+        self._has_results_div[page_key] = results_comment in markdown
+
         # Mask code blocks to prevent processing quiz tags inside them
         masked_markdown, placeholders = self._mask_code_blocks(markdown)
 
@@ -484,6 +491,38 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return quiz_html
 
+    def _generate_results_html(self) -> str:
+        """Generate HTML for the quiz results end screen.
+
+        Returns:
+            The HTML representation of the results div.
+        """
+        results_html = dedent(
+            """
+            <div id="quiz-results" class="quiz-results">
+                <div class="quiz-results-progress">
+                    <h3>Quiz Progress</h3>
+                    <p class="quiz-results-stats">
+                        <span class="quiz-results-answered">0</span> of <span class="quiz-results-total">0</span> questions answered
+                        (<span class="quiz-results-percentage">0%</span>)
+                    </p>
+                    <p class="quiz-results-correct-stats">
+                        <span class="quiz-results-correct">0</span> correct
+                    </p>
+                </div>
+                <div class="quiz-results-complete hidden">
+                    <h2 class="quiz-results-title">Quiz Complete!</h2>
+                    <div class="quiz-results-score-display">
+                        <span class="quiz-results-score-value">0%</span>
+                    </div>
+                    <p class="quiz-results-message"></p>
+                    <button type="button" class="md-button md-button--primary quiz-results-reset">Reset quiz</button>
+                </div>
+            </div>
+        """
+        ).strip()
+        return results_html
+
     def on_page_content(
         self, html: str, *, page: Page, config: MkDocsConfig, files: Files
     ) -> str | None:
@@ -511,8 +550,15 @@ class MkDocsQuizPlugin(BasePlugin):
             # Clean up storage for this page
             del self._quiz_storage[page_key]
 
-        # Get quiz options to check auto_number setting
+        # Get quiz options to check settings
         options = self._get_quiz_options(page)
+
+        # Handle results div if present
+        if self._has_results_div.get(page_key, False):
+            results_html = self._generate_results_html()
+            html = html.replace("<!-- mkdocs-quiz results -->", results_html)
+            # Clean up
+            del self._has_results_div[page_key]
 
         # Add auto-numbering class if enabled
         auto_number_script = ""
@@ -528,4 +574,21 @@ class MkDocsQuizPlugin(BasePlugin):
             """
             ).strip()
 
-        return html + style + js_script + auto_number_script
+        # Add confetti configuration
+        confetti_enabled = self.config.get("confetti", True)
+        confetti_script = ""
+        if confetti_enabled:
+            confetti_script = '<script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>'
+
+        # Add configuration object for JavaScript
+        config_script = dedent(
+            f"""
+            <script type="text/javascript">
+            window.mkdocsQuizConfig = {{
+              confetti: {str(confetti_enabled).lower()}
+            }};
+            </script>
+        """
+        ).strip()
+
+        return html + style + confetti_script + config_script + js_script + auto_number_script

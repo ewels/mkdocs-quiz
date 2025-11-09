@@ -1,6 +1,16 @@
 // Constants
 const STORAGE_KEY_PREFIX = "quiz_progress_";
 
+// Confetti instance (will be initialized if enabled)
+let jsConfetti = null;
+
+// Initialize confetti if enabled
+if (window.mkdocsQuizConfig && window.mkdocsQuizConfig.confetti) {
+  if (typeof JSConfetti !== "undefined") {
+    jsConfetti = new JSConfetti();
+  }
+}
+
 // Global quiz tracker
 const quizTracker = {
   quizzes: {},
@@ -144,24 +154,116 @@ const quizTracker = {
   },
 
   updateDisplay: function () {
+    const progress = this.getProgress();
+    const wasComplete = this.wasCompleted;
+    const isComplete = progress.answered === progress.total && progress.total > 0;
+
     // Dispatch custom event for sidebar/other UI components
     window.dispatchEvent(
       new CustomEvent("quizProgressUpdate", {
-        detail: this.getProgress(),
+        detail: progress,
       }),
     );
     // Update sidebar if it exists
     this.updateSidebar();
+    // Update results div if it exists
+    this.updateResultsDiv(progress, isComplete, wasComplete);
+
+    // Track completion state
+    this.wasCompleted = isComplete;
+  },
+
+  updateResultsDiv: function (progress, isComplete, wasComplete) {
+    const resultsDiv = document.getElementById("quiz-results");
+    if (!resultsDiv) return;
+
+    // Update progress section
+    const answeredEl = resultsDiv.querySelector(".quiz-results-answered");
+    const totalEl = resultsDiv.querySelector(".quiz-results-total");
+    const percentageEl = resultsDiv.querySelector(".quiz-results-percentage");
+    const correctEl = resultsDiv.querySelector(".quiz-results-correct");
+
+    if (answeredEl) answeredEl.textContent = progress.answered;
+    if (totalEl) totalEl.textContent = progress.total;
+    if (percentageEl) percentageEl.textContent = progress.percentage + "%";
+    if (correctEl) correctEl.textContent = progress.correct;
+
+    // Handle completion state
+    const progressSection = resultsDiv.querySelector(".quiz-results-progress");
+    const completeSection = resultsDiv.querySelector(".quiz-results-complete");
+
+    if (isComplete) {
+      // Hide progress, show complete
+      if (progressSection) progressSection.classList.add("hidden");
+      if (completeSection) {
+        completeSection.classList.remove("hidden");
+
+        // Update score display
+        const scoreValue = resultsDiv.querySelector(".quiz-results-score-value");
+        const scoreMessage = resultsDiv.querySelector(".quiz-results-message");
+
+        if (scoreValue) {
+          scoreValue.textContent = progress.score + "%";
+
+          // Remove all score classes
+          scoreValue.classList.remove(
+            "quiz-results-score-excellent",
+            "quiz-results-score-good",
+            "quiz-results-score-average",
+            "quiz-results-score-poor",
+            "quiz-results-score-fail",
+          );
+
+          // Add appropriate score class and message
+          let message = "";
+          if (progress.score >= 90) {
+            scoreValue.classList.add("quiz-results-score-excellent");
+            message = "Outstanding! You're a quiz master!";
+          } else if (progress.score >= 75) {
+            scoreValue.classList.add("quiz-results-score-good");
+            message = "Great job! You really know your stuff!";
+          } else if (progress.score >= 60) {
+            scoreValue.classList.add("quiz-results-score-average");
+            message = "Good effort! Keep learning!";
+          } else if (progress.score >= 40) {
+            scoreValue.classList.add("quiz-results-score-poor");
+            message = "Not bad, but there's room for improvement!";
+          } else {
+            scoreValue.classList.add("quiz-results-score-fail");
+            message = "Better luck next time! Keep trying!";
+          }
+
+          if (scoreMessage) scoreMessage.textContent = message;
+        }
+
+        // Trigger confetti and scroll on first completion
+        if (!wasComplete) {
+          // Scroll to results div
+          resultsDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+
+          // Fire confetti if enabled and score is good
+          if (jsConfetti && progress.score >= 10) {
+            setTimeout(() => {
+              jsConfetti.addConfetti();
+            }, 500);
+          }
+        }
+      }
+    } else {
+      // Show progress, hide complete
+      if (progressSection) progressSection.classList.remove("hidden");
+      if (completeSection) completeSection.classList.add("hidden");
+    }
   },
 
   updateSidebar: function () {
     // Update both desktop and mobile sidebars
     const sidebars = [
       document.getElementById("quiz-progress-sidebar"),
-      document.getElementById("quiz-progress-mobile")
+      document.getElementById("quiz-progress-mobile"),
     ];
 
-    sidebars.forEach(sidebar => {
+    sidebars.forEach((sidebar) => {
       if (sidebar) {
         const progress = this.getProgress();
 
@@ -233,12 +335,14 @@ const quizTracker = {
       nav.className = className;
       nav.setAttribute("aria-label", "Quiz Progress");
 
-      const titleSection = showTitle ? `
+      const titleSection = showTitle
+        ? `
         <label class="md-nav__title" for="__quiz-progress">
           <span class="md-nav__icon md-icon"></span>
           Quiz Progress
         </label>
-      ` : '';
+      `
+        : "";
 
       nav.innerHTML = `
         ${titleSection}
@@ -312,9 +416,26 @@ quizTracker.init();
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     quizTracker.createSidebar();
+    initializeResultsDiv();
   });
 } else {
   quizTracker.createSidebar();
+  initializeResultsDiv();
+}
+
+// Initialize results div reset button
+function initializeResultsDiv() {
+  const resultsDiv = document.getElementById("quiz-results");
+  if (!resultsDiv) return;
+
+  const resetButton = resultsDiv.querySelector(".quiz-results-reset");
+  if (resetButton) {
+    resetButton.addEventListener("click", () => {
+      if (confirm("Are you sure you want to reset all quizzes? This will clear your progress.")) {
+        quizTracker.resetAllQuiz();
+      }
+    });
+  }
 }
 
 document.querySelectorAll(".quiz").forEach((quiz) => {
