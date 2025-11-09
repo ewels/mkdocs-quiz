@@ -503,12 +503,10 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
         // Show the content section
         section.classList.remove("hidden");
 
-        // Mark all answers with colors
+        // Only mark the correct answers in green (don't highlight wrong answers)
         allAnswers.forEach((input) => {
           if (input.hasAttribute("correct")) {
             input.parentElement.classList.add("correct");
-          } else {
-            input.parentElement.classList.add("wrong");
           }
         });
 
@@ -641,13 +639,11 @@ document.querySelectorAll(".quiz").forEach((quiz) => {
 
     if (is_correct) {
       resetFieldset(fieldset);
-      // Mark all fields with colors
+      // Only mark the correct answers in green (don't highlight wrong answers)
       const allAnswers = fieldset.querySelectorAll('input[name="answer"]');
       allAnswers.forEach((answer) => {
         if (answer.hasAttribute("correct")) {
           answer.parentElement.classList.add("correct");
-        } else {
-          answer.parentElement.classList.add("wrong");
         }
       });
       // Show correct feedback
