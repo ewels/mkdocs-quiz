@@ -2,6 +2,18 @@
 
 This page demonstrates all the different types of quizzes and options available in mkdocs-quiz. Each example shows a working quiz in the "Example" tab and the markdown source code in the "Syntax" tab.
 
+=== "Example"
+
+    !!! info "Quiz Progress"
+        <!-- mkdocs-quiz intro -->
+
+=== "Syntax"
+
+    ```markdown
+    !!! info "Quiz Progress"
+        <!-- mkdocs-quiz intro -->
+    ```
+
 ## Basic Examples
 
 ### Single Choice Quiz

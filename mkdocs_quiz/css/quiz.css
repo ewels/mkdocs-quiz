@@ -209,6 +209,15 @@ input[type="radio"].wrong {
   flex: 1;
 }
 
+/* Quiz Intro */
+.quiz-intro {
+  margin: 1rem 0;
+}
+
+.quiz-intro p {
+  margin: 0 0 0.5rem 0;
+}
+
 /* Quiz Results End Screen */
 .quiz-results {
   border: 1px solid black;

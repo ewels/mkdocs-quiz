@@ -92,6 +92,8 @@ class MkDocsQuizPlugin(BasePlugin):
         self._quiz_storage: dict[str, dict[str, str]] = {}
         # Track if results div is present on each page
         self._has_results_div: dict[str, bool] = {}
+        # Track if intro is present on each page
+        self._has_intro: dict[str, bool] = {}
 
     def on_env(self, env, config, files):
         """Add our template directory to the Jinja2 environment.
@@ -347,6 +349,10 @@ class MkDocsQuizPlugin(BasePlugin):
         results_comment = "<!-- mkdocs-quiz results -->"
         self._has_results_div[page_key] = results_comment in markdown
 
+        # Check for intro comment and mark for later replacement
+        intro_comment = "<!-- mkdocs-quiz intro -->"
+        self._has_intro[page_key] = intro_comment in markdown
+
         # Mask code blocks to prevent processing quiz tags inside them
         masked_markdown, placeholders = self._mask_code_blocks(markdown)
 
@@ -523,6 +529,22 @@ class MkDocsQuizPlugin(BasePlugin):
         ).strip()
         return results_html
 
+    def _generate_intro_html(self) -> str:
+        """Generate HTML for the quiz intro text with reset button.
+
+        Returns:
+            The HTML representation of the intro div.
+        """
+        intro_html = dedent(
+            """
+            <div class="quiz-intro">
+                <p>Quiz results are saved to your browser's local storage and will persist between sessions.</p>
+                <button type="button" class="md-button quiz-intro-reset">Reset quiz</button>
+            </div>
+        """
+        ).strip()
+        return intro_html
+
     def on_page_content(
         self, html: str, *, page: Page, config: MkDocsConfig, files: Files
     ) -> str | None:
@@ -559,6 +581,13 @@ class MkDocsQuizPlugin(BasePlugin):
             html = html.replace("<!-- mkdocs-quiz results -->", results_html)
             # Clean up
             del self._has_results_div[page_key]
+
+        # Handle intro if present
+        if self._has_intro.get(page_key, False):
+            intro_html = self._generate_intro_html()
+            html = html.replace("<!-- mkdocs-quiz intro -->", intro_html)
+            # Clean up
+            del self._has_intro[page_key]
 
         # Add auto-numbering class if enabled
         auto_number_script = ""

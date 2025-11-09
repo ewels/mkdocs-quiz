@@ -417,10 +417,12 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     quizTracker.createSidebar();
     initializeResultsDiv();
+    initializeIntroResetButtons();
   });
 } else {
   quizTracker.createSidebar();
   initializeResultsDiv();
+  initializeIntroResetButtons();
 }
 
 // Initialize results div reset button
@@ -436,6 +438,18 @@ function initializeResultsDiv() {
       }
     });
   }
+}
+
+// Initialize intro reset buttons
+function initializeIntroResetButtons() {
+  const introResetButtons = document.querySelectorAll(".quiz-intro-reset");
+  introResetButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (confirm("Are you sure you want to reset all quizzes? This will clear your progress.")) {
+        quizTracker.resetAllQuiz();
+      }
+    });
+  });
 }
 
 document.querySelectorAll(".quiz").forEach((quiz) => {
