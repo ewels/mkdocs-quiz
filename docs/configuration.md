@@ -40,9 +40,9 @@ quiz:
 
 # Your Page Content
 
-<?quiz?>
+<quiz>
 ...
-<?/quiz?>
+</quiz>
 ```
 
 !!! info

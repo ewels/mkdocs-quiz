@@ -40,7 +40,7 @@ except Exception as e:
 markdown_converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
 
 # Quiz tag format:
-# <?quiz?>
+# <quiz>
 # Are you ready?
 # - [x] Yes!
 # - [ ] No!
@@ -48,11 +48,11 @@ markdown_converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
 #
 # Optional content section (supports full markdown)
 # Can include **bold**, *italic*, `code`, etc.
-# <?/quiz?>
+# </quiz>
 
-QUIZ_START_TAG = "<?quiz?>"
-QUIZ_END_TAG = "<?/quiz?>"
-QUIZ_REGEX = r"<\?quiz\?>(.*?)<\?/quiz\?>"
+QUIZ_START_TAG = "<quiz>"
+QUIZ_END_TAG = "</quiz>"
+QUIZ_REGEX = r"<quiz>(.*?)</quiz>"
 
 
 def convert_inline_markdown(text: str) -> str:

@@ -10,7 +10,16 @@ from mkdocs_quiz.plugin import MkDocsQuizPlugin
 @pytest.fixture
 def plugin():
     """Create a plugin instance for testing."""
-    return MkDocsQuizPlugin()
+    plugin = MkDocsQuizPlugin()
+    # Initialize config with default values to match plugin behavior
+    plugin.config = {
+        "enabled_by_default": True,
+        "auto_number": False,
+        "show_correct": True,
+        "auto_submit": True,
+        "disable_after_submit": True,
+    }
+    return plugin
 
 
 @pytest.fixture
@@ -39,11 +48,11 @@ def test_disabled_page(plugin, mock_page, mock_config):
     """Test that quiz processing is disabled when page meta is set."""
     mock_page.meta["quiz"] = {"enabled": False}
     markdown = """
-<?quiz?>
+<quiz>
 Test question?
 - [x] Yes
 - [ ] No
-<?/quiz?>
+</quiz>
 """
 
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
@@ -54,40 +63,46 @@ Test question?
 def test_single_choice_quiz(plugin, mock_page, mock_config):
     """Test processing a single choice quiz."""
     markdown = """
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
 - [ ] 5
 
 <p>Correct! 2+2 equals 4.</p>
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     assert "quiz" in result
     assert "What is 2+2?" in result
     assert 'type="radio"' in result
     assert "correct" in result
-    # Single choice with auto-submit (default) should NOT have a submit button
-    assert 'type="submit"' not in result
+    # Single choice with auto-submit (default) should NOT have a submit button element
+    assert '<button type="submit"' not in result
 
 
 def test_multiple_choice_quiz(plugin, mock_page, mock_config):
     """Test processing a multiple choice quiz."""
     markdown = """
-<?quiz?>
+<quiz>
 Which are even numbers?
 - [x] 2
 - [ ] 3
 - [x] 4
 
 <p>2 and 4 are even!</p>
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     assert "quiz" in result
     assert "Which are even numbers?" in result
@@ -100,26 +115,29 @@ Which are even numbers?
 def test_multiple_quizzes(plugin, mock_page, mock_config):
     """Test processing multiple quizzes on the same page."""
     markdown = """
-<?quiz?>
+<quiz>
 First quiz?
 - [x] Yes
 - [ ] No
 
 <p>First content</p>
-<?/quiz?>
+</quiz>
 
 Some text between quizzes.
 
-<?quiz?>
+<quiz>
 Second quiz?
 - [x] Yes
 - [ ] No
 
 <p>Second content</p>
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     # Check both quizzes are present
     assert "First quiz?" in result
@@ -134,16 +152,19 @@ Second quiz?
 def test_quiz_with_html_in_answers(plugin, mock_page, mock_config):
     """Test that HTML in answers is preserved."""
     markdown = """
-<?quiz?>
+<quiz>
 Which is <strong>bold</strong>?
 - [x] <code>Code</code>
 - [ ] Plain text
 
 <p>HTML works!</p>
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     assert "<strong>bold</strong>" in result
     assert "<code>Code</code>" in result
@@ -152,15 +173,18 @@ Which is <strong>bold</strong>?
 def test_quiz_without_content_section(plugin, mock_page, mock_config):
     """Test that content section is optional."""
     markdown = """
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
 - [ ] 5
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     assert "quiz" in result
     assert "What is 2+2?" in result
@@ -173,17 +197,20 @@ What is 2+2?
 def test_markdown_in_questions_and_answers(plugin, mock_page, mock_config):
     """Test that markdown is parsed in questions and answers."""
     markdown = """
-<?quiz?>
+<quiz>
 What is **bold** text?
 - [x] Text with `<strong>` tags
 - [ ] Text with *emphasis*
 - [ ] Normal text
 
 <p>Correct!</p>
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     # Check that markdown in question is converted
     assert "<strong>bold</strong>" in result
@@ -196,17 +223,20 @@ def test_show_correct_disabled(plugin, mock_page, mock_config):
     """Test that show-correct can be disabled via page frontmatter (defaults to true)."""
     mock_page.meta["quiz"] = {"show_correct": False}
     markdown = """
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
 - [ ] 5
 
 <p>Correct!</p>
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     # Should NOT have the data attribute when disabled
     assert 'data-show-correct="true"' not in result
@@ -217,15 +247,18 @@ def test_auto_submit_disabled(plugin, mock_page, mock_config):
     """Test that auto-submit can be disabled via page frontmatter (defaults to true)."""
     mock_page.meta["quiz"] = {"auto_submit": False}
     markdown = """
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
 - [ ] 5
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     # Should NOT have the data attribute when disabled
     assert 'data-auto-submit="true"' not in result
@@ -251,14 +284,17 @@ def test_opt_in_mode_enabled(mock_config):
     page.meta = {"quiz": {"enabled": True}}
 
     markdown = """
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=None)
 
     # Quiz should be processed
     assert "quiz" in result
@@ -282,36 +318,39 @@ def test_opt_in_mode_not_enabled(mock_config):
     page.meta = {}
 
     markdown = """
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
-<?/quiz?>
+</quiz>
 """
 
     result = plugin.on_page_markdown(markdown, page, mock_config)
 
     # Quiz should NOT be processed
-    assert "<?quiz?>" in result
+    assert "<quiz>" in result
 
 
 def test_quiz_header_ids(plugin, mock_page, mock_config):
     """Test that quiz headers have IDs with links."""
     markdown = """
-<?quiz?>
+<quiz>
 First question?
 - [x] Yes
 - [ ] No
-<?/quiz?>
+</quiz>
 
-<?quiz?>
+<quiz>
 Second question?
 - [x] Yes
 - [ ] No
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     # Check that both quiz headers have IDs
     assert 'id="quiz-0"' in result
@@ -324,16 +363,16 @@ Second question?
 def test_invalid_quiz_format(plugin, mock_page, mock_config):
     """Test that invalid quiz format is handled gracefully."""
     markdown = """
-<?quiz?>
+<quiz>
 This is not a valid quiz format
-<?/quiz?>
+</quiz>
 """
 
     # Should not raise an exception
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
 
     # Original markdown should remain since quiz processing failed
-    assert "<?quiz?>" in result
+    assert "<quiz>" in result
 
 
 def test_quiz_in_fenced_code_block(plugin, mock_page, mock_config):
@@ -342,39 +381,44 @@ def test_quiz_in_fenced_code_block(plugin, mock_page, mock_config):
 Here's an example of quiz syntax with backticks:
 
 ```markdown
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
-<?/quiz?>
+</quiz>
 ```
 
 And with tildes:
 
 ~~~
-<?quiz?>
+<quiz>
 What is 1+1?
 - [x] 2
 - [ ] 3
-<?/quiz?>
+</quiz>
 ~~~
 
 This is a real quiz:
 
-<?quiz?>
+<quiz>
 What is 3+3?
 - [x] 6
 - [ ] 7
-<?/quiz?>
+</quiz>
 """
 
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process markdown phase only - should mask code blocks
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
 
     # The quizzes in the code blocks should remain unchanged
-    assert "```markdown" in result
-    assert "~~~" in result
-    assert result.count("<?quiz?>") == 2  # Two in code blocks
-    assert result.count("<?/quiz?>") == 2  # Two in code blocks
+    assert "```markdown" in markdown_result
+    assert "~~~" in markdown_result
+    assert markdown_result.count("<quiz>") == 2  # Two in code blocks
+    assert markdown_result.count("</quiz>") == 2  # Two in code blocks
+    assert "<!-- MKDOCS_QUIZ_PLACEHOLDER_0 -->" in markdown_result  # Real quiz was converted to placeholder
+
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
 
     # The real quiz should be processed
     assert "What is 3+3?" in result

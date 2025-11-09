@@ -30,16 +30,16 @@ quiz:
 
 Below are several quizzes to demonstrate the auto-numbering in action.
 
-<?quiz?>
+<quiz>
 What is 2 + 2?
 - [ ] 3
 - [x] 4
 - [ ] 5
 
 That's correct! 2 + 2 = 4
-<?/quiz?>
+</quiz>
 
-<?quiz?>
+<quiz>
 Which of these is a primary color?
 - [x] Red
 - [ ] Green
@@ -47,9 +47,9 @@ Which of these is a primary color?
 - [ ] Purple
 
 Primary colors are red, blue, and yellow.
-<?/quiz?>
+</quiz>
 
-<?quiz?>
+<quiz>
 What is the capital of France?
 - [ ] London
 - [x] Paris
@@ -57,9 +57,9 @@ What is the capital of France?
 - [ ] Madrid
 
 Paris is the capital city of France.
-<?/quiz?>
+</quiz>
 
-<?quiz?>
+<quiz>
 Which programming language is this plugin written in?
 - [ ] JavaScript
 - [x] Python
@@ -67,9 +67,9 @@ Which programming language is this plugin written in?
 - [ ] Go
 
 MkDocs Quiz is a Python plugin for MkDocs, which is also written in Python.
-<?/quiz?>
+</quiz>
 
-<?quiz?>
+<quiz>
 What does HTML stand for?
 - [ ] Hyper Transfer Markup Language
 - [x] Hypertext Markup Language
@@ -77,7 +77,7 @@ What does HTML stand for?
 - [ ] Hyperlink and Text Markup Language
 
 HTML (Hypertext Markup Language) is the standard markup language for documents designed to be displayed in a web browser.
-<?/quiz?>
+</quiz>
 
 ## Benefits of Auto-Numbering
 

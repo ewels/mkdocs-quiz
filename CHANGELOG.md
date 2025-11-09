@@ -30,14 +30,14 @@ content:
 
 **New Syntax (v2.0):**
 ```markdown
-<?quiz?>
+<quiz>
 Are you ready?
 - [x] Yes!
 - [ ] No!
 - [ ] Maybe!
 
 Some additional content here
-<?/quiz?>
+</quiz>
 ```
 
 **Migration:**
@@ -45,26 +45,6 @@ Some additional content here
 - Run: `mkdocs-quiz migrate docs/` to automatically convert all quiz blocks
 - Use `--dry-run` flag to preview changes without modifying files
 - Use git tracked changes to review before committing
-
-#### Changed Defaults
-
-The following options now default to **enabled** (opt-out instead of opt-in):
-
-- `show-correct` - Now defaults to `true` (shows correct answers when user gets it wrong)
-- `auto-submit` - Now defaults to `true` (submits automatically on selection for single-answer quizzes)
-- `disable-after-submit` - Now defaults to `true` (locks quiz after first submission)
-
-To restore v1.x behavior, explicitly disable these options:
-```markdown
-<?quiz?>
-Your question?
-show-correct: false
-auto-submit: false
-disable-after-submit: false
-- [x] Correct answer
-- [ ] Wrong answer
-<?/quiz?>
-```
 
 ### ✨ Added Features
 

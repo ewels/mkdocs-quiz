@@ -45,14 +45,14 @@ plugins:
 Create a quiz with radio buttons (only one correct answer):
 
 ```markdown
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
 - [ ] 5
 
 Correct! Basic math is important.
-<?/quiz?>
+</quiz>
 ```
 
 #### Multiple choice quiz
@@ -60,7 +60,7 @@ Correct! Basic math is important.
 Create a quiz with checkboxes (multiple correct answers):
 
 ```markdown
-<?quiz?>
+<quiz>
 Which are even numbers?
 - [x] 2
 - [ ] 3
@@ -68,7 +68,7 @@ Which are even numbers?
 - [ ] 5
 
 Great! 2 and 4 are both even numbers.
-<?/quiz?>
+</quiz>
 ```
 
 > **Note:** Use `- [x]` for correct answers and `- [ ]` for incorrect answers. The plugin automatically uses radio buttons for single-choice and checkboxes for multiple-choice quizzes.

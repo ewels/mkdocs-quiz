@@ -1,16 +1,16 @@
 # Quick Start
 
-Quizzes are created using special <code>&lt;?quiz?&gt;</code> tags in your markdown files. The basic structure is:
+Quizzes are created using special <code>&lt;quiz&gt;</code> tags in your markdown files. The basic structure is:
 
-```yaml
-<?quiz?> # (1)!
-Question text goes here # (2)!
-- [x] Correct answer # (3)!
-- [ ] Incorrect answer # (4)!
-- [ ] Another incorrect answer # (5)!
+```html
+<quiz> <!-- (1)! -->
+Question text goes here <!-- (2)! -->
+- [x] Correct answer <!-- (3)! -->
+- [ ] Incorrect answer <!-- (4)! -->
+- [ ] Another incorrect answer <!-- (5)! -->
 
-Optional content revealed after correct answer # (6)!
-<?/quiz?> # (7)!
+Optional content revealed after correct answer <!-- (6)! -->
+</quiz> <!-- (7)! -->
 ```
 
 1.  Opening tag for the quiz, denotes where it starts (as long as it's not within a code block)
@@ -24,14 +24,14 @@ Optional content revealed after correct answer # (6)!
 
 This results in:
 
-<?quiz?>
+<quiz>
 Question text goes here
 - [x] Correct answer
 - [ ] Incorrect answer
 - [ ] Another incorrect answer
 
 Optional content revealed after correct answer
-<?/quiz?>
+</quiz>
 
 ## Multiple correct answers
 
@@ -40,7 +40,7 @@ When there's **one correct answer**, radio buttons are displayed as above.
 When there are **multiple correct answers**, checkboxes are displayed:
 
 ```markdown
-<?quiz?>
+<quiz>
 Which of these are programming languages?
 - [x] Python
 - [ ] HTML
@@ -48,10 +48,10 @@ Which of these are programming languages?
 - [ ] CSS
 
 Python and JavaScript are programming languages, while HTML and CSS are markup/styling languages.
-<?/quiz?>
+</quiz>
 ```
 
-<?quiz?>
+<quiz>
 Which of these are programming languages?
 - [x] Python
 - [ ] HTML
@@ -59,7 +59,7 @@ Which of these are programming languages?
 - [ ] CSS
 
 Python and JavaScript are programming languages, while HTML and CSS are markup/styling languages.
-<?/quiz?>
+</quiz>
 
 All correct answers, and only correct answers, must be selected to get the question correct.
 
@@ -71,7 +71,7 @@ It shows after the question has been submitted.
 The content section can be useful for providing explanations, or additional context.
 
 ```markdown
-<?quiz?>
+<quiz>
 What is MkDocs?
 - [x] A static site generator
 - [ ] A database
@@ -83,10 +83,10 @@ MkDocs is a **fast**, **simple** static site generator built with Python.
 
 - [Official Documentation](https://www.mkdocs.org)
 - [GitHub Repository](https://github.com/mkdocs/mkdocs)
-<?/quiz?>
+</quiz>
 ```
 
-<?quiz?>
+<quiz>
 What is MkDocs?
 - [x] A static site generator
 - [ ] A database
@@ -98,7 +98,7 @@ MkDocs is a **fast**, **simple** static site generator built with Python.
 
 - [Official Documentation](https://www.mkdocs.org)
 - [GitHub Repository](https://github.com/mkdocs/mkdocs)
-<?/quiz?>
+</quiz>
 
 ## Next Steps
 

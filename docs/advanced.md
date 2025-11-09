@@ -67,25 +67,25 @@ mkdocs-quiz migrate docs/
 This converts:
 
 ```markdown
-<?quiz?>
+<quiz>
 question: What is 2+2?
 answer-correct: 4
 answer: 3
 answer: 5
 content:
 Correct!
-<?/quiz?>
+</quiz>
 ```
 
 To:
 
 ```markdown
-<?quiz?>
+<quiz>
 What is 2+2?
 - [x] 4
 - [ ] 3
 - [ ] 5
 
 Correct!
-<?/quiz?>
+</quiz>
 ```

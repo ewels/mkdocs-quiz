@@ -10,7 +10,7 @@ A quiz with one correct answer displays as radio buttons:
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     What is the answer to the following sum?
     ```
     2 + 2
@@ -24,12 +24,12 @@ A quiz with one correct answer displays as radio buttons:
     def checksum(a):
         assert 2 + 2 == 4
     ```
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ~~~markdown
-    <?quiz?>
+    <quiz>
     What is the answer to the following sum?
     ```
     2 + 2
@@ -43,7 +43,7 @@ A quiz with one correct answer displays as radio buttons:
     def checksum(a):
         assert 2 + 2 == 4
     ```
-    <?/quiz?>
+    </quiz>
     ~~~
 
 ### Multiple Choice Quiz
@@ -52,7 +52,7 @@ A quiz with multiple correct answers displays as checkboxes:
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     Which of these are even numbers?
     - [x] 2
     - [ ] 3
@@ -60,12 +60,12 @@ A quiz with multiple correct answers displays as checkboxes:
     - [ ] 5
 
     Great! 2 and 4 are both even numbers.
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ```markdown
-    <?quiz?>
+    <quiz>
     Which of these are even numbers?
     - [x] 2
     - [ ] 3
@@ -73,7 +73,7 @@ A quiz with multiple correct answers displays as checkboxes:
     - [ ] 5
 
     Great! 2 and 4 are both even numbers.
-    <?/quiz?>
+    </quiz>
     ```
 
     **Key difference:** When there are multiple `- [x]` correct answers, checkboxes are displayed instead of radio buttons, and users must select all correct answers.
@@ -84,20 +84,20 @@ The content section is optional:
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     Is Python a programming language?
     - [x] Yes
     - [ ] No
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ```markdown
-    <?quiz?>
+    <quiz>
     Is Python a programming language?
     - [x] Yes
     - [ ] No
-    <?/quiz?>
+    </quiz>
     ```
 
 ## Answer Syntax Variations
@@ -117,26 +117,26 @@ Questions can include markdown formatting like bold, italics, and code:
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     What is the result of `2 ** 3` in **Python**?
     - [ ] 6
     - [x] 8
     - [ ] 9
 
     The `**` operator is exponentiation: 2<sup>3</sup> = 8
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ```markdown
-    <?quiz?>
+    <quiz>
     What is the result of `2 ** 3` in **Python**?
     - [ ] 6
     - [x] 8
     - [ ] 9
 
     The `**` operator is exponentiation: 2<sup>3</sup> = 8
-    <?/quiz?>
+    </quiz>
     ```
 
 ### Markdown in Answers
@@ -145,26 +145,26 @@ Answers can also include markdown:
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     Which is the correct Python syntax?
     - [ ] `print "Hello"`
     - [x] `print("Hello")`
     - [ ] `echo "Hello"`
 
     In Python 3, `print()` is a function, not a statement.
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ```markdown
-    <?quiz?>
+    <quiz>
     Which is the correct Python syntax?
     - [ ] `print "Hello"`
     - [x] `print("Hello")`
     - [ ] `echo "Hello"`
 
     In Python 3, `print()` is a function, not a statement.
-    <?/quiz?>
+    </quiz>
     ```
 
 ## Rich Content Section
@@ -175,7 +175,7 @@ The content section supports full markdown formatting including headers, bold/it
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     What is MkDocs?
     - [x] A static site generator
     - [ ] A database
@@ -194,12 +194,12 @@ The content section supports full markdown formatting including headers, bold/it
     - Themeable with many themes available
 
     [Learn more at mkdocs.org](https://www.mkdocs.org)
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ````markdown
-    <?quiz?>
+    <quiz>
     What is MkDocs?
     - [x] A static site generator
     - [ ] A database
@@ -218,7 +218,7 @@ The content section supports full markdown formatting including headers, bold/it
     - Themeable with many themes available
 
     [Learn more at mkdocs.org](https://www.mkdocs.org)
-    <?/quiz?>
+    </quiz>
     ````
 
 ### Example with Code Blocks
@@ -227,7 +227,7 @@ You can include code examples in the content section:
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     Which loop syntax is correct in Python?
     - [x] `for item in items:`
     - [ ] `for (item in items)`
@@ -242,12 +242,12 @@ You can include code examples in the content section:
     ```
 
     This will print each fruit on a new line.
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     `````markdown
-    <?quiz?>
+    <quiz>
     Which loop syntax is correct in Python?
     - [x] `for item in items:`
     - [ ] `for (item in items)`
@@ -262,14 +262,14 @@ You can include code examples in the content section:
     ```
 
     This will print each fruit on a new line.
-    <?/quiz?>
+    </quiz>
     `````
 
 ### Example with Images
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     Which programming language has this logo? 🐍
     - [x] Python
     - [ ] JavaScript
@@ -278,12 +278,12 @@ You can include code examples in the content section:
     ![Random cat photo](https://cataas.com/cat)
 
     Python's logo features two intertwined snakes!
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ```markdown
-    <?quiz?>
+    <quiz>
     Which programming language has this logo? 🐍
     - [x] Python
     - [ ] JavaScript
@@ -292,14 +292,14 @@ You can include code examples in the content section:
     ![Random cat photo](https://cataas.com/cat)
 
     Python's logo features two intertwined snakes!
-    <?/quiz?>
+    </quiz>
     ```
 
 ### Example with Tables
 
 === "Example"
 
-    <?quiz?>
+    <quiz>
     What's special about this formula: E = mc²?
     - [ ] It calculates electricity
     - [x] It relates mass and energy
@@ -314,12 +314,12 @@ You can include code examples in the content section:
     | c | Speed of light |
 
     The equation reveals that mass and energy are interchangeable!
-    <?/quiz?>
+    </quiz>
 
 === "Syntax"
 
     ```markdown
-    <?quiz?>
+    <quiz>
     What's special about this formula: E = mc²?
     - [ ] It calculates electricity
     - [x] It relates mass and energy
@@ -334,7 +334,7 @@ You can include code examples in the content section:
     | c | Speed of light |
 
     The equation reveals that mass and energy are interchangeable!
-    <?/quiz?>
+    </quiz>
     ```
 
 
@@ -344,7 +344,7 @@ You can include code examples in the content section:
 2. **Checkbox syntax is recognized**: Use `- [x]`, `- [X]`, `- [ ]`, or `- []`
 3. **At least one correct answer required**: Every quiz must have at least one `- [x]` answer
 4. **Empty lines are ignored**: Blank lines between answers are okay
-5. **Question comes first**: The first line after `<?quiz?>` is always the question
+5. **Question comes first**: The first line after `<quiz>` is always the question
 
 ## See Also
 

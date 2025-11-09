@@ -26,7 +26,7 @@ This is a MkDocs plugin that hooks into the MkDocs build pipeline:
    - Quiz ranges are identified first, then only code blocks outside quizzes are masked
 
 2. **Markdown parsing** (`on_page_markdown`):
-   - Regex pattern `<\?quiz\?>(.*?)<\?/quiz\?>` finds quiz blocks
+   - Regex pattern `<quiz>(.*?)</quiz>` finds quiz blocks
    - Each quiz is passed to `_process_quiz()` method
    - Quiz syntax uses markdown checkbox lists: `- [x]` for correct answers, `- [ ]` for incorrect
    - Question is everything before the first checkbox answer

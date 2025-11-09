@@ -57,7 +57,7 @@ def convert_quiz_block(quiz_content: str) -> str:
             content_lines.append(line)
 
     # Build new quiz format
-    result = ["<?quiz?>"]
+    result = ["<quiz>"]
 
     # Add question
     if question:
@@ -79,7 +79,7 @@ def convert_quiz_block(quiz_content: str) -> str:
         result.append("")  # Empty line before content
         result.extend(content_lines)
 
-    result.append("<?/quiz?>")
+    result.append("</quiz>")
 
     return "\n".join(result)
 
