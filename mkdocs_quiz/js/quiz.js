@@ -498,7 +498,7 @@
     const resetButton = resultsDiv.querySelector(".quiz-results-reset");
     if (resetButton) {
       const handler = () => {
-        if (confirm("Are you sure you want to reset all quizzes? This will clear your progress.")) {
+        if (confirm("Are you sure you want to reset the quiz? This will clear your progress.")) {
           quizTracker.resetAllQuiz();
         }
       };
@@ -511,7 +511,7 @@
     const introResetButtons = document.querySelectorAll(".quiz-intro-reset");
     introResetButtons.forEach((button) => {
       const handler = () => {
-        if (confirm("Are you sure you want to reset all quizzes? This will clear your progress.")) {
+        if (confirm("Are you sure you want to reset the quiz? This will clear your progress.")) {
           quizTracker.resetAllQuiz();
         }
       };
