@@ -44,6 +44,10 @@
     init: function () {
       this.totalQuizzes = document.querySelectorAll(".quiz").length;
       this.loadFromStorage();
+      // Initialize wasCompleted based on restored state to prevent confetti on page load
+      // Only fire confetti when completing quizzes in the current session, not from localStorage
+      const progress = this.getProgress();
+      this.wasCompleted = progress.answered === progress.total && progress.total > 0;
       this.updateDisplay();
     },
 
