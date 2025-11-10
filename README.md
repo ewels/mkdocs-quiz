@@ -96,16 +96,16 @@ Insert these placeholder comments for some intro text with a reset button and a 
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! Please see [the contribution guidelines](https://ewels.github.io/mkdocs-quiz/contributing/) for details.
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the LICENSE file for details.
+This project is licensed under the Apache License 2.0 - see the [`LICENSE` file](LICENSE) for details.
 
 ## Credits
 
 - Original author: [Sebastian Jörz](https://github.com/skyface753)
-- Rewritten by / co-maintained by: [Phil Ewels](https://github.com/ewels)
+- Rewritten by: [Phil Ewels](https://github.com/ewels)
 
 ## Changelog
 
