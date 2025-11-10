@@ -24,18 +24,18 @@ log = logging.getLogger("mkdocs.plugins.mkdocs_quiz")
 
 # Load CSS and JS resources at module level
 try:
-    inp_file = impresources.files(css) / "quiz.css"
+    inp_file = impresources.files(css) / "quiz.css"  # type: ignore[attr-defined]
     with inp_file.open("r") as f:
         style = f.read()
     style = f'<style type="text/css">{style}</style>'
 
-    js_file = impresources.files(js) / "quiz.js"
+    js_file = impresources.files(js) / "quiz.js"  # type: ignore[attr-defined]
     with js_file.open("r") as f:
         js_content = f.read()
     js_script = f'<script type="text/javascript" defer>{js_content}</script>'
 
     # Load confetti library from vendor directory (v0.12.0)
-    confetti_file = impresources.files(js) / "vendor" / "js-confetti.browser.js"
+    confetti_file = impresources.files(js) / "vendor" / "js-confetti.browser.js"  # type: ignore[attr-defined]
     with confetti_file.open("r") as f:
         confetti_content = f.read()
     confetti_lib_script = f'<script type="text/javascript">{confetti_content}</script>'
