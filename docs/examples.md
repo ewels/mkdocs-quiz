@@ -360,10 +360,4 @@ See the [Results Screen](results-screen.md) page to read how to add one of these
 2. **Checkbox syntax is recognized**: Use `- [x]`, `- [X]`, `- [ ]`, or `- []`
 3. **At least one correct answer required**: Every quiz must have at least one `- [x]` answer
 4. **Empty lines are ignored**: Blank lines between answers are okay
-5. **Question comes first**: The first block of lines after `<quiz>` until the first checkbox is always the question
-
-## See Also
-
-- [Configuration Options](../configuration.md) - Customize quiz behavior globally
-- [Page-Level Options](page-options.md) - Examples of per-page configuration
-- [Disabled Page](disable.md) - How to disable quizzes on a page
+5. **Question comes first**: The f∂irst block of lines after `<quiz>` until the first checkbox is always the question

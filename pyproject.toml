@@ -62,7 +62,7 @@ mkdocs-quiz = "mkdocs_quiz.cli:app"
 packages = ["mkdocs_quiz"]
 
 [tool.setuptools.package-data]
-mkdocs_quiz = ["css/*", "js/*", "overrides/*"]
+mkdocs_quiz = ["css/*", "js/*", "js/vendor/*", "overrides/*"]
 
 [tool.ruff]
 line-length = 100

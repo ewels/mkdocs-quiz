@@ -123,7 +123,7 @@ Add this comment to display a results box (complete with confetti :tada:):
 
 ## Next steps
 
-- Check out [all examples](examples/index.md) to see more quiz variations
+- Check out [the examples](examples.md) to see more quiz variations
 - Read more about the [intro text](intro-text.md) and [results screen](results-screen.md)
+- Read about [auto numbering](auto-numbering.md)
 - Learn about [configuration options](configuration.md)
-- Explore [advanced features](advanced.md)

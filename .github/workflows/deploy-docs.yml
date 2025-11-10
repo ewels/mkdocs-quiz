@@ -23,6 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Dereference symlinks and convert to lowercase
+      - name: Dereference symlinks and ensure lowercase
+        run: |
+          rm docs/changelog.md docs/contributing.md
+          cp CHANGELOG.md docs/changelog.md
+          cp CONTRIBUTING.md docs/contributing.md
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
