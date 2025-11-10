@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 import logging
 import re
+import threading
 from importlib import resources as impresources
 from pathlib import Path
 from textwrap import dedent
@@ -44,8 +45,20 @@ except OSError as e:
     js_script = ""
     confetti_lib_script = ""
 
-# Initialize markdown converter for inline content (questions and answers)
-markdown_converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
+# Thread-local storage for markdown converter (thread-safe for parallel builds)
+_markdown_converter_local = threading.local()
+
+
+def get_markdown_converter() -> md.Markdown:
+    """Get or create a thread-local markdown converter instance.
+
+    Returns:
+        A thread-local Markdown converter instance.
+    """
+    if not hasattr(_markdown_converter_local, "converter"):
+        _markdown_converter_local.converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
+    return _markdown_converter_local.converter
+
 
 # Quiz tag format:
 # <quiz>
@@ -73,12 +86,13 @@ def convert_inline_markdown(text: str) -> str:
         The HTML string with wrapping <p> tags removed.
     """
     # Reset the converter state
-    markdown_converter.reset()
-    html = markdown_converter.convert(text)
+    converter = get_markdown_converter()
+    converter.reset()
+    html_content = converter.convert(text)
     # Remove wrapping <p> tags for inline content
-    if html.startswith("<p>") and html.endswith("</p>"):
-        html = html[3:-4]
-    return html
+    if html_content.startswith("<p>") and html_content.endswith("</p>"):
+        html_content = html_content[3:-4]
+    return html_content
 
 
 class MkDocsQuizPlugin(BasePlugin):
@@ -104,7 +118,7 @@ class MkDocsQuizPlugin(BasePlugin):
         # Track if intro is present on each page
         self._has_intro: dict[str, bool] = {}
 
-    def on_env(self, env, config, files):
+    def on_env(self, env: Any, config: MkDocsConfig, files: Files) -> Any:
         """Add our template directory to the Jinja2 environment.
 
         This allows us to override the toc.html partial to add the quiz progress sidebar.
@@ -451,8 +465,9 @@ class MkDocsQuizPlugin(BasePlugin):
             raise ValueError("Quiz must have at least one correct answer")
 
         # Convert question markdown to HTML (supports multi-line questions with markdown)
-        markdown_converter.reset()
-        question = markdown_converter.convert(question_text)
+        converter = get_markdown_converter()
+        converter.reset()
+        question = converter.convert(question_text)
 
         # Generate answer HTML
         answer_html_list, as_checkboxes = self._generate_answer_html(
@@ -466,8 +481,9 @@ class MkDocsQuizPlugin(BasePlugin):
         if content_lines:
             content_text = "\n".join(content_lines)
             # Use full markdown conversion for content section
-            markdown_converter.reset()
-            content_html = markdown_converter.convert(content_text)
+            converter = get_markdown_converter()
+            converter.reset()
+            content_html = converter.convert(content_text)
 
         # Build data attributes for quiz options
         data_attrs = []
