@@ -361,18 +361,16 @@ Second question?
 
 
 def test_invalid_quiz_format(plugin, mock_page, mock_config):
-    """Test that invalid quiz format is handled gracefully."""
+    """Test that invalid quiz format raises ValueError and crashes build."""
     markdown = """
 <quiz>
 This is not a valid quiz format
 </quiz>
 """
 
-    # Should not raise an exception
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-
-    # Original markdown should remain since quiz processing failed
-    assert "<quiz>" in result
+    # Should raise ValueError (no answers found) and crash the build
+    with pytest.raises(ValueError, match=r"Quiz must have at least one answer"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
 
 
 def test_quiz_in_fenced_code_block(plugin, mock_page, mock_config):
@@ -447,7 +445,7 @@ Test question?
 
 
 def test_empty_question_validation(plugin, mock_page, mock_config):
-    """Test that quizzes with empty questions are rejected."""
+    """Test that quizzes with empty questions raise ValueError and crash build."""
     markdown = """
 <quiz>
 
@@ -455,13 +453,13 @@ def test_empty_question_validation(plugin, mock_page, mock_config):
 - [ ] Answer 2
 </quiz>
 """
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    # Should log error but not crash - placeholder won't be replaced
-    assert "MKDOCS_QUIZ_PLACEHOLDER" not in result or result == markdown
+    # Should raise ValueError and crash the build
+    with pytest.raises(ValueError, match=r"Quiz must have a question"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
 
 
 def test_quiz_no_correct_answers(plugin, mock_page, mock_config):
-    """Test that quizzes with no correct answers are rejected."""
+    """Test that quizzes with no correct answers raise ValueError and crash build."""
     markdown = """
 <quiz>
 What is the answer?
@@ -469,9 +467,9 @@ What is the answer?
 - [ ] Wrong 2
 </quiz>
 """
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    # Should log error but not crash
-    assert "MKDOCS_QUIZ_PLACEHOLDER" not in result or result == markdown
+    # Should raise ValueError and crash the build
+    with pytest.raises(ValueError, match=r"Quiz must have at least one correct answer"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
 
 
 def test_quiz_all_correct_answers(plugin, mock_page, mock_config):
@@ -701,17 +699,16 @@ Same question?
 
 
 def test_quiz_with_only_answers_no_question(plugin, mock_page, mock_config):
-    """Test that quiz with missing question text is validated."""
+    """Test that quiz with missing question raises ValueError and crashes build."""
     markdown = """
 <quiz>
 - [x] Answer 1
 - [ ] Answer 2
 </quiz>
 """
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-
-    # Should validate and reject empty question
-    assert "MKDOCS_QUIZ_PLACEHOLDER" not in result or result == markdown
+    # Should raise ValueError and crash the build
+    with pytest.raises(ValueError, match=r"Quiz must have a question"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
 
 
 def test_capital_x_in_checkbox(plugin, mock_page, mock_config):
@@ -731,43 +728,79 @@ Capital X test?
     assert 'type="radio"' in html_result
 
 
-def test_malformed_checkbox_y(plugin, mock_page, mock_config):
-    """Test that malformed checkboxes with 'y' are treated as incorrect."""
+def test_malformed_checkbox_y_raises_error(plugin, mock_page, mock_config):
+    """Test that malformed checkbox with 'y' raises ValueError and crashes build."""
     markdown = """
 <quiz>
 Question?
-- [y] This should NOT be correct
-- [x] This IS correct
+- [y] This should raise an error
+- [x] Correct answer
 - [ ] Wrong
 </quiz>
 """
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
-
-    # Should only have one correct answer (the [x] one)
-    # The [y] should be treated as an empty checkbox
-    assert html_result.count(' correct>') == 1
-    assert 'type="radio"' in html_result  # Single choice since only 1 correct
+    # Should raise ValueError and prevent build from completing
+    with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
 
 
-def test_malformed_checkbox_various(plugin, mock_page, mock_config):
-    """Test various malformed checkbox formats."""
+def test_malformed_checkbox_checkmark_raises_error(plugin, mock_page, mock_config):
+    """Test that checkmark symbol raises ValueError."""
     markdown = """
 <quiz>
 Question?
-- [✓] Check mark (treated as incorrect)
+- [✓] Check mark should raise error
 - [x] Correct
-- [*] Star (treated as incorrect)
-- [ ] Empty
+</quiz>
+"""
+    with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[✓\]"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+
+def test_malformed_checkbox_star_raises_error(plugin, mock_page, mock_config):
+    """Test that star symbol raises ValueError."""
+    markdown = """
+<quiz>
+Question?
+- [*] Star should raise error
+- [x] Correct
+</quiz>
+"""
+    with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[\*\]"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+
+def test_malformed_checkbox_lowercase_o_raises_error(plugin, mock_page, mock_config):
+    """Test that lowercase 'o' raises ValueError."""
+    markdown = """
+<quiz>
+Question?
+- [o] Should raise error
+- [x] Correct
+</quiz>
+"""
+    with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[o\]"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+
+def test_all_valid_checkbox_formats(plugin, mock_page, mock_config):
+    """Test that all valid checkbox formats are accepted: [x], [X], [ ], []."""
+    markdown = """
+<quiz>
+Which are valid?
+- [x] Lowercase x (correct)
+- [X] Uppercase X (correct)
+- [ ] Space (incorrect)
+- [] Empty (incorrect)
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
 
-    # Should only recognize [x] as correct
-    assert html_result.count(' correct>') == 1
-    # Should have 4 answer options
-    assert html_result.count('type="radio"') == 4
+    # Should process successfully with all 4 formats
+    assert 'type="checkbox"' in html_result  # Multiple correct = checkboxes
+    assert html_result.count('type="checkbox"') == 4
+    # Both [x] and [X] should be marked as correct
+    assert html_result.count(' correct>') == 2
 
 
 def test_very_long_quiz_content(plugin, mock_page, mock_config):
@@ -815,7 +848,7 @@ What does <div class="test"> & "quotes" do?
 
 
 def test_quiz_with_only_empty_checkboxes(plugin, mock_page, mock_config):
-    """Test quiz with all empty checkboxes (no correct answers)."""
+    """Test quiz with all empty checkboxes raises ValueError and crashes build."""
     markdown = """
 <quiz>
 Question?
@@ -824,9 +857,9 @@ Question?
 - [ ] Answer 3
 </quiz>
 """
-    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    # Should be rejected (no correct answers)
-    assert "MKDOCS_QUIZ_PLACEHOLDER" not in result or result == markdown
+    # Should raise ValueError (no correct answers) and crash the build
+    with pytest.raises(ValueError, match=r"Quiz must have at least one correct answer"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
 
 
 def test_nested_lists_in_quiz_content(plugin, mock_page, mock_config):

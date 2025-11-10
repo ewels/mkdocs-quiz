@@ -207,11 +207,20 @@ class MkDocsQuizPlugin(BasePlugin):
         Returns:
             A tuple of (question_text, all_answers, correct_answers, content_start_index).
         """
-        # Find the first answer line
+        # Find the first answer line and validate checkbox format
         first_answer_index = None
         for i, line in enumerate(quiz_lines):
-            # Check if this is a checkbox list item: - [x], - [X], - [ ], or - []
-            if re.match(r"^- \[([xX ]?)\] (.*)$", line):
+            # Check if this looks like a checkbox list item (any character in brackets)
+            checkbox_check = re.match(r"^- \[(.?)\] (.*)$", line)
+            if checkbox_check:
+                checkbox_content = checkbox_check.group(1)
+                # Strictly validate: only accept x, X, space, or empty
+                if checkbox_content not in ["x", "X", " ", ""]:
+                    raise ValueError(
+                        f"Invalid checkbox format: '- [{checkbox_content}]'. "
+                        f"Only '- [x]', '- [X]', '- [ ]', or '- []' are allowed. "
+                        f"Found in line: {line}"
+                    )
                 first_answer_index = i
                 break
 
@@ -231,12 +240,19 @@ class MkDocsQuizPlugin(BasePlugin):
         content_start_index = first_answer_index
 
         for i, line in enumerate(quiz_lines[first_answer_index:], start=first_answer_index):
-            # Check if this is a checkbox list item: - [x], - [X], - [ ], or - []
-            match = re.match(r"^- \[([xX ]?)\] (.*)$", line)
-            if match:
-                checkbox_content = match.group(1)
+            # First check if this looks like a checkbox item (any character in brackets)
+            checkbox_pattern = re.match(r"^- \[(.?)\] (.*)$", line)
+            if checkbox_pattern:
+                checkbox_content = checkbox_pattern.group(1)
+                # Strictly validate: only accept x, X, space, or empty
+                if checkbox_content not in ["x", "X", " ", ""]:
+                    raise ValueError(
+                        f"Invalid checkbox format: '- [{checkbox_content}]'. "
+                        f"Only '- [x]', '- [X]', '- [ ]', or '- []' are allowed. "
+                        f"Found in line: {line}"
+                    )
                 is_correct = checkbox_content.lower() == "x"
-                answer_text = match.group(2)
+                answer_text = checkbox_pattern.group(2)
                 answer_html = convert_inline_markdown(answer_text)
                 all_answers.append(answer_html)
                 if is_correct:
@@ -411,7 +427,11 @@ class MkDocsQuizPlugin(BasePlugin):
                 segments.append(placeholder)
                 last_end = match.end()
 
+            except ValueError:
+                # Re-raise ValueError to crash the build (malformed quiz)
+                raise
             except Exception as e:
+                # Log other errors but continue
                 log.error(f"Failed to process quiz {quiz_id} in {page.file.src_path}: {e}")
                 # On error, include the original quiz text
                 segments.append(masked_markdown[last_end : match.end()])
