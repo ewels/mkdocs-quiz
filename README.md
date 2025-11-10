@@ -93,7 +93,6 @@ Insert these placeholder comments for some intro text with a reset button and a 
   <img src="docs/images/results_confetti.gif" alt="mkdocs-quiz">
 </picture>
 
-
 ## Contributing
 
 Contributions are welcome! Please see [the contribution guidelines](https://ewels.github.io/mkdocs-quiz/contributing/) for details.

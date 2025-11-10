@@ -70,25 +70,27 @@ The [quiz.js](mkdocs_quiz/js/quiz.js) file:
 ### Configuration Options
 
 **Plugin-level** (in `mkdocs.yml`):
+
 ```yaml
 plugins:
   - mkdocs-quiz:
-      enabled_by_default: true  # Process quizzes by default (default: true)
-      auto_number: false        # Auto-number questions (default: false)
-      show_correct: true        # Show correct answers when wrong (default: true)
-      auto_submit: true         # Auto-submit single-choice quizzes (default: true)
-      disable_after_submit: true  # Disable quiz after submission (default: true)
+      enabled_by_default: true # Process quizzes by default (default: true)
+      auto_number: false # Auto-number questions (default: false)
+      show_correct: true # Show correct answers when wrong (default: true)
+      auto_submit: true # Auto-submit single-choice quizzes (default: true)
+      disable_after_submit: true # Disable quiz after submission (default: true)
 ```
 
 **Page-level** (frontmatter overrides plugin config):
+
 ```yaml
 ---
 quiz:
-  enabled: false              # Disable quiz processing on this page
-  show_correct: false         # Don't show correct answers
-  auto_submit: false          # Require explicit submit button
+  enabled: false # Disable quiz processing on this page
+  show_correct: false # Don't show correct answers
+  auto_submit: false # Require explicit submit button
   disable_after_submit: false # Allow retries after submission
-  auto_number: true           # Number questions on this page
+  auto_number: true # Number questions on this page
 ---
 ```
 
@@ -174,6 +176,7 @@ The CLI tool ([mkdocs_quiz/cli.py](mkdocs_quiz/cli.py)) converts the legacy form
 ## Material Theme Integration
 
 When using Material for MkDocs theme:
+
 - The `on_env()` hook adds template overrides from `mkdocs_quiz/overrides/`
 - This extends the TOC sidebar to include a quiz progress widget
 - Progress sidebar only appears when page has 2+ quizzes

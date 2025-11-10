@@ -5,6 +5,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        args: [--unsafe]
       - id: check-added-large-files
       - id: check-merge-conflict
       - id: check-toml
@@ -27,5 +28,6 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-all]
+        additional_dependencies: [types-PyYAML, types-Markdown, mkdocs>=1.4.0]
         args: [--ignore-missing-imports]
+        stages: [manual]

@@ -3,7 +3,6 @@
 mkdocs-quiz requires Python 3.8 or higher and [MkDocs](https://www.mkdocs.org/) 1.0.0 or higher.
 It's designed to work with [mkdocs-material](https://squidfunk.github.io/mkdocs-material/), and is not guaranteed to work with other mkdocs themes.
 
-
 === "pip"
 
     To install mkdocs-quiz from PyPI, you can use pip:

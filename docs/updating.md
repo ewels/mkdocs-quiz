@@ -16,6 +16,7 @@ mkdocs-quiz migrate docs/
 
 This converts:
 
+<!-- prettier-ignore-start -->
 ```markdown
 <?quiz?>
 question: What is 2+2?
@@ -39,3 +40,4 @@ What is 2+2?
 Correct!
 </quiz>
 ```
+<!-- prettier-ignore-end -->

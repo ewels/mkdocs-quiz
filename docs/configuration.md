@@ -16,6 +16,7 @@ The mkdocs-quiz plugin can be configured both at plugin-wide level or page-level
 
 The full plugin-wide options in `mkdocs.yml` with their default values are as follows:
 
+<!-- prettier-ignore-start -->
 ```yaml title="mkdocs.yml"
 plugins:
   - mkdocs-quiz:
@@ -27,6 +28,7 @@ plugins:
       show_progress: true         # Show progress tracker sidebar and mobile bar
       confetti: true              # Show confetti animation when all quizzes completed
 ```
+<!-- prettier-ignore-end -->
 
 The syntax is very similar when _overriding_ any of these defaults at individual-page level:
 
@@ -40,11 +42,10 @@ quiz:
   disable_after_submit: false
   show_progress: false
 ---
-
 # Your Page Content
 
 <quiz>
-...
+[...]
 </quiz>
 ```
 

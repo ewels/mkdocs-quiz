@@ -2,6 +2,7 @@
 
 Quizzes are created using special <code>&lt;quiz&gt;</code> tags in your markdown files. The basic structure is:
 
+<!-- prettier-ignore-start -->
 ```html
 <quiz> <!-- (1)! -->
 Question text goes here <!-- (2)! -->
@@ -12,6 +13,7 @@ Question text goes here <!-- (2)! -->
 Optional content revealed after correct answer <!-- (6)! -->
 </quiz> <!-- (7)! -->
 ```
+<!-- prettier-ignore-end -->
 
 1.  Opening tag for the quiz, denotes where it starts (as long as it's not within a code block)
 2.  The question. Can be multi-line and markdown.
@@ -83,6 +85,7 @@ MkDocs is a **fast**, **simple** static site generator built with Python.
 
 - [Official Documentation](https://www.mkdocs.org)
 - [GitHub Repository](https://github.com/mkdocs/mkdocs)
+
 </quiz>
 ```
 
@@ -98,6 +101,7 @@ MkDocs is a **fast**, **simple** static site generator built with Python.
 
 - [Official Documentation](https://www.mkdocs.org)
 - [GitHub Repository](https://github.com/mkdocs/mkdocs)
+
 </quiz>
 
 ## Intro Text
@@ -109,6 +113,7 @@ Add this comment to display an info message that explains that quiz results are 
 ```
 
 !!! info
+
     <!-- mkdocs-quiz intro -->
 
 ## Results Screen

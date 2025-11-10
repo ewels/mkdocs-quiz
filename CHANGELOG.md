@@ -12,6 +12,8 @@ It modernises the codebase, changes the quiz markdown syntax, and adds a bunch o
 The quiz syntax has been completely redesigned to use a cleaner, markdown-style format. The old `question:`, `answer:`, `answer-correct:`, and `content:` syntax is **no longer supported**.
 
 **Old Syntax (v1.x):**
+
+<!-- prettier-ignore-start -->
 ```markdown
 <?quiz?>
 question: Are you ready?
@@ -22,8 +24,10 @@ content:
 <h2>Some additional content</h2>
 <?/quiz?>
 ```
+<!-- prettier-ignore-end -->
 
 **New Syntax (v2.0):**
+
 ```markdown
 <quiz>
 Are you ready?
@@ -36,6 +40,7 @@ Some additional content here
 ```
 
 **Migration:**
+
 - A CLI migration tool is provided: `mkdocs-quiz migrate`
 - Run: `mkdocs-quiz migrate docs/` to automatically convert all quiz blocks
 - Use `--dry-run` flag to preview changes without modifying files
@@ -65,17 +70,7 @@ Some additional content here
 
 #### Plugin Configuration
 
-All plugin options are configured in `mkdocs.yml`:
-
-```yaml
-plugins:
-  - mkdocs_quiz:
-      enabled_by_default: true    # Set to false for opt-in mode
-      auto_number: false          # Set to true to auto-number questions
-```
-
-- **Opt-in/opt-out mode** - `enabled_by_default: false` requires pages to explicitly enable quizzes with `quiz: enable` in front matter
-- **Auto-numbering** - `auto_number: true` automatically numbers questions as "Question 1:", "Question 2:", etc.
+All plugin options are configured in `mkdocs.yml` and can also have per-page config.
 
 #### Progress Tracking & Persistence
 

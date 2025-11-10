@@ -6,7 +6,6 @@
 
 A modern MkDocs plugin to create interactive quizzes directly in your markdown documentation. Perfect for educational content, tutorials, and documentation that requires user engagement.
 
-
 ## Features
 
 - ✨ **Simple markdown syntax** - Create quizzes using GitHub-flavored markdown checkboxes
@@ -14,6 +13,7 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - ⚡ **Instant feedback** - Visual indicators show correct/incorrect answers
 - 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti :tada:
 
+<!-- prettier-ignore-start -->
 ```html
 <quiz>
 What's the best static site generator? <!-- (1)! -->
@@ -25,6 +25,7 @@ You've come to the right place! <!-- (4)! -->
 ![Random cat gif](https://cataas.com/cat/gif)
 </quiz>
 ```
+<!-- prettier-ignore-end -->
 
 1.  Your question (supports markdown)
 2.  Correct answers are 'checked'
@@ -43,6 +44,7 @@ You've come to the right place! <!-- (4)! -->
 </quiz>
 
 !!! info
+
     <!-- mkdocs-quiz intro -->
 
 ## License
