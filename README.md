@@ -14,6 +14,10 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - 🎯 **Single and multiple choice** - One correct answer = radio buttons, multiple = checkboxes
 - ⚡ **Instant feedback** - Visual indicators show correct/incorrect answers
 - 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti :tada:
+- 💾 **Results saved** - Answers are saved to the browser's local storage
+
+> [!TIP]
+> Check out the [examples page](https://ewels.github.io/mkdocs-quiz/examples/) to see the plugin in action.
 
 ```markdown
 <quiz>
@@ -33,9 +37,6 @@ You've come to the right place!
   <source media="(prefers-color-scheme: light)" srcset="docs/images/quiz_readme.png">
   <img src="docs/images/quiz_readme.png" alt="mkdocs-quiz">
 </picture>
-
-> [!TIP]
-> Check out the [examples page](https://ewels.github.io/mkdocs-quiz/examples/) to see the plugin in action.
 
 ## Installation
 
@@ -58,8 +59,6 @@ plugins:
 
 ### 2. Create your first quiz
 
-#### Single choice quiz
-
 Create a quiz with radio buttons (only one correct answer):
 
 ```markdown
@@ -74,22 +73,24 @@ Correct! Basic math is important.
 ```
 
 Use `- [x]` for correct answers and `- [ ]` for incorrect answers.
+If multiple answers are correct, checkboxes instead of radio buttons will be shown (the user has to select all correct answers).
 
-#### Multiple choice quiz
+Insert these placeholder comments for some intro text with a reset button and a final results panel (which shoots confetti when you finish):
 
-Create a quiz with checkboxes (multiple correct answers):
+```html
+<!-- mkdocs-quiz intro -->
 
-```markdown
-<quiz>
-Which are even numbers?
-- [x] 2
-- [ ] 3
-- [x] 4
-- [ ] 5
+..quiz content here..
 
-Great! 2 and 4 are both even numbers.
-</quiz>
+<!-- mkdocs-quiz results -->
 ```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/results_confetti_dark.gif">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/results_confetti.gif">
+  <img src="docs/images/results_confetti.gif" alt="mkdocs-quiz">
+</picture>
+
 
 ## Contributing
 
