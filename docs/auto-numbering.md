@@ -5,7 +5,7 @@ quiz:
 
 # Auto-Numbering
 
-This page demonstrates the auto-numbering feature. When enabled, each quiz automatically gets a "Question N:" header.
+This page demonstrates the auto-numbering feature. When enabled, each quiz automatically gets a _Question N_ header.
 
 ## How It Works
 
@@ -79,16 +79,15 @@ What does HTML stand for?
 HTML (Hypertext Markup Language) is the standard markup language for documents designed to be displayed in a web browser.
 </quiz>
 
-## Benefits of Auto-Numbering
-
-- **Clear progression**: Users can easily see how many questions they've completed
-- **Easy reference**: Questions can be referred to by number (e.g., "See Question 3")
-- **Professional appearance**: Numbered questions look more organized in educational content
-- **Consistent styling**: The `<h4 class="quiz-number">` header has consistent styling across all quizzes
-
 ## Styling
 
-The question numbers are rendered as `<h4>` headers with the class `quiz-number`. You can customize the appearance with custom CSS:
+The question numbers are rendered as `<h4>` headers with the class `quiz-number`:
+
+```html
+<h4 class="quiz-number">Question 1</h4>
+```
+
+You can customize the appearance with custom CSS:
 
 ```css
 .quiz-number {

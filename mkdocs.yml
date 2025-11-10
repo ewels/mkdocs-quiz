@@ -17,7 +17,17 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - content.action.edit
+    - content.action.view
     - content.code.annotate
+    - content.code.copy
+    - navigation.instant
+    - navigation.top
+    - navigation.tracking
+    - navigation.sections
+    - navigation.footer
+    - search.share
+    - toc.follow
 
 plugins:
   - mkdocs_quiz:
@@ -42,6 +52,9 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
   - Overview: index.md
@@ -49,8 +62,9 @@ nav:
   - quick-start.md
   - examples.md
   - auto-numbering.md
+  - intro-text.md
   - results-screen.md
   - configuration.md
-  - advanced.md
+  - updating.md
   - Contributing: contributing.md
-  - CHANGELOG.md
+  - changelog.md

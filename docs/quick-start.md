@@ -63,7 +63,7 @@ Python and JavaScript are programming languages, while HTML and CSS are markup/s
 
 All correct answers, and only correct answers, must be selected to get the question correct.
 
-## Content Section
+## Content section
 
 The content section is an optional block of markdown that comes after the answers.
 It shows after the question has been submitted.
@@ -100,8 +100,30 @@ MkDocs is a **fast**, **simple** static site generator built with Python.
 - [GitHub Repository](https://github.com/mkdocs/mkdocs)
 </quiz>
 
-## Next Steps
+## Intro Text
+
+Add this comment to display an info message that explains that quiz results are saved to the browser's local storage and provides a "Reset quiz" button to clear all progress on the page.
+
+```markdown
+<!-- mkdocs-quiz intro -->
+```
+
+!!! info
+    <!-- mkdocs-quiz intro -->
+
+## Results Screen
+
+Add this comment to display a results box (complete with confetti :tada:):
+
+```markdown
+<!-- mkdocs-quiz results -->
+```
+
+<!-- mkdocs-quiz results -->
+
+## Next steps
 
 - Check out [all examples](examples/index.md) to see more quiz variations
+- Read more about the [intro text](intro-text.md) and [results screen](results-screen.md)
 - Learn about [configuration options](configuration.md)
 - Explore [advanced features](advanced.md)

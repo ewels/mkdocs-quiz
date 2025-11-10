@@ -356,7 +356,7 @@ You can include code examples in the content section:
 2. **Checkbox syntax is recognized**: Use `- [x]`, `- [X]`, `- [ ]`, or `- []`
 3. **At least one correct answer required**: Every quiz must have at least one `- [x]` answer
 4. **Empty lines are ignored**: Blank lines between answers are okay
-5. **Question comes first**: The first line after `<quiz>` is always the question
+5. **Question comes first**: The first block of lines after `<quiz>` until the first checkbox is always the question
 
 ## See Also
 

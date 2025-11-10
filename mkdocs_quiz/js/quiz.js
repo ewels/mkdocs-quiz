@@ -218,7 +218,7 @@ const quizTracker = {
           let message = "";
           if (progress.score >= 90) {
             scoreValue.classList.add("quiz-results-score-excellent");
-            message = "Outstanding! You're a quiz master!";
+            message = "Outstanding! You aced it!";
           } else if (progress.score >= 75) {
             scoreValue.classList.add("quiz-results-score-good");
             message = "Great job! You really know your stuff!";

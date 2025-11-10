@@ -6,18 +6,33 @@
 
 A modern MkDocs plugin to create interactive quizzes directly in your markdown documentation. Perfect for educational content, tutorials, and documentation that requires user engagement.
 
-## 📚 Documentation and examples: https://ewels.github.io/mkdocs-quiz/
+**📚 Documentation and examples: [https://ewels.github.io/mkdocs-quiz/](https://ewels.github.io/mkdocs-quiz/)**
 
 ## Features
 
 - ✨ **Simple markdown syntax** - Create quizzes using GitHub-flavored markdown checkboxes
 - 🎯 **Single and multiple choice** - One correct answer = radio buttons, multiple = checkboxes
 - ⚡ **Instant feedback** - Visual indicators show correct/incorrect answers
-- 📊 **Progress tracking** - Automatic progress sidebar (Material theme)
-- 🎨 **Full markdown support** - Questions, answers, and content support markdown and HTML
-- 🔗 **Deep linking** - Link directly to specific quizzes with anchor tags
-- 🔧 **Flexible configuration** - Global or per-page settings
-- 🚀 **No external dependencies** - Just MkDocs
+- 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti :tada:
+
+```markdown
+<quiz>
+What's the best static site generator?
+- [x] mkdocs
+- [ ] Jekyll
+- [ ] Sphinx
+
+You've come to the right place!
+
+![Random cat photo](https://cataas.com/cat)
+</quiz>
+```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/quiz_readme_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/quiz_readme.png">
+  <img src="docs/images/quiz_readme.png" alt="mkdocs-quiz">
+</picture>
 
 ## Installation
 
@@ -85,19 +100,6 @@ Check out the [live demo](https://ewels.github.io/mkdocs-quiz/) to see the plugi
 
 <img src="docs/images/quiz-multi.png" width="400rem">
 
-## Advanced Usage
-
-### Disable quizzes for a specific page
-
-To disable quiz processing on a specific page, add this to the page metadata:
-
-```yaml
----
-quiz: disable
----
-```
-
-This is useful for pages where you want to show the raw quiz syntax as documentation.
 
 ## Contributing
 

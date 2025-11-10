@@ -1,22 +1,16 @@
-# Quiz Results Screen
+# Results Screen
 
 The quiz results screen provides a dynamic end-screen that tracks your progress and displays your final score when all questions are answered.
 
+When all questions are answered, the display transforms into a celebratory completion screen with a confetti animation (if enabled) :tada:
+
 ## How It Works
 
-Add the special comment `<!-- mkdocs-quiz results -->` anywhere in your markdown to insert a results tracking panel. As you answer questions, it will show:
+Add the special comment anywhere in your markdown to insert a results tracking panel:
 
-- Number of questions answered
-- Number of correct answers
-- Completion percentage
-
-When all questions are answered, the display transforms into a celebratory completion screen with:
-
-- A large, color-coded score display
-- Encouraging messages based on your performance
-- Confetti animation (if enabled)
-- Automatic smooth scroll to bring the results into view
-- A reset button to try again
+```markdown
+<!-- mkdocs-quiz results -->
+```
 
 ## Try It Out!
 
@@ -57,15 +51,16 @@ plugins:
 ```
 
 Confetti only appears when:
+
 - The confetti option is enabled
 - All quizzes are completed
-- Your score is 60% or higher
+- Your score is 10% or higher
 
 ### Score Thresholds
 
 The results screen uses color-coded feedback based on your score:
 
-- **90%+**: Excellent (green) - "Outstanding! You're a quiz master!"
+- **90%+**: Excellent (green) - "Outstanding! You aced it!"
 - **75-89%**: Good (light green) - "Great job! You really know your stuff!"
 - **60-74%**: Average (yellow) - "Good effort! Keep learning!"
 - **40-59%**: Poor (orange) - "Not bad, but there's room for improvement!"
@@ -75,15 +70,9 @@ The results screen uses color-coded feedback based on your score:
 
 Simply add the comment where you want the results screen to appear:
 
-```markdown
+```markdown hl_lines="7"
 <quiz>
-Your first quiz question here
-- [x] Correct answer
-- [ ] Wrong answer
-</quiz>
-
-<quiz>
-Your second quiz question here
+Your first quiz questions here
 - [x] Correct answer
 - [ ] Wrong answer
 </quiz>
