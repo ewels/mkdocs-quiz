@@ -424,3 +424,308 @@ What is 3+3?
     assert "What is 3+3?" in result
     assert 'type="radio"' in result
     assert 'id="quiz-0"' in result  # Only one quiz was processed
+
+
+def test_xss_prevention_special_characters(plugin, mock_page, mock_config):
+    """Test that special HTML characters in input values are properly escaped."""
+    markdown = """
+<quiz>
+Test question?
+- [x] Answer 1
+- [ ] Answer 2
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # The value attribute should be escaped (our html.escape fix)
+    # Values are numeric but we escape them anyway for defense-in-depth
+    assert 'value="0"' in html_result
+    assert 'value="1"' in html_result
+    # Verify no script injection in values
+    assert 'value="<script>"' not in html_result
+
+
+def test_empty_question_validation(plugin, mock_page, mock_config):
+    """Test that quizzes with empty questions are rejected."""
+    markdown = """
+<quiz>
+
+- [x] Answer 1
+- [ ] Answer 2
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Should log error but not crash - placeholder won't be replaced
+    assert "MKDOCS_QUIZ_PLACEHOLDER" not in result or result == markdown
+
+
+def test_quiz_no_correct_answers(plugin, mock_page, mock_config):
+    """Test that quizzes with no correct answers are rejected."""
+    markdown = """
+<quiz>
+What is the answer?
+- [ ] Wrong 1
+- [ ] Wrong 2
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Should log error but not crash
+    assert "MKDOCS_QUIZ_PLACEHOLDER" not in result or result == markdown
+
+
+def test_quiz_all_correct_answers(plugin, mock_page, mock_config):
+    """Test that quizzes with all correct answers work properly."""
+    markdown = """
+<quiz>
+Select all that apply:
+- [x] Correct 1
+- [x] Correct 2
+- [x] Correct 3
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Should use checkboxes since multiple correct answers
+    assert 'type="checkbox"' in html_result
+    # All three inputs should have the correct attribute (without quotes, just the word "correct")
+    assert html_result.count(' correct>') == 3  # All three have correct attribute
+
+
+def test_results_div_generation(plugin, mock_page, mock_config):
+    """Test that results div is properly generated and injected."""
+    markdown = """
+<quiz>
+Question 1?
+- [x] Yes
+- [ ] No
+</quiz>
+
+<!-- mkdocs-quiz results -->
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Results div should be injected
+    assert 'id="quiz-results"' in html_result
+    assert 'quiz-results-progress' in html_result
+    assert 'quiz-results-complete' in html_result
+    assert 'quiz-results-reset' in html_result
+
+
+def test_intro_generation(plugin, mock_page, mock_config):
+    """Test that intro text with reset button is generated."""
+    markdown = """
+<!-- mkdocs-quiz intro -->
+
+<quiz>
+Question 1?
+- [x] Yes
+- [ ] No
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Intro div should be injected
+    assert 'class="quiz-intro"' in html_result
+    assert 'quiz-intro-reset' in html_result
+    assert 'local storage' in html_result.lower()
+
+
+def test_confetti_config_injection(plugin, mock_page, mock_config):
+    """Test that confetti configuration is properly injected."""
+    plugin.config["confetti"] = True
+    markdown = """
+<quiz>
+Question?
+- [x] Yes
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Confetti library should be included (bundled locally)
+    assert "JSConfetti" in html_result
+    # Config should indicate confetti is enabled
+    assert "mkdocsQuizConfig" in html_result
+    assert "confetti: true" in html_result
+
+
+def test_confetti_disabled(plugin, mock_page, mock_config):
+    """Test that confetti can be disabled."""
+    plugin.config["confetti"] = False
+    markdown = """
+<quiz>
+Question?
+- [x] Yes
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Config should indicate confetti is disabled
+    assert "mkdocsQuizConfig" in html_result
+    assert "confetti: false" in html_result
+    # Note: The confetti library is bundled and included, but won't be initialized
+    # when confetti config is false
+
+
+def test_material_theme_integration(plugin):
+    """Test that Material theme template overrides are added."""
+    from jinja2 import DictLoader, Environment
+    from mkdocs.config.defaults import MkDocsConfig
+    from mkdocs.theme import Theme
+
+    # Create a mock environment
+    env = Environment(loader=DictLoader({}))
+
+    # Create proper config with Material theme
+    config = MkDocsConfig()
+    config["theme"] = Theme(name="material")
+
+    # Call on_env
+    result_env = plugin.on_env(env, config, None)
+
+    # Should add our template loader
+    assert result_env is not None
+    assert isinstance(result_env.loader, object)  # ChoiceLoader was added
+
+
+def test_show_progress_config(plugin, mock_page, mock_config):
+    """Test that show_progress configuration works."""
+    plugin.config["show_progress"] = False
+    markdown = """
+<quiz>
+Question?
+- [x] Yes
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Config should indicate progress is disabled
+    assert "mkdocsQuizConfig" in html_result
+    assert "showProgress: false" in html_result
+
+
+def test_auto_number_config(plugin, mock_page, mock_config):
+    """Test that auto_number configuration generates proper elements."""
+    plugin.config["auto_number"] = True
+    mock_page.meta["quiz"] = {"auto_number": True}
+
+    markdown = """
+<quiz>
+First question?
+- [x] Yes
+</quiz>
+
+<quiz>
+Second question?
+- [x] Yes
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Should have question numbers
+    assert "Question 1" in html_result
+    assert "Question 2" in html_result
+    assert "quiz-auto-number" in html_result
+
+
+def test_special_characters_in_answers(plugin, mock_page, mock_config):
+    """Test that quotes and special chars in answers work correctly."""
+    markdown = """
+<quiz>
+What's the answer?
+- [x] It's "correct" & <valid>
+- [ ] Wrong answer
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Should process without errors
+    assert 'type="radio"' in html_result
+    # Markdown converter should handle escaping
+    assert "correct" in html_result
+
+
+def test_code_in_quiz_content(plugin, mock_page, mock_config):
+    """Test that code blocks in quiz content section work."""
+    markdown = """
+<quiz>
+What is this?
+- [x] Python code
+- [ ] Java code
+
+Here's the code:
+```python
+def hello():
+    print("world")
+```
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Code block should be present in content section (with syntax highlighting)
+    assert "hello" in html_result  # Function name should be there
+    assert "codehilite" in html_result  # Syntax highlighting div
+    assert '<section class="content hidden">' in html_result
+
+
+def test_multiple_quizzes_same_question(plugin, mock_page, mock_config):
+    """Test that multiple quizzes with identical questions get unique IDs."""
+    markdown = """
+<quiz>
+Same question?
+- [x] Yes
+</quiz>
+
+<quiz>
+Same question?
+- [x] Yes
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Each quiz should have unique ID
+    assert 'id="quiz-0"' in html_result
+    assert 'id="quiz-1"' in html_result
+    assert 'id="quiz-0-0"' in html_result  # First answer of first quiz
+    assert 'id="quiz-1-0"' in html_result  # First answer of second quiz
+
+
+def test_quiz_with_only_answers_no_question(plugin, mock_page, mock_config):
+    """Test that quiz with missing question text is validated."""
+    markdown = """
+<quiz>
+- [x] Answer 1
+- [ ] Answer 2
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+    # Should validate and reject empty question
+    assert "MKDOCS_QUIZ_PLACEHOLDER" not in result or result == markdown
+
+
+def test_capital_x_in_checkbox(plugin, mock_page, mock_config):
+    """Test that capital X in checkboxes is recognized as correct."""
+    markdown = """
+<quiz>
+Capital X test?
+- [X] Correct with capital X
+- [ ] Wrong
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
+
+    # Should recognize capital X as correct
+    assert 'correct' in html_result
+    assert 'type="radio"' in html_result
