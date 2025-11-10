@@ -14,6 +14,26 @@
     }
   }
 
+  // Function to move quiz progress sidebar into TOC sidebar
+  // This needs to run on every page load for Material instant navigation
+  function repositionSidebar() {
+    const sidebar = document.getElementById("quiz-progress-sidebar");
+    const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner");
+
+    if (sidebar && tocSidebar) {
+      // Check if sidebar is already in the correct position
+      // by seeing if it's already a child of tocSidebar
+      if (!tocSidebar.contains(sidebar)) {
+        // Move sidebar to the top of the TOC sidebar
+        if (tocSidebar.firstChild) {
+          tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
+        } else {
+          tocSidebar.appendChild(sidebar);
+        }
+      }
+    }
+  }
+
   // Global quiz tracker
   const quizTracker = {
     quizzes: {},
@@ -360,9 +380,14 @@
   // Initialize tracker
   quizTracker.init();
 
+  // Reposition sidebar for Material theme TOC integration
+  // Must run on every page load to support instant navigation
+  repositionSidebar();
+
   // Create sidebar after page loads
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
+      repositionSidebar();
       quizTracker.createSidebar();
       initializeResultsDiv();
       initializeIntroResetButtons();

@@ -11,21 +11,7 @@
   <!-- Include the original sidebar navigation -->
   {{ super() }}
 
-  <!-- Move the quiz progress sidebar into the TOC sidebar -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Find the sidebar and TOC sidebar
-      const sidebar = document.getElementById('quiz-progress-sidebar');
-      const tocSidebar = document.querySelector('.md-sidebar--secondary .md-sidebar__inner');
-
-      if (sidebar && tocSidebar && tocSidebar.firstChild) {
-        // Move sidebar to the top of the TOC sidebar
-        tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
-      }
-    });
-  </script>
-
-  <!-- Quiz progress sidebar - will be moved to TOC by script above -->
+  <!-- Quiz progress sidebar - will be moved to TOC by quiz.js -->
   <nav id="quiz-progress-sidebar" class="md-nav md-nav--secondary" aria-label="Quiz Progress" style="display: none;">
     <label class="md-nav__title" for="__quiz-progress">
       <span class="md-nav__icon md-icon"></span>
