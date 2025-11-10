@@ -185,7 +185,7 @@ def migrate(
 
     console.print()
     if total_files_modified == 0:
-        console.print("[blue]ℹ️  No quiz blocks found to migrate[/blue]")
+        console.print("[blue]🤷🏻‍♂️ No quiz blocks found to migrate[/blue]")
     else:
         console.print("[green bold]✨ Migration complete![/green bold]")
         action = "would be" if dry_run else "were"
