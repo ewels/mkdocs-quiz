@@ -23,6 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Dereference symlinks for proper MkDocs building
+      - name: Dereference symlinks
+        run: |
+          find docs -type l -exec sh -c 'cp --remove-destination "$(readlink -f "$1")" "$1"' _ {} \;
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
