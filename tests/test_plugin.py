@@ -413,7 +413,9 @@ What is 3+3?
     assert "~~~" in markdown_result
     assert markdown_result.count("<quiz>") == 2  # Two in code blocks
     assert markdown_result.count("</quiz>") == 2  # Two in code blocks
-    assert "<!-- MKDOCS_QUIZ_PLACEHOLDER_0 -->" in markdown_result  # Real quiz was converted to placeholder
+    assert (
+        "<!-- MKDOCS_QUIZ_PLACEHOLDER_0 -->" in markdown_result
+    )  # Real quiz was converted to placeholder
 
     # Process content phase (convert placeholders to actual HTML)
     result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)
@@ -488,7 +490,7 @@ Select all that apply:
     # Should use checkboxes since multiple correct answers
     assert 'type="checkbox"' in html_result
     # All three inputs should have the correct attribute (without quotes, just the word "correct")
-    assert html_result.count(' correct>') == 3  # All three have correct attribute
+    assert html_result.count(" correct>") == 3  # All three have correct attribute
 
 
 def test_results_div_generation(plugin, mock_page, mock_config):
@@ -507,9 +509,9 @@ Question 1?
 
     # Results div should be injected
     assert 'id="quiz-results"' in html_result
-    assert 'quiz-results-progress' in html_result
-    assert 'quiz-results-complete' in html_result
-    assert 'quiz-results-reset' in html_result
+    assert "quiz-results-progress" in html_result
+    assert "quiz-results-complete" in html_result
+    assert "quiz-results-reset" in html_result
 
 
 def test_intro_generation(plugin, mock_page, mock_config):
@@ -528,8 +530,8 @@ Question 1?
 
     # Intro div should be injected
     assert 'class="quiz-intro"' in html_result
-    assert 'quiz-intro-reset' in html_result
-    assert 'local storage' in html_result.lower()
+    assert "quiz-intro-reset" in html_result
+    assert "local storage" in html_result.lower()
 
 
 def test_confetti_config_injection(plugin, mock_page, mock_config):
@@ -724,7 +726,7 @@ Capital X test?
     html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)
 
     # Should recognize capital X as correct
-    assert 'correct' in html_result
+    assert "correct" in html_result
     assert 'type="radio"' in html_result
 
 
@@ -739,7 +741,10 @@ Question?
 </quiz>
 """
     # Should raise ValueError and prevent build from completing
-    with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed"):
+    with pytest.raises(
+        ValueError,
+        match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed",
+    ):
         plugin.on_page_markdown(markdown, mock_page, mock_config)
 
 
@@ -800,7 +805,7 @@ Which are valid?
     assert 'type="checkbox"' in html_result  # Multiple correct = checkboxes
     assert html_result.count('type="checkbox"') == 4
     # Both [x] and [X] should be marked as correct
-    assert html_result.count(' correct>') == 2
+    assert html_result.count(" correct>") == 2
 
 
 def test_very_long_quiz_content(plugin, mock_page, mock_config):
@@ -808,7 +813,12 @@ def test_very_long_quiz_content(plugin, mock_page, mock_config):
     # Generate a long question and many answers
     long_question = "Question? " + ("This is a very long question. " * 50)
     # Use text without hyphens to avoid confusion with list items
-    answers = "\n".join([f"- [{'x' if i == 0 else ' '}] Answer {i} with lots of words " + ("word " * 20) for i in range(20)])
+    answers = "\n".join(
+        [
+            f"- [{'x' if i == 0 else ' '}] Answer {i} with lots of words " + ("word " * 20)
+            for i in range(20)
+        ]
+    )
     long_content = "\n\nContent section with lots of text.\n\n" + ("This is content. " * 100)
 
     markdown = f"""
@@ -825,7 +835,7 @@ def test_very_long_quiz_content(plugin, mock_page, mock_config):
     assert 'type="radio"' in html_result
     # At least 20 radio buttons (exact count may vary based on parsing)
     assert html_result.count('type="radio"') >= 20
-    assert 'correct' in html_result
+    assert "correct" in html_result
     assert "Content section with lots of text" in html_result
 
 
