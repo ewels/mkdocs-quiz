@@ -32,10 +32,17 @@ try:
     with js_file.open("rt") as f:
         js_content = f.read()
     js_script = f'<script type="text/javascript" defer>{js_content}</script>'
+
+    # Load confetti library from vendor directory (v0.12.0)
+    confetti_file = impresources.files(js) / "vendor" / "js-confetti.browser.js"
+    with confetti_file.open("rt") as f:
+        confetti_content = f.read()
+    confetti_lib_script = f'<script type="text/javascript">{confetti_content}</script>'
 except OSError as e:
     log.error(f"Failed to load CSS/JS resources: {e}")
     style = ""
     js_script = ""
+    confetti_lib_script = ""
 
 # Initialize markdown converter for inline content (questions and answers)
 markdown_converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
@@ -614,11 +621,12 @@ class MkDocsQuizPlugin(BasePlugin):
             """
             ).strip()
 
-        # Add confetti configuration
+        # Add confetti library if enabled
         confetti_enabled = self.config.get("confetti", True)
         confetti_script = ""
         if confetti_enabled:
-            confetti_script = '<script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>'
+            # Use bundled confetti library (v0.12.0) instead of external CDN
+            confetti_script = confetti_lib_script
 
         # Add configuration object for JavaScript
         show_progress = options.get("show_progress", True)
