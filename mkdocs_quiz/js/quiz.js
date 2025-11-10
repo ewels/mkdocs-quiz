@@ -7,6 +7,9 @@
   // Confetti instance (will be initialized if enabled)
   let jsConfetti = null;
 
+  // Store event listeners for cleanup
+  let eventListeners = [];
+
   // Initialize confetti if enabled
   if (window.mkdocsQuizConfig && window.mkdocsQuizConfig.confetti) {
     if (typeof JSConfetti !== "undefined") {
@@ -17,21 +20,38 @@
   // Function to move quiz progress sidebar into TOC sidebar
   // This needs to run on every page load for Material instant navigation
   function repositionSidebar() {
-    const sidebar = document.getElementById("quiz-progress-sidebar");
-    const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner");
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      const sidebar = document.getElementById("quiz-progress-sidebar");
+      const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner");
 
-    if (sidebar && tocSidebar) {
-      // Check if sidebar is already in the correct position
-      // by seeing if it's already a child of tocSidebar
-      if (!tocSidebar.contains(sidebar)) {
-        // Move sidebar to the top of the TOC sidebar
-        if (tocSidebar.firstChild) {
-          tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
-        } else {
-          tocSidebar.appendChild(sidebar);
+      if (sidebar && tocSidebar) {
+        // Check if sidebar is already in the correct position
+        // by seeing if it's already a child of tocSidebar
+        if (!tocSidebar.contains(sidebar)) {
+          // Move sidebar to the top of the TOC sidebar
+          if (tocSidebar.firstChild) {
+            tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
+          } else {
+            tocSidebar.appendChild(sidebar);
+          }
         }
       }
-    }
+    });
+  }
+
+  // Cleanup function to remove event listeners and prevent memory leaks
+  function cleanup() {
+    eventListeners.forEach(({ element, event, handler }) => {
+      element.removeEventListener(event, handler);
+    });
+    eventListeners = [];
+  }
+
+  // Helper function to add tracked event listeners
+  function addTrackedEventListener(element, event, handler) {
+    element.addEventListener(event, handler);
+    eventListeners.push({ element, event, handler });
   }
 
   // Global quiz tracker
@@ -418,12 +438,13 @@
       // Initialize reset button event listeners
       const resetLinks = document.querySelectorAll(".quiz-reset-all-link");
       resetLinks.forEach((resetLink) => {
-        resetLink.addEventListener("click", (e) => {
+        const handler = (e) => {
           e.preventDefault();
           if (confirm("Are you sure you want to reset the quiz? This will clear your progress.")) {
             quizTracker.resetAllQuiz();
           }
-        });
+        };
+        addTrackedEventListener(resetLink, "click", handler);
       });
 
       // Update the sidebar with initial values
@@ -476,11 +497,12 @@
 
     const resetButton = resultsDiv.querySelector(".quiz-results-reset");
     if (resetButton) {
-      resetButton.addEventListener("click", () => {
+      const handler = () => {
         if (confirm("Are you sure you want to reset all quizzes? This will clear your progress.")) {
           quizTracker.resetAllQuiz();
         }
-      });
+      };
+      addTrackedEventListener(resetButton, "click", handler);
     }
   }
 
@@ -488,11 +510,12 @@
   function initializeIntroResetButtons() {
     const introResetButtons = document.querySelectorAll(".quiz-intro-reset");
     introResetButtons.forEach((button) => {
-      button.addEventListener("click", () => {
+      const handler = () => {
         if (confirm("Are you sure you want to reset all quizzes? This will clear your progress.")) {
           quizTracker.resetAllQuiz();
         }
-      });
+      };
+      addTrackedEventListener(button, "click", handler);
     });
   }
 
@@ -508,11 +531,12 @@
     // Prevent anchor link from triggering page navigation/reload
     const headerLink = quiz.querySelector(".quiz-header-link");
     if (headerLink) {
-      headerLink.addEventListener("click", (e) => {
+      const handler = (e) => {
         // Let the browser handle the anchor navigation normally
         // This prevents Material for MkDocs from intercepting it as a page navigation
         e.stopPropagation();
-      });
+      };
+      addTrackedEventListener(headerLink, "click", handler);
     }
 
     // Create reset button (initially hidden)
@@ -630,15 +654,16 @@
     if (quiz.hasAttribute("data-auto-submit")) {
       let radioButtons = fieldset.querySelectorAll('input[type="radio"]');
       radioButtons.forEach((radio) => {
-        radio.addEventListener("change", () => {
+        const handler = () => {
           // Trigger form submission
           form.dispatchEvent(new Event("submit"));
-        });
+        };
+        addTrackedEventListener(radio, "change", handler);
       });
     }
 
     // Reset button handler
-    resetButton.addEventListener("click", () => {
+    const resetHandler = () => {
       // Clear all selections
       const allInputs = fieldset.querySelectorAll('input[name="answer"]');
       allInputs.forEach((input) => {
@@ -664,9 +689,10 @@
       if (quizId) {
         quizTracker.resetQuiz(quizId);
       }
-    });
+    };
+    addTrackedEventListener(resetButton, "click", resetHandler);
 
-    form.addEventListener("submit", (event) => {
+    const submitHandler = (event) => {
       event.preventDefault();
       let selectedAnswers = form.querySelectorAll('input[name="answer"]:checked');
       let correctAnswers = fieldset.querySelectorAll('input[name="answer"][correct]');
@@ -743,12 +769,23 @@
           submitButton.classList.add("hidden");
         }
       }
-    });
+    };
+    addTrackedEventListener(form, "submit", submitHandler);
   });
 
   function resetFieldset(fieldset) {
     Array.from(fieldset.children).forEach((child) => {
       child.classList.remove("wrong", "correct");
+    });
+  }
+
+  // Material for MkDocs instant navigation support
+  // Cleanup and reinitialize when navigating between pages
+  if (typeof document$ !== "undefined") {
+    // Material theme with instant navigation is active
+    document$.subscribe(() => {
+      cleanup(); // Remove old event listeners to prevent memory leaks
+      // The IIFE will re-run when the new page content loads
     });
   }
 })(); // End of IIFE
