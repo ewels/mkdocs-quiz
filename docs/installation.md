@@ -36,7 +36,7 @@ It's designed to work with [mkdocs-material](https://squidfunk.github.io/mkdocs-
     For development or to get the latest unreleased features:
 
     ```bash
-    git clone https://github.com/ewels/mkdocs-quiz.git
+    git clone https://github.com/skyface753/mkdocs-quiz.git
     cd mkdocs-quiz
     pip install -e ".[dev]"
     ```

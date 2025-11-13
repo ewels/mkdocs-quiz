@@ -1,8 +1,8 @@
 site_name: MkDocs Quiz Plugin
 site_description: A modern MkDocs plugin to create interactive quizzes
-site_url: https://ewels.github.io/mkdocs-quiz/
-repo_url: https://github.com/ewels/mkdocs-quiz
-repo_name: ewels/mkdocs-quiz
+site_url: https://skyface753.github.io/mkdocs-quiz/
+repo_url: https://github.com/skyface753/mkdocs-quiz
+repo_name: skyface753/mkdocs-quiz
 edit_uri: edit/main/docs/
 
 theme:

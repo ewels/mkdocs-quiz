@@ -6,7 +6,7 @@
 
 A modern MkDocs plugin to create interactive quizzes directly in your markdown documentation. Perfect for educational content, tutorials, and documentation that requires user engagement.
 
-**📚 Documentation and examples: [https://ewels.github.io/mkdocs-quiz/](https://ewels.github.io/mkdocs-quiz/)**
+**📚 Documentation and examples: [https://skyface753.github.io/mkdocs-quiz/](https://skyface753.github.io/mkdocs-quiz/)**
 
 ## Features
 
@@ -17,7 +17,7 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - 💾 **Results saved** - Answers are saved to the browser's local storage
 
 > [!TIP]
-> Check out the [examples page](https://ewels.github.io/mkdocs-quiz/examples/) to see the plugin in action.
+> Check out the [examples page](https://skyface753.github.io/mkdocs-quiz/examples/) to see the plugin in action.
 
 ```markdown
 <quiz>
@@ -95,7 +95,7 @@ Insert these placeholder comments for some intro text with a reset button and a 
 
 ## Contributing
 
-Contributions are welcome! Please see [the contribution guidelines](https://ewels.github.io/mkdocs-quiz/contributing/) for details.
+Contributions are welcome! Please see [the contribution guidelines](https://skyface753.github.io/mkdocs-quiz/contributing/) for details.
 
 ## License
 
