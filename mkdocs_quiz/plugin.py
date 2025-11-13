@@ -81,6 +81,12 @@ QUIZ_START_TAG = "<quiz>"
 QUIZ_END_TAG = "</quiz>"
 QUIZ_REGEX = r"<quiz>(.*?)</quiz>"
 
+# Old v0.x syntax patterns (no longer supported)
+OLD_SYNTAX_PATTERNS = [
+    r"<\?quiz\?>",  # Old quiz opening tag
+    r"<\?/quiz\?>",  # Old quiz closing tag
+]
+
 
 def convert_inline_markdown(text: str) -> str:
     """Convert markdown to HTML for inline content (questions/answers).
@@ -371,6 +377,36 @@ class MkDocsQuizPlugin(BasePlugin):
             markdown = markdown.replace(placeholder, original)
         return markdown
 
+    def _check_for_old_syntax(self, markdown: str, page: Page) -> None:
+        """Check if the page contains old v0.x quiz syntax and fail with helpful error.
+
+        Args:
+            markdown: The markdown content to check.
+            page: The current page object.
+
+        Raises:
+            ValueError: If old syntax is detected, with migration instructions.
+        """
+        # Check for old quiz tags
+        for pattern in OLD_SYNTAX_PATTERNS:
+            if re.search(pattern, markdown):
+                error_msg = dedent(
+                    f"""
+                    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    ###########  ERROR: Old mkdocs-quiz syntax detected: {page.file.src_path}
+                    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+                    Quiz syntax used by mkdocs-quiz changed in the v1 release!
+                    Please use the CLI migration tool to update your quizzes:
+
+                        mkdocs-quiz migrate docs/
+
+                    Read more: https://ewels.github.io/mkdocs-quiz/updating/
+                    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                    """
+                ).strip()
+                raise ValueError(error_msg)
+
     def on_page_markdown(
         self, markdown: str, page: Page, config: MkDocsConfig, **kwargs: Any
     ) -> str:
@@ -406,6 +442,10 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Mask code blocks to prevent processing quiz tags inside them
         masked_markdown, placeholders = self._mask_code_blocks(markdown)
+
+        # Check for old v1.x syntax after masking code blocks
+        # This prevents false positives from documentation examples in code blocks
+        self._check_for_old_syntax(masked_markdown, page)
 
         # Process quizzes and replace with placeholders
         options = self._get_quiz_options(page)

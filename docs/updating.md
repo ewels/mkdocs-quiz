@@ -4,6 +4,8 @@ title: Updating
 
 # Migration from Old Syntax
 
+The v1 rewrite of mkdocs-quiz changed the syntax used for writing quiz questions.
+
 If you have quizzes using the old pre-v1 mkdocs-quiz syntax (`question:`, `answer-correct:`, etc.), you can use the migration CLI tool to update your docs:
 
 ```bash

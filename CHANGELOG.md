@@ -27,7 +27,7 @@ content:
 ```
 <!-- prettier-ignore-end -->
 
-**New Syntax (v2.0):**
+**New Syntax (v1.0):**
 
 ```markdown
 <quiz>
