@@ -1,7 +1,8 @@
 # MkDocs Quiz Plugin
 
 [![PyPI version](https://badge.fury.io/py/mkdocs-quiz.svg)](https://badge.fury.io/py/mkdocs-quiz)
-[![Python versions](https://img.shields.io/pypi/pyversions/mkdocs-quiz.svg)](https://pypi.org/project/mkdocs-quiz/)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/mkdocs-quiz)
+![Python versions](https://img.shields.io/badge/python-3.8%E2%80%933.14-blue)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 A modern MkDocs plugin to create interactive quizzes directly in your markdown documentation. Perfect for educational content, tutorials, and documentation that requires user engagement.
