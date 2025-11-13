@@ -702,6 +702,37 @@ Second question?
     assert "quiz-auto-number" in html_result
 
 
+def test_progress_sidebar_position_config(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that progress_sidebar_position configuration is injected."""
+    # Test default value (top)
+    plugin.config["progress_sidebar_position"] = "top"
+    markdown = """
+<quiz>
+Question?
+- [x] Yes
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Config should include progressSidebarPosition
+    assert "mkdocsQuizConfig" in html_result
+    assert 'progressSidebarPosition: "top"' in html_result
+
+    # Test bottom value
+    plugin.config["progress_sidebar_position"] = "bottom"
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Config should indicate bottom position
+    assert "mkdocsQuizConfig" in html_result
+    assert 'progressSidebarPosition: "bottom"' in html_result
+
+
 def test_special_characters_in_answers(
     plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
 ) -> None:

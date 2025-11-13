@@ -79,6 +79,7 @@ plugins:
       show_correct: true # Show correct answers when wrong (default: true)
       auto_submit: true # Auto-submit single-choice quizzes (default: true)
       disable_after_submit: true # Disable quiz after submission (default: true)
+      progress_sidebar_position: top # Position of progress tracker: "top" or "bottom" (default: "top")
 ```
 
 **Page-level** (frontmatter overrides plugin config):
@@ -182,6 +183,9 @@ When using Material for MkDocs theme:
 - Progress sidebar only appears when page has 2+ quizzes
 - Shows answered/total count, progress bar, and correct/incorrect statistics
 - Includes a "Reset" link to clear all quiz progress on the page
+- The `progress_sidebar_position` option controls where the progress tracker appears in the sidebar:
+  - `"top"` (default): Appears above the Table of Contents
+  - `"bottom"`: Appears below the Table of Contents
 
 ## Publishing
 

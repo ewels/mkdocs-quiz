@@ -29,11 +29,23 @@
         // Check if sidebar is already in the correct position
         // by seeing if it's already a child of tocSidebar
         if (!tocSidebar.contains(sidebar)) {
-          // Move sidebar to the top of the TOC sidebar
-          if (tocSidebar.firstChild) {
-            tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
-          } else {
+          // Get position from config (default: "top")
+          const position =
+            window.mkdocsQuizConfig && window.mkdocsQuizConfig.progressSidebarPosition
+              ? window.mkdocsQuizConfig.progressSidebarPosition
+              : "top";
+
+          // Move sidebar based on configured position
+          if (position === "bottom") {
+            // Append to the end (below TOC)
             tocSidebar.appendChild(sidebar);
+          } else {
+            // Default: insert at the top (above TOC)
+            if (tocSidebar.firstChild) {
+              tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
+            } else {
+              tocSidebar.appendChild(sidebar);
+            }
           }
         }
       }
