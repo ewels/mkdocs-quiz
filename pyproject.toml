@@ -5,15 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mkdocs_quiz"
 version = "1.0.0"
-description = "A MkDocs plugin to create interactive quizzes in your markdown documents."
+description = "A MkDocs plugin to create interactive quizzes in your markdown."
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "Apache License 2.0"}
 authors = [
-    {name = "Sebastian Jörz", email = "sjoerz@skyface.de"},
     {name = "Phil Ewels", email = "phil.ewels@seqera.io"},
+    {name = "Sebastian Jörz", email = "sjoerz@skyface.de"},
 ]
-keywords = ["mkdocs", "quiz", "plugin", "markdown", "documentation", "mkdocs-material", "multiple-choice", "exam", "questions-and-answers"]
+keywords = ["mkdocs", "quiz", "plugin", "markdown", "mkdocs-material", "multiple-choice", "exam", "questions-and-answers"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -29,6 +29,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Documentation",
     "Topic :: Software Development :: Documentation",
+    "Typing :: Typed"
 ]
 dependencies = [
     "mkdocs>=1.0.0",
