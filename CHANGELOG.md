@@ -1,6 +1,6 @@
 # Changelog
 
-## **Version 1.0.0** (2025-11-10)
+## **Version 1.0.0** (2025-11-13)
 
 v1.0.0 of mkdocs-quiz is a complete rewrite of the original plugin.
 It modernises the codebase, changes the quiz markdown syntax, and adds a bunch of new features.
