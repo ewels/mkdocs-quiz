@@ -1019,3 +1019,107 @@ What does **bold** and *italic* and `code` mean?
     assert "<strong>bold</strong>" in html_result
     assert "<em>italic</em>" in html_result
     assert "<code>code</code>" in html_result
+
+
+def test_old_syntax_detection_opening_tag(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that old v0.x <?quiz?> opening tag is detected and build fails."""
+    markdown = """
+<?quiz?>
+question: Are you ready?
+answer-correct: Yes!
+answer: No!
+<?/quiz?>
+"""
+    # Should raise ValueError with migration instructions
+    with pytest.raises(
+        ValueError,
+        match=r"ERROR: Old mkdocs-quiz syntax detected",
+    ):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+
+def test_old_syntax_detection_closing_tag(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that old v0.x <?/quiz?> closing tag is detected and build fails."""
+    markdown = """
+Some text with old closing tag: <?/quiz?>
+"""
+    # Should raise ValueError with migration instructions
+    with pytest.raises(
+        ValueError,
+        match=r"ERROR: Old mkdocs-quiz syntax detected",
+    ):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+
+def test_old_syntax_error_message_content(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that error message contains helpful migration instructions."""
+    markdown = """
+<?quiz?>
+question: Test
+answer-correct: Yes
+<?/quiz?>
+"""
+    try:
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        pytest.fail("Expected ValueError to be raised")
+    except ValueError as e:
+        error_msg = str(e)
+        # Check that error message contains key information
+        assert "mkdocs-quiz migrate docs/" in error_msg
+        assert "v1 release" in error_msg
+        assert "ewels.github.io/mkdocs-quiz/updating" in error_msg
+
+
+def test_new_syntax_not_detected_as_old(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that new v1.0 syntax is not incorrectly flagged as old syntax."""
+    markdown = """
+<quiz>
+Are you ready?
+- [x] Yes!
+- [ ] No!
+</quiz>
+"""
+    # Should process without errors
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+    assert "Are you ready?" in html_result
+
+
+def test_old_syntax_in_code_block_not_detected(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that old syntax inside code blocks is ignored (documentation example)."""
+    markdown = """
+Here's the old syntax for reference:
+
+```markdown
+<?quiz?>
+question: Are you ready?
+answer-correct: Yes!
+<?/quiz?>
+```
+
+And here's a new quiz:
+
+<quiz>
+Real question?
+- [x] Yes
+- [ ] No
+</quiz>
+"""
+    # Should NOT raise an error because old syntax is in a code block
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+    assert "Real question?" in html_result
+    # Old syntax should remain in code block
+    assert "<?quiz?>" in html_result
