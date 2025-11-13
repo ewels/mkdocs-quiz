@@ -1,0 +1,70 @@
+site_name: MkDocs Quiz Plugin
+site_description: A modern MkDocs plugin to create interactive quizzes
+site_url: https://ewels.github.io/mkdocs-quiz/
+repo_url: https://github.com/ewels/mkdocs-quiz
+repo_name: ewels/mkdocs-quiz
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - navigation.instant
+    - navigation.top
+    - navigation.tracking
+    - navigation.sections
+    - navigation.footer
+    - search.share
+    - toc.follow
+
+plugins:
+  - mkdocs_quiz:
+      enabled_by_default: true
+      auto_number: false
+      show_correct: true
+      auto_submit: true
+      disable_after_submit: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Overview: index.md
+  - installation.md
+  - quick-start.md
+  - examples.md
+  - auto-numbering.md
+  - intro-text.md
+  - results-screen.md
+  - configuration.md
+  - updating.md
+  - Contributing: contributing.md
+  - changelog.md

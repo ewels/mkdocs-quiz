@@ -1,0 +1,103 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mkdocs_quiz"
+version = "1.0.0"
+description = "A MkDocs plugin to create interactive quizzes in your markdown documents."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "Apache License 2.0"}
+authors = [
+    {name = "Sebastian Jörz", email = "sjoerz@skyface.de"},
+    {name = "Phil Ewels", email = "phil.ewels@seqera.io"},
+]
+keywords = ["mkdocs", "quiz", "plugin", "markdown", "documentation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+]
+dependencies = [
+    "mkdocs>=1.0.0",
+    "typer>=0.20.0",
+    "rich>=13.0.0",
+    "importlib-resources>=5.0; python_version < '3.9'",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.8.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+docs = [
+    "mkdocs-material"
+]
+
+[project.urls]
+Homepage = "https://github.com/skyface753/mkdocs-quiz"
+Documentation = "https://github.com/skyface753/mkdocs-quiz#readme"
+Repository = "https://github.com/skyface753/mkdocs-quiz"
+Issues = "https://github.com/skyface753/mkdocs-quiz/issues"
+
+[project.entry-points."mkdocs.plugins"]
+mkdocs_quiz = "mkdocs_quiz.plugin:MkDocsQuizPlugin"
+
+[project.scripts]
+mkdocs-quiz = "mkdocs_quiz.cli:app"
+
+[tool.setuptools]
+packages = ["mkdocs_quiz"]
+
+[tool.setuptools.package-data]
+mkdocs_quiz = ["css/*", "js/*", "js/vendor/*", "overrides/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.ruff.lint.isort]
+known-first-party = ["mkdocs_quiz"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true

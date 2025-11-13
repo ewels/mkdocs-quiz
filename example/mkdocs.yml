@@ -1,7 +1,0 @@
-site_name: My Docs
-theme:
-  name: material
-  palette:
-    scheme: slate
-plugins:
-  - mkdocs_quiz

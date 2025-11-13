@@ -1,11 +1,43 @@
+.playwright-mcp
+
+# Build artifacts
 site/
-*.egg-info/
-__pycache__
-*.pyc
 build/
 dist/
-.vscode/.ropeproject/
-.cache
+*.egg-info/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
 venv/
-artifact.tar
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 .mypy_cache/
+.ruff_cache/
+
+# Package manager
+.cache/
+
+# Misc
+artifact.tar
+*.log
