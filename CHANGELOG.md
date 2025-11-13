@@ -86,5 +86,5 @@ All plugin options are configured in `mkdocs.yml` and can also have per-page con
 
 ## Pre-1.0.0
 
-Previous versions by original author [Sebastian Jörz](https://github.com/skyface753).
+[Previous versions 0.1 to 0.41](https://pypi.org/project/mkdocs-quiz/#history) were all written by the original plugin author [Sebastian Jörz](https://github.com/skyface753).
 See original GitHub history for details: https://github.com/skyface753/mkdocs-quiz/

@@ -50,10 +50,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/skyface753/mkdocs-quiz"
-Documentation = "https://github.com/skyface753/mkdocs-quiz#readme"
-Repository = "https://github.com/skyface753/mkdocs-quiz"
-Issues = "https://github.com/skyface753/mkdocs-quiz/issues"
+Homepage = "https://ewels.github.io/mkdocs-quiz/"
+Documentation = "https://github.com/ewels/mkdocs-quiz"
+Repository = "https://github.com/ewels/mkdocs-quiz"
+Issues = "https://github.com/ewels/mkdocs-quiz/issues"
 
 [project.entry-points."mkdocs.plugins"]
 mkdocs_quiz = "mkdocs_quiz.plugin:MkDocsQuizPlugin"

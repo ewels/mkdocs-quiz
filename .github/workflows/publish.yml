@@ -1,10 +1,4 @@
 # Publish to PyPI when a GitHub release is created
-#
-# Setup (one-time):
-#   1. Go to https://pypi.org/manage/account/publishing/
-#   2. Add pending publisher: PyPI project "mkdocs-quiz", owner "skyface753", repo "mkdocs-quiz", workflow "publish.yml"
-#   3. Create a GitHub release to trigger automatic publishing
-#
 # This workflow uses trusted publishing (no API tokens needed)
 
 name: Publish to PyPI
