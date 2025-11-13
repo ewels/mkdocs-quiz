@@ -1,5 +1,13 @@
 # Changelog
 
+## **Version 1.0.1** (2025-11-13)
+
+- Add check for old v0 quiz syntax [#8](https://github.com/ewels/mkdocs-quiz/pull/8)
+  - If found, triggers an exception that stops the build with an error message explaining and pointing to the CLI migration command
+  - Should prevent silent failures with unparsed v0 quiz markup going unnoticed
+- Clean up readme for better presentation on pypi.org
+- Stronger typing: added types for functions
+
 ## **Version 1.0.0** (2025-11-13)
 
 v1.0.0 of mkdocs-quiz is a **complete rewrite** of the original plugin. It modernises the codebase, changes the quiz markdown syntax, and adds a lot of new functionality.
