@@ -2,8 +2,9 @@
 
 ## **Version 1.0.0** (2025-11-13)
 
-v1.0.0 of mkdocs-quiz is a complete rewrite of the original plugin.
-It modernises the codebase, changes the quiz markdown syntax, and adds a bunch of new features.
+v1.0.0 of mkdocs-quiz is a **complete rewrite** of the original plugin. It modernises the codebase, changes the quiz markdown syntax, and adds a lot of new functionality.
+
+The plugin was originally written by [@skyface753](https://github.com/skyface753/), who has graciously passed the repository over to [@ewels](https://github.com/ewels/) for future development after this rewrite. [@skyface753](https://github.com/skyface753/) will stay on as a maintainer.
 
 ### 🚨 Breaking Changes
 
