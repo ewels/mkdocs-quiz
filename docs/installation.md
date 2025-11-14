@@ -47,7 +47,7 @@ Add the plugin to your `mkdocs.yml` configuration file:
 
 ```yaml
 plugins:
-  - mkdocs-quiz
+  - mkdocs_quiz
 ```
 
 That's it! The plugin is now active and will process all quiz blocks in your markdown files.

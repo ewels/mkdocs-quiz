@@ -55,7 +55,7 @@ Add the plugin to your `mkdocs.yml`:
 
 ```yaml
 plugins:
-  - mkdocs-quiz
+  - mkdocs_quiz
 ```
 
 ### 2. Add your first question
