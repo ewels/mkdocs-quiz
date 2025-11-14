@@ -73,7 +73,7 @@ The [quiz.js](mkdocs_quiz/js/quiz.js) file:
 
 ```yaml
 plugins:
-  - mkdocs-quiz:
+  - mkdocs_quiz:
       enabled_by_default: true # Process quizzes by default (default: true)
       auto_number: false # Auto-number questions (default: false)
       show_correct: true # Show correct answers when wrong (default: true)

@@ -11,7 +11,7 @@ The mkdocs-quiz plugin can be configured both at plugin-wide level or page-level
 
     ```yaml
     plugins:
-      - mkdocs-quiz
+      - mkdocs_quiz
     ```
 
 The full plugin-wide options in `mkdocs.yml` with their default values are as follows:
@@ -19,7 +19,7 @@ The full plugin-wide options in `mkdocs.yml` with their default values are as fo
 <!-- prettier-ignore-start -->
 ```yaml title="mkdocs.yml"
 plugins:
-  - mkdocs-quiz:
+  - mkdocs_quiz:
       enabled_by_default: true        # Enable quizzes by default on all pages
       auto_number: false              # Auto-number questions (Question 1:, Question 2:, etc.)
       show_correct: true              # Show correct answers when user gets it wrong

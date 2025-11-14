@@ -46,7 +46,7 @@ The confetti animation is enabled by default but can be disabled in your `mkdocs
 
 ```yaml
 plugins:
-  - mkdocs-quiz:
+  - mkdocs_quiz:
       confetti: false
 ```
 
