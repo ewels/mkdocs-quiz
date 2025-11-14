@@ -6,6 +6,7 @@
   - Allows positioning the progress tracker either above or below the Table of Contents in Material theme
   - Set to `"top"` (default) to place above TOC, or `"bottom"` to place below TOC
   - Useful for pages with substantial content where quiz appears at the end
+  - Move sidebar progress inside ToC `<nav>` for cleaner theme/plugin integration
 
 ## **Version 1.0.2** (2025-11-13)
 
