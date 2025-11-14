@@ -20,13 +20,14 @@ The full plugin-wide options in `mkdocs.yml` with their default values are as fo
 ```yaml title="mkdocs.yml"
 plugins:
   - mkdocs-quiz:
-      enabled_by_default: true    # Enable quizzes by default on all pages
-      auto_number: false          # Auto-number questions (Question 1:, Question 2:, etc.)
-      show_correct: true          # Show correct answers when user gets it wrong
-      auto_submit: true           # Auto-submit single-choice quizzes on selection
-      disable_after_submit: true  # Disable question after first submission
-      show_progress: true         # Show progress tracker sidebar and mobile bar
-      confetti: true              # Show confetti animation when all quizzes completed
+      enabled_by_default: true        # Enable quizzes by default on all pages
+      auto_number: false              # Auto-number questions (Question 1:, Question 2:, etc.)
+      show_correct: true              # Show correct answers when user gets it wrong
+      auto_submit: true               # Auto-submit single-choice quizzes on selection
+      disable_after_submit: true      # Disable question after first submission
+      show_progress: true             # Show progress tracker sidebar and mobile bar
+      progress_sidebar_position: top  # Position of progress tracker: "top" or "bottom"
+      confetti: true                  # Show confetti animation when all quizzes completed
 ```
 <!-- prettier-ignore-end -->
 
@@ -96,6 +97,17 @@ Controls the visibility of the progress tracker. When enabled, displays:
 - **Statistics**: Shows answered/total questions and correct/incorrect counts
 
 Set to `false` to hide progress tracking entirely on pages where you don't want it visible.
+
+### `progress_sidebar_position`
+
+**Type:** `str` | **Default:** `"top"`
+
+Controls the position of the progress tracker in the Material theme sidebar. Options:
+
+- `"top"` - Appears above the Table of Contents (default)
+- `"bottom"` - Appears below the Table of Contents
+
+Useful for pages with substantial content where quizzes appear at the end. Only affects desktop sidebar positioning in Material theme.
 
 ### `confetti`
 

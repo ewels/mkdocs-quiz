@@ -23,17 +23,29 @@
     // Use requestAnimationFrame to ensure DOM is ready
     requestAnimationFrame(() => {
       const sidebar = document.getElementById("quiz-progress-sidebar");
-      const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner");
+      const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner .md-nav--secondary");
 
       if (sidebar && tocSidebar) {
         // Check if sidebar is already in the correct position
         // by seeing if it's already a child of tocSidebar
         if (!tocSidebar.contains(sidebar)) {
-          // Move sidebar to the top of the TOC sidebar
-          if (tocSidebar.firstChild) {
-            tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
-          } else {
+          // Get position from config (default: "top")
+          const position =
+            window.mkdocsQuizConfig && window.mkdocsQuizConfig.progressSidebarPosition
+              ? window.mkdocsQuizConfig.progressSidebarPosition
+              : "top";
+
+          // Move sidebar based on configured position
+          if (position === "bottom") {
+            // Append to the end (below TOC)
             tocSidebar.appendChild(sidebar);
+          } else {
+            // Default: insert at the top (above TOC)
+            if (tocSidebar.firstChild) {
+              tocSidebar.insertBefore(sidebar, tocSidebar.firstChild);
+            } else {
+              tocSidebar.appendChild(sidebar);
+            }
           }
         }
       }
@@ -367,9 +379,9 @@
             answeredEl.textContent = progress.answered;
           }
 
-          // Update answered percentage
+          // Update answered percentage - desktop only
           const answeredPercentageEl = sidebar.querySelector(".quiz-progress-answered-percentage");
-          if (answeredPercentageEl) {
+          if (answeredPercentageEl && sidebar.id == "quiz-progress-sidebar") {
             answeredPercentageEl.textContent = progress.percentage + "%";
           }
 
@@ -391,9 +403,9 @@
             scoreTotalEl.textContent = progress.answered;
           }
 
-          // Update correct percentage (based on answered quizzes, not total)
+          // Update correct percentage (based on answered quizzes, not total) - desktop only
           const scorePercentageEl = sidebar.querySelector(".quiz-progress-score-percentage");
-          if (scorePercentageEl) {
+          if (scorePercentageEl && sidebar.id == "quiz-progress-sidebar") {
             const scorePercentage =
               progress.answered > 0 ? Math.round((progress.correct / progress.answered) * 100) : 0;
             scorePercentageEl.textContent = scorePercentage + "%";

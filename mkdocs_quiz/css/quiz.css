@@ -129,8 +129,19 @@ input[type="radio"].wrong {
 /* Quiz Progress Sidebar - Progress bar styling */
 /* Most styling comes from Material's .md-nav classes */
 #quiz-progress-sidebar {
+  margin-top: 1.5rem;
+}
+/* if config progress_sidebar_position is top, need top padding instead of bottom */
+.md-nav--secondary > #quiz-progress-sidebar:first-child {
+  margin-top: 0;
   margin-bottom: 1.5rem;
 }
+@media screen and (min-width: 59.9375em) {
+  #quiz-progress-sidebar .md-nav__list {
+    border-left: 3px solid var(--md-default-fg-color--lightest);
+  }
+}
+
 .quiz-progress-bar {
   width: 100%;
   height: 6px;

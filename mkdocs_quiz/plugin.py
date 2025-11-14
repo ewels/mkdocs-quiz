@@ -118,6 +118,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("disable_after_submit", config_options.Type(bool, default=True)),
         ("show_progress", config_options.Type(bool, default=True)),
         ("confetti", config_options.Type(bool, default=True)),
+        ("progress_sidebar_position", config_options.Type(str, default="top")),
     )
 
     def __init__(self) -> None:
@@ -154,9 +155,7 @@ class MkDocsQuizPlugin(BasePlugin):
             # The ! prefix in our template will then load the next one in the chain
             env.loader = ChoiceLoader([FileSystemLoader(str(overrides_dir)), env.loader])
 
-            log.info(
-                "mkdocs-quiz: Added template overrides to integrate quiz progress sidebar into TOC"
-            )
+            log.debug("mkdocs-quiz: Added template overrides for quiz progress")
 
         return env
 
@@ -718,12 +717,14 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Add configuration object for JavaScript
         show_progress = options.get("show_progress", True)
+        progress_sidebar_position = self.config.get("progress_sidebar_position", "top")
         config_script = dedent(
             f"""
             <script type="text/javascript">
             window.mkdocsQuizConfig = {{
               confetti: {str(confetti_enabled).lower()},
-              showProgress: {str(show_progress).lower()}
+              showProgress: {str(show_progress).lower()},
+              progressSidebarPosition: "{progress_sidebar_position}"
             }};
             </script>
         """

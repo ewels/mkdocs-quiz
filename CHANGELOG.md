@@ -1,5 +1,13 @@
 # Changelog
 
+## **Version 1.1.0** (2025-11-13)
+
+- Add `progress_sidebar_position` configuration option [#6](https://github.com/ewels/mkdocs-quiz/issues/6)
+  - Allows positioning the progress tracker either above or below the Table of Contents in Material theme
+  - Set to `"top"` (default) to place above TOC, or `"bottom"` to place below TOC
+  - Useful for pages with substantial content where quiz appears at the end
+  - Move sidebar progress inside ToC `<nav>` for cleaner theme/plugin integration
+
 ## **Version 1.0.2** (2025-11-13)
 
 - Refactor the migration script to not use `rich` and `typer`

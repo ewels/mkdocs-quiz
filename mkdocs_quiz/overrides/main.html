@@ -1,19 +1,13 @@
-<!--
-  MkDocs Quiz Plugin - Extended Main Template
-
-  This template extends the default MkDocs Material main.html to add
-  a quiz progress sidebar in the TOC sidebar and mobile view.
--->
-
 {% extends "base.html" %}
 
 {% block site_nav %}
-  <!-- Include the original sidebar navigation -->
+  {# Include the original sidebar navigation #}
   {{ super() }}
 
-  <!-- Quiz progress sidebar - will be moved to TOC by quiz.js -->
-  <nav id="quiz-progress-sidebar" class="md-nav md-nav--secondary" aria-label="Quiz Progress" style="display: none;">
-    <label class="md-nav__title" for="__quiz-progress">
+  {# Quiz progress sidebar - will be moved to TOC by quiz.js #}
+  <div id="quiz-progress-sidebar" aria-label="Quiz Progress" style="display: none;">
+    <!-- mkdocs-quiz progress sidebar (desktop) -->
+    <label class="md-nav__title">
       <span class="md-nav__icon md-icon"></span>
       Quiz Progress
     </label>
@@ -44,12 +38,13 @@
         </div>
       </li>
     </ul>
-  </nav>
+  </div>
 {% endblock %}
 
 {% block tabs %}
-  <!-- Mobile quiz progress tracker - appears under navbar on mobile devices -->
+  {# Mobile quiz progress tracker - appears under navbar on mobile devices #}
   <nav id="quiz-progress-mobile" class="quiz-progress-mobile md-nav" aria-label="Quiz Progress" style="display: none;">
+    <!-- mkdocs-quiz progress sidebar (mobile) -->
     <div class="quiz-progress-bar">
       <div class="quiz-progress-bar-incorrect" style="width: 0%"></div>
       <div class="quiz-progress-bar-correct" style="width: 0%"></div>
@@ -69,6 +64,6 @@
     </div>
   </nav>
 
-  <!-- Include the original tabs content -->
+  {# Include the original tabs content #}
   {{ super() }}
 {% endblock %}
