@@ -23,7 +23,7 @@
     // Use requestAnimationFrame to ensure DOM is ready
     requestAnimationFrame(() => {
       const sidebar = document.getElementById("quiz-progress-sidebar");
-      const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner");
+      const tocSidebar = document.querySelector(".md-sidebar--secondary .md-sidebar__inner .md-nav--secondary");
 
       if (sidebar && tocSidebar) {
         // Check if sidebar is already in the correct position
@@ -379,9 +379,9 @@
             answeredEl.textContent = progress.answered;
           }
 
-          // Update answered percentage
+          // Update answered percentage - desktop only
           const answeredPercentageEl = sidebar.querySelector(".quiz-progress-answered-percentage");
-          if (answeredPercentageEl) {
+          if (answeredPercentageEl && sidebar.id == "quiz-progress-sidebar") {
             answeredPercentageEl.textContent = progress.percentage + "%";
           }
 
@@ -403,9 +403,9 @@
             scoreTotalEl.textContent = progress.answered;
           }
 
-          // Update correct percentage (based on answered quizzes, not total)
+          // Update correct percentage (based on answered quizzes, not total) - desktop only
           const scorePercentageEl = sidebar.querySelector(".quiz-progress-score-percentage");
-          if (scorePercentageEl) {
+          if (scorePercentageEl && sidebar.id == "quiz-progress-sidebar") {
             const scorePercentage =
               progress.answered > 0 ? Math.round((progress.correct / progress.answered) * 100) : 0;
             scorePercentageEl.textContent = scorePercentage + "%";

@@ -155,9 +155,7 @@ class MkDocsQuizPlugin(BasePlugin):
             # The ! prefix in our template will then load the next one in the chain
             env.loader = ChoiceLoader([FileSystemLoader(str(overrides_dir)), env.loader])
 
-            log.info(
-                "mkdocs-quiz: Added template overrides to integrate quiz progress sidebar into TOC"
-            )
+            log.debug("mkdocs-quiz: Added template overrides for quiz progress")
 
         return env
 
