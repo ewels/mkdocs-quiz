@@ -1,6 +1,6 @@
 # Changelog
 
-## **Unreleased**
+## **Version 1.1.0** (2025-11-13)
 
 - Add `progress_sidebar_position` configuration option [#6](https://github.com/ewels/mkdocs-quiz/issues/6)
   - Allows positioning the progress tracker either above or below the Table of Contents in Material theme
