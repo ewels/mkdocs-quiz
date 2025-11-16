@@ -76,10 +76,19 @@ def get_markdown_converter() -> md.Markdown:
 # Optional content section (supports full markdown)
 # Can include **bold**, *italic*, `code`, etc.
 # </quiz>
+#
+# Fill-in-the-blank format:
+# <quiz>
+# 2 + 2 = [[4]]
+#
+# Optional content section
+# </quiz>
 
 QUIZ_START_TAG = "<quiz>"
 QUIZ_END_TAG = "</quiz>"
 QUIZ_REGEX = r"<quiz>(.*?)</quiz>"
+# Pattern to match fill-in-the-blank placeholders: [[answer]]
+FILL_BLANK_REGEX = r"\[\[([^\]]+)\]\]"
 
 # Old v0.x syntax patterns (no longer supported)
 OLD_SYNTAX_PATTERNS = [
@@ -277,6 +286,155 @@ class MkDocsQuizPlugin(BasePlugin):
                 break
 
         return question_text, all_answers, correct_answers, content_start_index
+
+    def _is_fill_in_blank_quiz(self, quiz_content: str) -> bool:
+        """Check if quiz contains fill-in-the-blank patterns.
+
+        Args:
+            quiz_content: The content inside the quiz tags.
+
+        Returns:
+            True if the quiz contains [[answer]] patterns, False otherwise.
+        """
+        return bool(re.search(FILL_BLANK_REGEX, quiz_content))
+
+    def _process_fill_in_blank_quiz(
+        self, quiz_content: str, quiz_id: int, options: dict[str, bool]
+    ) -> str:
+        """Process a fill-in-the-blank quiz.
+
+        Args:
+            quiz_content: The content inside the quiz tags.
+            quiz_id: The unique ID for this quiz.
+            options: Quiz options (show_correct, auto_submit, disable_after_submit, auto_number).
+
+        Returns:
+            The HTML representation of the fill-in-the-blank quiz.
+
+        Raises:
+            ValueError: If the quiz format is invalid.
+        """
+        # Dedent the quiz content to handle indented quizzes
+        quiz_content = dedent(quiz_content)
+
+        # Extract all correct answers and their positions
+        answers = []
+        answer_positions = []
+
+        for match in re.finditer(FILL_BLANK_REGEX, quiz_content):
+            answers.append(match.group(1).strip())
+            answer_positions.append((match.start(), match.end()))
+
+        if not answers:
+            raise ValueError("Fill-in-the-blank quiz must have at least one blank")
+
+        # Split content into question and content sections
+        # Look for an empty line to separate question from content
+        lines = quiz_content.split("\n")
+        question_lines = []
+        content_start_index = len(lines)
+
+        # Find the first empty line after the question text
+        for i, line in enumerate(lines):
+            if not line.strip() and i > 0:
+                # Check if there's content after this empty line
+                has_content_after = any(l.strip() for l in lines[i + 1 :])
+                if has_content_after:
+                    content_start_index = i + 1
+                    question_lines = lines[:i]
+                    break
+
+        # If no empty line found, everything is the question
+        if not question_lines:
+            question_lines = lines
+            content_start_index = len(lines)
+
+        question_text = "\n".join(question_lines)
+
+        # Replace [[answer]] patterns with input fields
+        input_counter = 0
+
+        def replace_with_input(match: re.Match[str]) -> str:
+            nonlocal input_counter
+            answer = match.group(1).strip()
+            input_id = f"quiz-{quiz_id}-blank-{input_counter}"
+            # Store the correct answer as a data attribute, HTML-escaped
+            escaped_answer = html.escape(answer)
+            input_html = (
+                f'<input type="text" class="quiz-blank-input" '
+                f'id="{input_id}" data-answer="{escaped_answer}" autocomplete="off">'
+            )
+            input_counter += 1
+            return input_html
+
+        # Convert question markdown to HTML first, but preserve [[...]] patterns temporarily
+        # by replacing them with placeholders
+        placeholders = {}
+        placeholder_counter = 0
+
+        def create_placeholder(match: re.Match[str]) -> str:
+            nonlocal placeholder_counter
+            # Use HTML comment as placeholder - won't be affected by markdown
+            placeholder = f"<!--BLANK_PLACEHOLDER_{placeholder_counter}-->"
+            placeholders[placeholder] = match.group(0)
+            placeholder_counter += 1
+            return placeholder
+
+        # Replace blanks with placeholders before markdown conversion
+        question_with_placeholders = re.sub(FILL_BLANK_REGEX, create_placeholder, question_text)
+
+        # Convert markdown to HTML
+        question_html = convert_inline_markdown(question_with_placeholders)
+
+        # Now replace placeholders with actual input fields
+        for placeholder, original in placeholders.items():
+            match = re.match(FILL_BLANK_REGEX, original)
+            if match:
+                input_html = replace_with_input(match)
+                question_html = question_html.replace(placeholder, input_html)
+
+        # Get content section
+        content_lines = lines[content_start_index:]
+        content_html = ""
+        if content_lines and any(l.strip() for l in content_lines):
+            content_text = "\n".join(content_lines)
+            converter = get_markdown_converter()
+            converter.reset()
+            content_html = converter.convert(content_text)
+
+        # Build data attributes
+        data_attrs = ['data-quiz-type="fill-blank"']
+        if options["show_correct"]:
+            data_attrs.append('data-show-correct="true"')
+        if options["disable_after_submit"]:
+            data_attrs.append('data-disable-after-submit="true"')
+        attrs = " ".join(data_attrs)
+
+        # Generate quiz ID for linking
+        quiz_header_id = f"quiz-{quiz_id}"
+
+        # If auto_number is enabled, add a header with the question number
+        question_header = ""
+        if options["auto_number"]:
+            question_number = quiz_id + 1
+            question_header = f'<h4 class="quiz-number">Question {question_number}</h4>'
+
+        quiz_html = dedent(f"""
+            <div class="quiz quiz-fill-blank" {attrs} id="{quiz_header_id}">
+                <a href="#{quiz_header_id}" class="quiz-header-link">#</a>
+                {question_header}
+                <div class="quiz-question">
+                    {question_html}
+                </div>
+                <form>
+                    <div class="quiz-feedback hidden"></div>
+                    <button type="submit" class="quiz-button">Submit</button>
+                </form>
+                <section class="content hidden">{content_html}</section>
+            </div>
+        """).strip()
+
+        return quiz_html
 
     def _generate_answer_html(
         self, all_answers: list[str], correct_answers: list[str], quiz_id: int
@@ -507,6 +665,10 @@ class MkDocsQuizPlugin(BasePlugin):
         Raises:
             ValueError: If the quiz format is invalid.
         """
+        # Check if this is a fill-in-the-blank quiz
+        if self._is_fill_in_blank_quiz(quiz_content):
+            return self._process_fill_in_blank_quiz(quiz_content, quiz_id, options)
+
         # Dedent the quiz content to handle indented quizzes (e.g., in content tabs)
         quiz_content = dedent(quiz_content)
 
