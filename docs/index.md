@@ -9,7 +9,7 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 ## Features
 
 - ✨ **Simple markdown syntax** - Create quizzes using GitHub-flavored markdown checkboxes
-- 🎯 **Single and multiple choice** - One correct answer = radio buttons, multiple = checkboxes
+- 🎯 **Multiple quiz types** - Single choice (radio), multiple choice (checkboxes), and fill-in-the-blank
 - ⚡ **Instant feedback** - Visual indicators show correct/incorrect answers
 - 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti :tada:
 

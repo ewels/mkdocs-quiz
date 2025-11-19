@@ -55,7 +55,7 @@ The plugin automatically detects which type based on the content:
    - **Fill-in-the-blank**: Uses `[[answer]]` patterns
      - Question text with blanks replaced by text inputs
      - Correct answers stored in `data-answer` attributes (HTML-escaped)
-     - Content section separated by empty line
+     - Content section separated by horizontal rule (`---`)
    - Quizzes replaced with placeholders (`<!-- MKDOCS_QUIZ_PLACEHOLDER_N -->`) in markdown
 
 3. **HTML generation** (`_process_quiz` and `_process_fill_in_blank_quiz`):
