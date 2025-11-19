@@ -1236,11 +1236,12 @@ The **bold** answer is [[correct]] and the *italic* one is [[also correct]].
 def test_fill_in_blank_with_content(
     plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
 ) -> None:
-    """Test fill-in-the-blank with content section."""
+    """Test fill-in-the-blank with content section separated by horizontal rule."""
     markdown = """
 <quiz>
 2 + 2 = [[4]]
 
+---
 That's correct! Basic arithmetic.
 </quiz>
 """
@@ -1254,6 +1255,42 @@ That's correct! Basic arithmetic.
     assert 'data-quiz-type="fill-blank"' in result
     # Should have content section with the explanation
     assert "Basic arithmetic" in result
+    assert '<section class="content hidden">' in result
+
+
+def test_fill_in_blank_with_content_and_markdown(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test fill-in-the-blank with content section containing markdown."""
+    markdown = """
+<quiz>
+Some markdown:
+
+The answer is [[foo]].
+
+Another answer is [[bar]].
+
+---
+This *content* is only shown after answering.
+
+It can have **bold** and `code`.
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should contain fill-blank quiz marker
+    assert 'data-quiz-type="fill-blank"' in result
+    # Should have both blanks
+    assert 'data-answer="foo"' in result
+    assert 'data-answer="bar"' in result
+    # Should have content section with markdown converted to HTML
+    assert "<em>content</em>" in result
+    assert "<strong>bold</strong>" in result
+    assert "<code>code</code>" in result
     assert '<section class="content hidden">' in result
 
 

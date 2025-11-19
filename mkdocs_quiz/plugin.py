@@ -81,6 +81,7 @@ def get_markdown_converter() -> md.Markdown:
 # <quiz>
 # 2 + 2 = [[4]]
 #
+# ---
 # Optional content section
 # </quiz>
 
@@ -329,22 +330,20 @@ class MkDocsQuizPlugin(BasePlugin):
             raise ValueError("Fill-in-the-blank quiz must have at least one blank")
 
         # Split content into question and content sections
-        # Look for an empty line to separate question from content
+        # Look for a horizontal rule (---) to separate question from content
         lines = quiz_content.split("\n")
         question_lines = []
         content_start_index = len(lines)
 
-        # Find the first empty line after the question text
+        # Find the first horizontal rule (---)
         for i, line in enumerate(lines):
-            if not line.strip() and i > 0:
-                # Check if there's content after this empty line
-                has_content_after = any(l.strip() for l in lines[i + 1 :])
-                if has_content_after:
-                    content_start_index = i + 1
-                    question_lines = lines[:i]
-                    break
+            if line.strip() == "---":
+                # Found separator, everything before is question, everything after is content
+                question_lines = lines[:i]
+                content_start_index = i + 1
+                break
 
-        # If no empty line found, everything is the question
+        # If no horizontal rule found, everything is the question
         if not question_lines:
             question_lines = lines
             content_start_index = len(lines)
