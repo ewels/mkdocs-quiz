@@ -158,6 +158,7 @@
         feedbackDiv.classList.add("hidden");
         feedbackDiv.classList.remove("correct", "incorrect");
         feedbackDiv.textContent = "";
+        feedbackDiv.innerHTML = "";
 
         // Show submit button, hide reset button
         if (submitButton) {
@@ -632,22 +633,29 @@
               }
             });
 
-            // Show correct answers if show-correct is enabled
-            if (quiz.hasAttribute("data-show-correct")) {
-              blankInputs.forEach((input) => {
-                if (!input.classList.contains("correct")) {
-                  // Show correct answer as placeholder or after the input
-                  const correctAnswer = input.getAttribute("data-answer");
-                  input.placeholder = correctAnswer;
-                }
-              });
-            }
-
-            // Show incorrect feedback
+            // Show incorrect feedback with detailed list
             feedbackDiv.classList.remove("hidden", "correct");
             feedbackDiv.classList.add("incorrect");
             const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-            feedbackDiv.textContent = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+            const feedbackText = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+
+            // Show correct answers if show-correct is enabled
+            if (quiz.hasAttribute("data-show-correct")) {
+              let feedbackHTML = feedbackText + "<ul>";
+              blankInputs.forEach((input) => {
+                if (!input.classList.contains("correct")) {
+                  const userAnswer = input.value.trim();
+                  const correctAnswer = input.getAttribute("data-answer");
+                  feedbackHTML += `<li><del>${userAnswer || "(empty)"}</del> → ${correctAnswer}</li>`;
+                  // Also show in placeholder
+                  input.placeholder = correctAnswer;
+                }
+              });
+              feedbackHTML += "</ul>";
+              feedbackDiv.innerHTML = feedbackHTML;
+            } else {
+              feedbackDiv.textContent = feedbackText;
+            }
 
             // Disable inputs if disable-after-submit is enabled
             if (quiz.hasAttribute("data-disable-after-submit")) {
@@ -659,10 +667,8 @@
               }
               resetButton.classList.add("hidden");
             } else {
+              // Keep submit button visible for editing and resubmission
               resetButton.classList.remove("hidden");
-              if (submitButton) {
-                submitButton.classList.add("hidden");
-              }
             }
           }
         }
@@ -805,6 +811,7 @@
       feedbackDiv.classList.add("hidden");
       feedbackDiv.classList.remove("correct", "incorrect");
       feedbackDiv.textContent = "";
+      feedbackDiv.innerHTML = "";
       // Show submit button, hide reset button
       if (submitButton) {
         submitButton.disabled = false;
@@ -855,20 +862,30 @@
           feedbackDiv.classList.add("correct");
           feedbackDiv.textContent = "Correct answer!";
         } else {
-          // Show incorrect feedback
+          // Show incorrect feedback with detailed list
           feedbackDiv.classList.remove("hidden", "correct");
           feedbackDiv.classList.add("incorrect");
           const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-          feedbackDiv.textContent = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+
+          // Build detailed feedback with bullet list
+          const feedbackText = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
 
           // Show correct answers if show-correct is enabled
           if (quiz.hasAttribute("data-show-correct")) {
+            let feedbackHTML = feedbackText + "<ul>";
             blankInputs.forEach((input) => {
               if (!input.classList.contains("correct")) {
+                const userAnswer = input.value.trim();
                 const correctAnswer = input.getAttribute("data-answer");
+                feedbackHTML += `<li><del>${userAnswer || "(empty)"}</del> → ${correctAnswer}</li>`;
+                // Also show in placeholder
                 input.placeholder = correctAnswer;
               }
             });
+            feedbackHTML += "</ul>";
+            feedbackDiv.innerHTML = feedbackHTML;
+          } else {
+            feedbackDiv.textContent = feedbackText;
           }
         }
 
@@ -882,11 +899,9 @@
           }
           resetButton.classList.add("hidden");
         } else {
-          // Show reset button and hide submit button
+          // For fill-in-blank, keep submit button visible so users can edit and resubmit
+          // Only show reset button as an alternative
           resetButton.classList.remove("hidden");
-          if (submitButton) {
-            submitButton.classList.add("hidden");
-          }
         }
       } else {
         // Handle multiple-choice quiz (existing code)
