@@ -592,7 +592,9 @@
 
           if (savedState.correct) {
             // Show correct feedback
-            section.classList.remove("hidden");
+            if (section) {
+              section.classList.remove("hidden");
+            }
             feedbackDiv.classList.remove("hidden", "incorrect");
             feedbackDiv.classList.add("correct");
             feedbackDiv.textContent = "Correct answer!";
@@ -619,7 +621,9 @@
             }
           } else {
             // Restore incorrect answer state
-            section.classList.remove("hidden");
+            if (section) {
+              section.classList.remove("hidden");
+            }
 
             // Mark wrong/correct inputs
             blankInputs.forEach((input) => {
@@ -689,7 +693,9 @@
 
         if (savedState.correct) {
           // Show the content section
-          section.classList.remove("hidden");
+          if (section) {
+            section.classList.remove("hidden");
+          }
 
           // Only mark the correct answers in green (don't highlight wrong answers)
           allAnswers.forEach((input) => {
@@ -726,7 +732,9 @@
           );
 
           // Show the content section for incorrect answers too
-          section.classList.remove("hidden");
+          if (section) {
+            section.classList.remove("hidden");
+          }
 
           // Mark selected answers
           selectedInputs.forEach((input) => {
@@ -806,7 +814,9 @@
       }
       // Hide content section
       let section = quiz.querySelector("section");
-      section.classList.add("hidden");
+      if (section) {
+        section.classList.add("hidden");
+      }
       // Hide feedback message
       feedbackDiv.classList.add("hidden");
       feedbackDiv.classList.remove("correct", "incorrect");
@@ -854,7 +864,9 @@
         });
 
         // Always show the content section after submission
-        section.classList.remove("hidden");
+        if (section) {
+          section.classList.remove("hidden");
+        }
 
         if (is_correct) {
           // Show correct feedback
@@ -916,7 +928,9 @@
         });
 
         // Always show the content section after submission
-        section.classList.remove("hidden");
+        if (section) {
+          section.classList.remove("hidden");
+        }
 
         if (is_correct) {
           resetFieldset(fieldset);
