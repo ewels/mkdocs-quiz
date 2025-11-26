@@ -8,9 +8,6 @@ import sys
 from pathlib import Path
 
 import polib
-from babel.messages.catalog import Catalog
-from babel.messages.extract import extract_from_dir
-from babel.messages.pofile import read_po, write_po
 
 
 def convert_quiz_block(quiz_content: str) -> str:
@@ -216,34 +213,24 @@ def init_translation(language: str, output: str | None = None) -> None:
             print("Aborted.")
             sys.exit(0)
 
-    try:
-        # Load template
-        pot = polib.pofile(str(template_path))
+    # Load template
+    pot = polib.pofile(str(template_path))
 
-        # Update metadata
-        pot.metadata = {
-            "Project-Id-Version": "mkdocs-quiz",
-            "Report-Msgid-Bugs-To": "https://github.com/ewels/mkdocs-quiz/issues",
-            "Language": language,
-            "MIME-Version": "1.0",
-            "Content-Type": "text/plain; charset=UTF-8",
-            "Content-Transfer-Encoding": "8bit",
-        }
+    # Update metadata
+    pot.metadata = {
+        "Project-Id-Version": "mkdocs-quiz",
+        "Report-Msgid-Bugs-To": "https://github.com/ewels/mkdocs-quiz/issues",
+        "Language": language,
+        "MIME-Version": "1.0",
+        "Content-Type": "text/plain; charset=UTF-8",
+        "Content-Transfer-Encoding": "8bit",
+    }
 
-        # Save as new .po file
-        pot.save(str(output_path))
+    # Save as new .po file
+    pot.save(str(output_path))
 
-        print(f"Translation file created: {output_path}")
-        print(f"Language: {language}")
-        print()
-        print("Next steps:")
-        print(f"  1. Edit {output_path} to translate the strings")
-        print("  2. Use a text editor or Poedit GUI for easier translation")
-        print("  3. Configure the custom translation in mkdocs.yml")
-
-    except Exception as e:
-        print(f"Error creating translation file: {e}")
-        sys.exit(1)
+    print(f"Created {output_path} ({language})")
+    print("Edit the file to add translations, then configure in mkdocs.yml")
 
 
 def extract_strings() -> None:
@@ -251,7 +238,19 @@ def extract_strings() -> None:
 
     Uses babel to extract strings from Python code and update the mkdocs_quiz.pot
     template file with all translatable strings.
+
+    Requires: babel (install with `pip install babel`)
     """
+    # Lazy import babel (it's only in dev dependencies)
+    try:
+        from babel.messages.catalog import Catalog
+        from babel.messages.extract import extract_from_dir
+        from babel.messages.pofile import write_po
+    except ImportError:
+        print("Error: babel is required for the extract-strings command")
+        print("Install with: pip install babel")
+        sys.exit(1)
+
     # Get paths
     module_dir = Path(__file__).parent
     locales_dir = module_dir / "locales"
@@ -261,9 +260,6 @@ def extract_strings() -> None:
     locales_dir.mkdir(exist_ok=True)
 
     print("Extracting translatable strings from source code...")
-    print(f"Source directory: {module_dir}")
-    print(f"Output template: {pot_file}")
-    print()
 
     # Create a new catalog
     catalog = Catalog(project="mkdocs-quiz", version="1.1.0")
@@ -287,12 +283,8 @@ def extract_strings() -> None:
     with open(pot_file, "wb") as f:
         write_po(f, catalog, width=100)
 
-    print(f"✓ Successfully extracted {count} strings to {pot_file.name}")
-    print()
-    print("Next steps:")
-    print("  1. Run 'mkdocs-quiz update-translations' to update all .po files")
-    print("  2. Translate new strings in each language's .po file")
-    print("  3. Run 'mkdocs-quiz check-translations' to verify completeness")
+    print(f"✓ Extracted {count} strings to {pot_file.name}")
+    print("Run 'mkdocs-quiz update-translations' to sync .po files")
 
 
 def update_translations() -> None:
@@ -300,7 +292,17 @@ def update_translations() -> None:
 
     Uses babel to sync all .po files with the latest .pot template,
     adding new strings and marking obsolete ones.
+
+    Requires: babel (install with `pip install babel`)
     """
+    # Lazy import babel (it's only in dev dependencies)
+    try:
+        from babel.messages.pofile import read_po, write_po
+    except ImportError:
+        print("Error: babel is required for the update-translations command")
+        print("Install with: pip install babel")
+        sys.exit(1)
+
     # Get paths
     module_dir = Path(__file__).parent
     locales_dir = module_dir / "locales"
@@ -308,19 +310,18 @@ def update_translations() -> None:
 
     if not pot_file.exists():
         print(f"Error: Template file not found: {pot_file}")
-        print("Run 'mkdocs-quiz extract-strings' first to create the template")
+        print("Run 'mkdocs-quiz extract-strings' first")
         sys.exit(1)
 
     # Find all .po files
     po_files = list(locales_dir.glob("*.po"))
 
     if not po_files:
-        print("No translation files found to update")
-        print("Use 'mkdocs-quiz init-translation <language>' to create a new translation")
+        print("No translation files found")
+        print("Use 'mkdocs-quiz init-translation <language>' first")
         sys.exit(0)
 
-    print(f"Updating translation files from {pot_file.name}...")
-    print()
+    print(f"Updating {len(po_files)} translation file(s)...")
 
     # Load template catalog
     with open(pot_file, "rb") as f:
@@ -328,26 +329,13 @@ def update_translations() -> None:
 
     # Update each .po file
     for po_file in po_files:
-        print(f"Updating {po_file.name}...")
-
-        # Load existing translation catalog
         with open(po_file, "rb") as f:
             catalog = read_po(f)
-
-        # Update catalog from template
         catalog.update(template)
-
-        # Write updated catalog back
         with open(po_file, "wb") as f:
             write_po(f, catalog, width=100)
 
-    print()
-    print(f"✓ Successfully updated {len(po_files)} translation file(s)")
-    print()
-    print("Next steps:")
-    print("  1. Translate any new or fuzzy strings in each .po file")
-    print("  2. Remove obsolete entries (marked with #~) if any")
-    print("  3. Run 'mkdocs-quiz check-translations' to verify completeness")
+    print(f"✓ Updated {len(po_files)} file(s). Translate new strings and run check-translations.")
 
 
 def check_translations() -> None:
@@ -371,41 +359,36 @@ def check_translations() -> None:
 
     all_valid = True
     for po_file in po_files:
-        try:
-            po = polib.pofile(str(po_file))
-            language = po_file.stem
+        po = polib.pofile(str(po_file))
+        language = po_file.stem
 
-            total = len(po)
-            translated = len(po.translated_entries())
-            untranslated = len(po.untranslated_entries())
-            fuzzy = len(po.fuzzy_entries())
-            obsolete = len(po.obsolete_entries())
+        total = len(po)
+        translated = len(po.translated_entries())
+        untranslated = len(po.untranslated_entries())
+        fuzzy = len(po.fuzzy_entries())
+        obsolete = len(po.obsolete_entries())
 
-            percentage = (translated / total * 100) if total > 0 else 0
+        percentage = (translated / total * 100) if total > 0 else 0
 
-            print(f"Language: {language}")
-            print(f"  File: {po_file.name}")
-            print(f"  Total strings: {total}")
-            print(f"  Translated: {translated} ({percentage:.1f}%)")
-            print(f"  Untranslated: {untranslated}")
-            print(f"  Fuzzy: {fuzzy}")
-            print(f"  Obsolete: {obsolete}")
+        print(f"Language: {language}")
+        print(f"  File: {po_file.name}")
+        print(f"  Total strings: {total}")
+        print(f"  Translated: {translated} ({percentage:.1f}%)")
+        print(f"  Untranslated: {untranslated}")
+        print(f"  Fuzzy: {fuzzy}")
+        print(f"  Obsolete: {obsolete}")
 
-            if untranslated > 0 or fuzzy > 0 or obsolete > 0:
-                all_valid = False
-                if obsolete > 0:
-                    print("  Status: ⚠️  Has obsolete entries (orphaned translation keys)")
-                    print("  Fix: Remove obsolete entries marked with #~ prefix")
-                else:
-                    print("  Status: ⚠️  Incomplete")
-            else:
-                print("  Status: ✓ Complete")
-
-            print()
-
-        except Exception as e:
-            print(f"Error checking {po_file}: {e}")
+        if untranslated > 0 or fuzzy > 0 or obsolete > 0:
             all_valid = False
+            if obsolete > 0:
+                print("  Status: ⚠️  Has obsolete entries (orphaned translation keys)")
+                print("  Fix: Remove obsolete entries marked with #~ prefix")
+            else:
+                print("  Status: ⚠️  Incomplete")
+        else:
+            print("  Status: ✓ Complete")
+
+        print()
 
     if not all_valid:
         print("Some translation files are incomplete or have errors")

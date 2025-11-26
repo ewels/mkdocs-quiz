@@ -247,10 +247,10 @@ class MkDocsQuizPlugin(BasePlugin):
         # Get custom translation path for this language
         custom_translations = self.config.get("custom_translations", {})
         custom_path = None
-        if language in custom_translations:
+        if custom_trans_path := custom_translations.get(language):
             # Resolve path relative to mkdocs.yml (config file directory)
             config_dir = Path(config.config_file_path).parent
-            custom_path = config_dir / custom_translations[language]
+            custom_path = config_dir / custom_trans_path
 
         return TranslationManager(language, custom_path)
 

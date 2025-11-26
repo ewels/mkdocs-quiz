@@ -57,12 +57,9 @@ class TranslationManager:
         # 2. Merge custom translations from user's project (if provided)
         if self.custom_path:
             if self.custom_path.exists():
-                try:
-                    custom_trans = self._parse_po_file(self.custom_path)
-                    self.translations.update(custom_trans)
-                    log.debug(f"Loaded custom translations from {self.custom_path}")
-                except Exception as e:
-                    log.error(f"Failed to load custom translation from {self.custom_path}: {e}")
+                custom_trans = self._parse_po_file(self.custom_path)
+                self.translations.update(custom_trans)
+                log.debug(f"Loaded custom translations from {self.custom_path}")
             else:
                 log.warning(f"Custom translation file not found: {self.custom_path}")
 
@@ -99,11 +96,7 @@ class TranslationManager:
         """
         text = self.translations.get(key, key)
         if kwargs:
-            try:
-                return text.format(**kwargs)
-            except (KeyError, ValueError) as e:
-                log.warning(f"Failed to format translation '{key}': {e}")
-                return text
+            return text.format(**kwargs)
         return text
 
     def to_dict(self) -> dict[str, str]:
@@ -113,22 +106,3 @@ class TranslationManager:
             Copy of translations dictionary.
         """
         return self.translations.copy()
-
-    @staticmethod
-    def get_available_languages() -> list[str]:
-        """Get list of available built-in languages.
-
-        Returns:
-            List of language codes.
-        """
-        locales_dir = Path(__file__).parent / "locales"
-        if not locales_dir.exists():
-            return ["en_US"]
-
-        languages = ["en_US"]  # Always include English
-        for po_file in locales_dir.glob("*.po"):
-            lang_code = po_file.stem
-            if lang_code not in languages:
-                languages.append(lang_code)
-
-        return sorted(languages)

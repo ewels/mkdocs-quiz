@@ -67,5 +67,7 @@ nav:
   - translations.md
   - configuration.md
   - updating.md
-  - Contributing: contributing.md
+  - Contributing:
+      - contributing.md
+      - contributing-translations.md
   - changelog.md
