@@ -18,15 +18,15 @@ To contribute a new language:
 
 ```bash
 cd mkdocs-quiz
-mkdocs-quiz init-translation <language_code> -o mkdocs_quiz/locales/<language_code>.po
+mkdocs-quiz translations init <language_code> -o mkdocs_quiz/locales/<language_code>.po
 ```
 
 Examples:
 
 ```bash
-mkdocs-quiz init-translation es_ES -o mkdocs_quiz/locales/es_ES.po
-mkdocs-quiz init-translation de_DE -o mkdocs_quiz/locales/de_DE.po
-mkdocs-quiz init-translation ja_JP -o mkdocs_quiz/locales/ja_JP.po
+mkdocs-quiz translations init es_ES -o mkdocs_quiz/locales/es_ES.po
+mkdocs-quiz translations init de_DE -o mkdocs_quiz/locales/de_DE.po
+mkdocs-quiz translations init ja_JP -o mkdocs_quiz/locales/ja_JP.po
 ```
 
 **Note:** The `-o` flag places the file in the plugin's locales directory. Without it, the file is created in your current directory.
@@ -57,7 +57,7 @@ msgstr "質問 {n}"  # Preserve placeholders like {n}
 Run the validation tool to ensure all strings are translated:
 
 ```bash
-mkdocs-quiz check-translations
+mkdocs-quiz translations check
 ```
 
 Expected output:
@@ -148,31 +148,31 @@ Before submitting, verify:
 Validates translation completeness and detects issues:
 
 ```bash
-mkdocs-quiz check-translations
+mkdocs-quiz translations check
 ```
 
 This command is also run automatically in pre-commit hooks.
 
-### `init-translation`
+### `init`
 
 Creates a new translation file from the template:
 
 ```bash
-mkdocs-quiz init-translation <language_code>
+mkdocs-quiz translations init <language_code>
 ```
 
 By default creates `{language}.po` in current directory. Use `-o` to specify output path.
 
 ## Maintainer Tools
 
-The following commands are for maintainers updating translations when new strings are added to the codebase:
+The following command is for maintainers updating translations when new strings are added to the codebase.
 
-### `extract-strings`
+### `update`
 
-Extracts translatable strings from source code to update the `.pot` template:
+Extracts strings from source code and updates all translation files:
 
 ```bash
-mkdocs-quiz extract-strings
+mkdocs-quiz translations update
 ```
 
 **Requires:** `pip install babel`
@@ -180,35 +180,19 @@ mkdocs-quiz extract-strings
 This command:
 
 1. Scans Python source files for translatable strings
-2. Updates `mkdocs_quiz/locales/mkdocs_quiz.pot` with new strings
-3. Preserves existing translations
-
-### `update-translations`
-
-Syncs all `.po` files with the latest `.pot` template:
-
-```bash
-mkdocs-quiz update-translations
-```
-
-**Requires:** `pip install babel`
-
-This command:
-
-1. Loads the `.pot` template
-2. Updates all `.po` files with new strings
-3. Marks obsolete strings for removal
-4. Preserves existing translations
+2. Extracts strings to `mkdocs_quiz/locales/mkdocs_quiz.pot` template
+3. Updates all `.po` files with new strings
+4. Marks obsolete strings for removal
+5. Preserves existing translations
 
 ### Workflow for Adding New Strings
 
 When new translatable text is added to the codebase:
 
-1. Extract strings: `mkdocs-quiz extract-strings`
-2. Update translations: `mkdocs-quiz update-translations`
-3. Translate new strings in each `.po` file
-4. Remove obsolete entries (marked with `#~`)
-5. Verify: `mkdocs-quiz check-translations`
+1. Run `mkdocs-quiz translations update` to extract and sync strings
+2. Translate new strings in each `.po` file
+3. Remove obsolete entries (marked with `#~`)
+4. Verify: `mkdocs-quiz translations check`
 
 ## Technical Details
 

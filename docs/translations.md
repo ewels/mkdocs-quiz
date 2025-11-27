@@ -75,7 +75,7 @@ You can add new languages or customize existing ones.
 1. **Create translation file:**
 
 ```bash
-mkdocs-quiz init-translation ja_JP
+mkdocs-quiz translations init ja_JP
 ```
 
 This creates `ja_JP.po` with all strings to translate.

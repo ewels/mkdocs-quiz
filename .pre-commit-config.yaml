@@ -36,7 +36,7 @@ repos:
     hooks:
       - id: check-translations
         name: Check translation completeness
-        entry: python -m mkdocs_quiz.cli check-translations
+        entry: python -m mkdocs_quiz.cli translations check
         language: python
         pass_filenames: false
         files: \.po$

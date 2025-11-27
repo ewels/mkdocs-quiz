@@ -145,10 +145,9 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
    ```
 
 6. **CLI Tools**:
-   - `mkdocs-quiz check-translations` - Validate completeness and detect orphaned keys
-   - `mkdocs-quiz init-translation` - Initialize new language
-   - `mkdocs-quiz extract-strings` - Extract translatable strings to .pot template (wraps pybabel)
-   - `mkdocs-quiz update-translations` - Update all .po files from .pot template (wraps pybabel)
+   - `mkdocs-quiz translations init <language>` - Initialize new language
+   - `mkdocs-quiz translations update` - Extract strings from source and update all .po files
+   - `mkdocs-quiz translations check` - Validate completeness and detect orphaned keys
    - Pre-commit hook validates translations automatically
 
 **Adding New Translatable Strings:**
@@ -156,12 +155,11 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
 When adding new user-facing text:
 
 1. Write English text directly in code: `t.get("New message")`
-2. Extract strings to update `.pot`: `mkdocs-quiz extract-strings`
-3. Update all `.po` files: `mkdocs-quiz update-translations`
-4. Translate new strings in each `.po` file
-5. Run `mkdocs-quiz check-translations` to verify
+2. Run `mkdocs-quiz translations update` to extract strings and update all .po files
+3. Translate new strings in each `.po` file
+4. Run `mkdocs-quiz translations check` to verify
 
-**Note:** The `extract-strings` and `update-translations` commands wrap pybabel functionality for convenience. Babel must be installed as a dev dependency.
+**Note:** The `translations update` command wraps pybabel functionality for convenience. Babel must be installed as a dev dependency.
 
 ## Development Commands
 
@@ -202,17 +200,17 @@ ruff format mkdocs_quiz tests  # Format Python
 ruff check mkdocs_quiz tests   # Lint Python
 npx prettier --write "mkdocs_quiz/**/*.{js,css}"  # Format JS/CSS
 mypy mkdocs_quiz               # Type check
-mkdocs-quiz check-translations # Check translation completeness
+mkdocs-quiz translations check # Check translation completeness
 ```
 
 ### Translation Management
 
 ```bash
 # Check translation completeness (runs in pre-commit)
-mkdocs-quiz check-translations
+mkdocs-quiz translations check
 
 # Initialize new language
-mkdocs-quiz init-translation <lang_code> -o mkdocs_quiz/locales/<lang_code>.po
+mkdocs-quiz translations init <lang_code> -o mkdocs_quiz/locales/<lang_code>.po
 ```
 
 ### Building
@@ -245,17 +243,10 @@ The plugin includes a CLI tool for various tasks:
 # Migrate quizzes from old question:/answer: syntax to new markdown checkbox syntax
 mkdocs-quiz migrate docs/
 
-# Create a new translation file
-mkdocs-quiz init-translation <lang_code>
-
-# Extract translatable strings from source code (for contributors)
-mkdocs-quiz extract-strings
-
-# Update translation files with new strings (for contributors)
-mkdocs-quiz update-translations
-
-# Check translation completeness
-mkdocs-quiz check-translations
+# Translation management
+mkdocs-quiz translations init <lang_code>   # Create new translation file
+mkdocs-quiz translations update             # Extract strings & update .po files (maintainers)
+mkdocs-quiz translations check              # Validate completeness
 ```
 
 The CLI tool ([mkdocs_quiz/cli.py](mkdocs_quiz/cli.py)) provides utilities for quiz migration, translation management, and validation.

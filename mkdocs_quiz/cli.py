@@ -233,11 +233,11 @@ def init_translation(language: str, output: str | None = None) -> None:
     print("Edit the file to add translations, then configure in mkdocs.yml")
 
 
-def extract_strings() -> None:
-    """Extract translatable strings from source code to update .pot template.
+def update_translations() -> None:
+    """Extract strings from source and update all translation files.
 
-    Uses babel to extract strings from Python code and update the mkdocs_quiz.pot
-    template file with all translatable strings.
+    This combines extraction and updating into a single command.
+    Uses babel to extract strings from source code and sync all .po files.
 
     Requires: babel (install with `pip install babel`)
     """
@@ -245,9 +245,9 @@ def extract_strings() -> None:
     try:
         from babel.messages.catalog import Catalog
         from babel.messages.extract import extract_from_dir
-        from babel.messages.pofile import write_po
+        from babel.messages.pofile import read_po, write_po
     except ImportError:
-        print("Error: babel is required for the extract-strings command")
+        print("Error: babel is required for updating translations")
         print("Install with: pip install babel")
         sys.exit(1)
 
@@ -259,12 +259,10 @@ def extract_strings() -> None:
     # Ensure locales directory exists
     locales_dir.mkdir(exist_ok=True)
 
-    print("Extracting translatable strings from source code...")
+    # Step 1: Extract strings from source code
+    print("Extracting strings from source code...")
 
-    # Create a new catalog
     catalog = Catalog(project="mkdocs-quiz", version="1.1.0")
-
-    # Extract strings from Python files
     method_map = [("**.py", "python")]
     extracted = extract_from_dir(
         str(module_dir),
@@ -272,7 +270,6 @@ def extract_strings() -> None:
         keywords={"get": None},  # Look for t.get() calls
     )
 
-    # Add extracted messages to catalog
     count = 0
     for filename, lineno, message, _comments, _context in extracted:
         if message:
@@ -283,59 +280,27 @@ def extract_strings() -> None:
     with open(pot_file, "wb") as f:
         write_po(f, catalog, width=100)
 
-    print(f"✓ Extracted {count} strings to {pot_file.name}")
-    print("Run 'mkdocs-quiz update-translations' to sync .po files")
+    print(f"✓ Extracted {count} strings to template")
 
-
-def update_translations() -> None:
-    """Update all .po translation files from the .pot template.
-
-    Uses babel to sync all .po files with the latest .pot template,
-    adding new strings and marking obsolete ones.
-
-    Requires: babel (install with `pip install babel`)
-    """
-    # Lazy import babel (it's only in dev dependencies)
-    try:
-        from babel.messages.pofile import read_po, write_po
-    except ImportError:
-        print("Error: babel is required for the update-translations command")
-        print("Install with: pip install babel")
-        sys.exit(1)
-
-    # Get paths
-    module_dir = Path(__file__).parent
-    locales_dir = module_dir / "locales"
-    pot_file = locales_dir / "mkdocs_quiz.pot"
-
-    if not pot_file.exists():
-        print(f"Error: Template file not found: {pot_file}")
-        print("Run 'mkdocs-quiz extract-strings' first")
-        sys.exit(1)
-
-    # Find all .po files
+    # Step 2: Update all .po files
     po_files = list(locales_dir.glob("*.po"))
 
     if not po_files:
-        print("No translation files found")
-        print("Use 'mkdocs-quiz init-translation <language>' first")
-        sys.exit(0)
+        print("No translation files found to update")
+        print("Use 'mkdocs-quiz translations init <language>' to create one")
+        return
 
     print(f"Updating {len(po_files)} translation file(s)...")
 
-    # Load template catalog
-    with open(pot_file, "rb") as f:
-        template = read_po(f)
-
-    # Update each .po file
     for po_file in po_files:
         with open(po_file, "rb") as f:
-            catalog = read_po(f)
-        catalog.update(template)
+            po_catalog = read_po(f)
+        po_catalog.update(catalog)
         with open(po_file, "wb") as f:
-            write_po(f, catalog, width=100)
+            write_po(f, po_catalog, width=100)
 
-    print(f"✓ Updated {len(po_files)} file(s). Translate new strings and run check-translations.")
+    print(f"✓ Updated {len(po_files)} file(s)")
+    print("Translate new strings and run 'mkdocs-quiz translations check' to verify")
 
 
 def check_translations() -> None:
@@ -424,36 +389,50 @@ def main() -> None:
         help="Show what would be changed without modifying files",
     )
 
-    # Initialize translation subcommand
-    init_parser = subparsers.add_parser(
-        "init-translation", help="Initialize a new translation file"
+    # Translations subcommand group
+    translations_parser = subparsers.add_parser(
+        "translations",
+        help="Manage translation files",
+    )
+    translations_subparsers = translations_parser.add_subparsers(
+        dest="translations_command",
+        help="Translation commands",
+    )
+
+    # translations init
+    init_parser = translations_subparsers.add_parser(
+        "init",
+        help="Initialize a new translation file",
     )
     init_parser.add_argument("language", help="Language code (e.g., fr_FR, es_ES)")
     init_parser.add_argument("-o", "--output", help="Output file path (default: {language}.po)")
 
-    # Extract strings subcommand
-    subparsers.add_parser(
-        "extract-strings", help="Extract translatable strings to update .pot template"
+    # translations update
+    translations_subparsers.add_parser(
+        "update",
+        help="Extract strings and update all translation files",
     )
 
-    # Update translations subcommand
-    subparsers.add_parser("update-translations", help="Update all .po files from .pot template")
-
-    # Check translations subcommand
-    subparsers.add_parser("check-translations", help="Check translation completeness")
+    # translations check
+    translations_subparsers.add_parser(
+        "check",
+        help="Check translation completeness",
+    )
 
     args = parser.parse_args()
 
     if args.command == "migrate":
         migrate(args.directory, dry_run=args.dry_run)
-    elif args.command == "init-translation":
-        init_translation(language=args.language, output=args.output)
-    elif args.command == "extract-strings":
-        extract_strings()
-    elif args.command == "update-translations":
-        update_translations()
-    elif args.command == "check-translations":
-        check_translations()
+    elif args.command == "translations":
+        if args.translations_command == "init":
+            init_translation(language=args.language, output=args.output)
+        elif args.translations_command == "update":
+            update_translations()
+        elif args.translations_command == "check":
+            check_translations()
+        else:
+            translations_parser.print_help()
+            sys.exit(1)
     else:
         parser.print_help()
         sys.exit(1)
