@@ -9,6 +9,8 @@ from pathlib import Path
 
 import polib
 
+from mkdocs_quiz import __version__
+
 
 def convert_quiz_block(quiz_content: str) -> str:
     """Convert old quiz syntax to new markdown-style syntax.
@@ -204,10 +206,6 @@ def init_translation(language: str, output: str | None = None) -> None:
     module_dir = Path(__file__).parent
     template_path = module_dir / "locales" / "mkdocs_quiz.pot"
 
-    if not template_path.exists():
-        print(f"Error: Built-in template not found at {template_path}")
-        sys.exit(1)
-
     # Determine output path
     if output is None:
         output = f"{language}.po"
@@ -215,10 +213,8 @@ def init_translation(language: str, output: str | None = None) -> None:
 
     # Check if file already exists
     if output_path.exists():
-        response = input(f"File {output_path} already exists. Overwrite? [y/N]: ")
-        if response.lower() != "y":
-            print("Aborted.")
-            sys.exit(0)
+        print("Error: File {output_path} already exists.")
+        sys.exit(0)
 
     # Load template
     pot = polib.pofile(str(template_path))
@@ -236,7 +232,7 @@ def init_translation(language: str, output: str | None = None) -> None:
     # Save as new .po file
     pot.save(str(output_path))
 
-    print(f"Created {output_path} ({language})")
+    print(f"Created {output_path}")
     print("Edit the file to add translations, then configure in mkdocs.yml")
 
 
@@ -263,13 +259,9 @@ def update_translations() -> None:
     locales_dir = module_dir / "locales"
     pot_file = locales_dir / "mkdocs_quiz.pot"
 
-    # Ensure locales directory exists
-    locales_dir.mkdir(exist_ok=True)
-
     # Step 1: Extract strings from source code
     print("Extracting strings from source code...")
-
-    catalog = Catalog(project="mkdocs-quiz", version="1.1.0")
+    catalog = Catalog(project="mkdocs-quiz", version=__version__)
     method_map = [("**.py", "python")]
     extracted = extract_from_dir(
         str(module_dir),
@@ -285,26 +277,19 @@ def update_translations() -> None:
 
     # Write catalog to .pot file
     with open(pot_file, "wb") as f:
-        write_po(f, catalog, width=100)
+        write_po(f, catalog, width=120)
 
     print(f"✓ Extracted {count} strings to template")
 
     # Step 2: Update all .po files
     po_files = list(locales_dir.glob("*.po"))
-
-    if not po_files:
-        print("No translation files found to update")
-        print("Use 'mkdocs-quiz translations init <language>' to create one")
-        return
-
     print(f"Updating {len(po_files)} translation file(s)...")
-
     for po_file in po_files:
         with open(po_file, "rb") as f:
             po_catalog = read_po(f)
         po_catalog.update(catalog)
         with open(po_file, "wb") as f:
-            write_po(f, po_catalog, width=100)
+            write_po(f, po_catalog, width=120)
 
     print(f"✓ Updated {len(po_files)} file(s)")
     print("Translate new strings and run 'mkdocs-quiz translations check' to verify")

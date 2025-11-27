@@ -1,6 +1,8 @@
 """MkDocs Quiz Plugin - Create interactive quizzes in your MkDocs documentation."""
 
-__version__ = "1.0.0"
+from importlib.metadata import version
+
+__version__ = version("mkdocs_quiz")
 
 from mkdocs_quiz.plugin import MkDocsQuizPlugin
 
