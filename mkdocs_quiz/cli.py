@@ -6,6 +6,7 @@ import argparse
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 import polib
 
@@ -236,6 +237,126 @@ def init_translation(language: str, output: str | None = None) -> None:
     print("Edit the file to add translations, then configure in mkdocs.yml")
 
 
+def _extract_python_strings(py_file: Path, catalog: Any) -> int:
+    """Extract translatable strings from Python files.
+
+    Looks for t.get() patterns in Python code (not docstrings/comments).
+
+    Args:
+        py_file: Path to Python file.
+        catalog: Babel catalog to add strings to.
+
+    Returns:
+        Number of strings extracted.
+    """
+    content = py_file.read_text(encoding="utf-8")
+
+    # Remove triple-quoted docstrings to avoid extracting example code
+    # This is a simple regex-based approach
+    content_no_docstrings = re.sub(r'""".*?"""', "", content, flags=re.DOTALL)
+    content_no_docstrings = re.sub(r"'''.*?'''", "", content_no_docstrings, flags=re.DOTALL)
+    # Remove line comments
+    content_no_docstrings = re.sub(r"#.*?$", "", content_no_docstrings, flags=re.MULTILINE)
+
+    # Pattern to match t.get()
+    # Must be t.get() specifically, not any .get() call
+    # Allows whitespace/newlines between t.get( and the string
+    pattern = r't\.get\(\s*(["\'])((?:[^\1\\]|\\.)*?)\1'
+
+    count = 0
+    line_number = 1
+    position = 0
+
+    # Find all matches and their line numbers
+    for match in re.finditer(pattern, content_no_docstrings):
+        # Count newlines up to this match to get line number
+        # We need to use original content for accurate line numbers
+        # Find the match in the original content
+        match_text = match.group(0)
+        start_pos = content.find(match_text, position)
+        if start_pos == -1:
+            continue  # Skip if not found in original (was in docstring)
+
+        line_number += content[position:start_pos].count("\n")
+        position = start_pos
+
+        # Extract the string content (group 2 is the string between quotes)
+        string_content = match.group(2)
+
+        # Unescape the string
+        string_content = string_content.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
+
+        # Add to catalog
+        relative_path = py_file.relative_to(Path(__file__).parent)
+        catalog.add(string_content, locations=[(str(relative_path), line_number)])
+        count += 1
+
+    return count
+
+
+def _extract_js_strings(js_file: Path, catalog: Any) -> int:
+    """Extract translatable strings from JavaScript files.
+
+    Looks for t() patterns in JavaScript code (not comments/docstrings).
+
+    Args:
+        js_file: Path to JavaScript file.
+        catalog: Babel catalog to add strings to.
+
+    Returns:
+        Number of strings extracted.
+    """
+    content = js_file.read_text(encoding="utf-8")
+
+    # Remove block comments /* */ and JSDoc comments /** */
+    content_no_comments = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
+    # Remove line comments //
+    content_no_comments = re.sub(r"//.*?$", "", content_no_comments, flags=re.MULTILINE)
+
+    # Pattern to match t("...") or t('...')
+    # Must be standalone t() function call, not part of another word
+    # Handles escaped quotes and multiline strings
+    pattern = r'(?<![a-zA-Z_])t\((["\'])(?:(?=(\\?))\2.)*?\1\)'
+
+    count = 0
+    line_number = 1
+    position = 0
+
+    # Find all matches and their line numbers
+    for match in re.finditer(pattern, content_no_comments):
+        # Count newlines up to this match to get line number
+        # We need to use original content for accurate line numbers
+        # Find the match in the original content
+        matched_text = match.group(0)
+        start_pos = content.find(matched_text, position)
+        if start_pos == -1:
+            continue  # Skip if not found in original (was in comment)
+
+        line_number += content[position:start_pos].count("\n")
+        position = start_pos
+
+        # Extract the string content (without quotes)
+        quote_char = matched_text[2]  # Get quote character after 't('
+
+        # Find the string between quotes
+        string_match = re.search(
+            rf"{quote_char}((?:[^{quote_char}\\]|\\.)*)" + quote_char, matched_text
+        )
+        if string_match:
+            # Unescape the string
+            string_content = string_match.group(1)
+            string_content = (
+                string_content.replace(r"\"", '"').replace(r"\"", "'").replace(r"\\", "\\")
+            )
+
+            # Add to catalog
+            relative_path = js_file.relative_to(Path(__file__).parent)
+            catalog.add(string_content, locations=[(str(relative_path), line_number)])
+            count += 1
+
+    return count
+
+
 def update_translations() -> None:
     """Extract strings from source and update all translation files.
 
@@ -247,7 +368,6 @@ def update_translations() -> None:
     # Lazy import babel (it's only in dev dependencies)
     try:
         from babel.messages.catalog import Catalog
-        from babel.messages.extract import extract_from_dir
         from babel.messages.pofile import read_po, write_po
     except ImportError:
         print("Error: babel is required for updating translations")
@@ -259,29 +379,36 @@ def update_translations() -> None:
     locales_dir = module_dir / "locales"
     pot_file = locales_dir / "mkdocs_quiz.pot"
 
-    # Step 1: Extract strings from source code
+    # Step 1: Extract strings from Python source code
     print("Extracting strings from source code...")
     catalog = Catalog(project="mkdocs-quiz", version=__version__)
-    method_map = [("**.py", "python")]
-    extracted = extract_from_dir(
-        str(module_dir),
-        method_map=method_map,
-        keywords={"get": None},  # Look for t.get() calls
-    )
 
+    # Extract from Python files using custom pattern
+    py_files = list(module_dir.rglob("*.py"))
     count = 0
-    for filename, lineno, message, _comments, _context in extracted:
-        if message:
-            catalog.add(message, locations=[(filename, lineno)])
-            count += 1
+    for py_file in py_files:
+        count += _extract_python_strings(py_file, catalog)
+
+    print(f"✓ Extracted {count} strings from Python files")
+
+    # Step 2: Extract strings from JavaScript files
+    js_count = 0
+    js_files = list(module_dir.glob("js/**/*.js"))
+    if js_files:
+        print("Extracting strings from JavaScript files...")
+        for js_file in js_files:
+            js_count += _extract_js_strings(js_file, catalog)
+        print(f"✓ Extracted {js_count} strings from JavaScript files")
+
+    total_count = count + js_count
 
     # Write catalog to .pot file
     with open(pot_file, "wb") as f:
         write_po(f, catalog, width=120)
 
-    print(f"✓ Extracted {count} strings to template")
+    print(f"✓ Total: {total_count} strings extracted to template")
 
-    # Step 2: Update all .po files
+    # Step 3: Update all .po files
     po_files = list(locales_dir.glob("*.po"))
     print(f"Updating {len(po_files)} translation file(s)...")
     for po_file in po_files:
@@ -301,17 +428,8 @@ def check_translations() -> None:
     module_dir = Path(__file__).parent
     locales_dir = module_dir / "locales"
 
-    if not locales_dir.exists():
-        print(f"Error: Locales directory not found at {locales_dir}")
-        sys.exit(1)
-
     # Find all .po files (excluding en_US if it exists)
     po_files = [f for f in locales_dir.glob("*.po") if f.stem.lower() != "en_us"]
-
-    if not po_files:
-        print("No translation files found")
-        sys.exit(0)
-
     print("Checking translation files...\n")
 
     all_valid = True
