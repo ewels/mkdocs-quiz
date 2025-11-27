@@ -193,6 +193,13 @@ def init_translation(language: str, output: str | None = None) -> None:
         language: Language code (e.g., 'fr_FR', 'es_ES').
         output: Output path (defaults to {language}.po).
     """
+    # Don't create en_US translation files - English is the fallback
+    if language.lower() == "en_us":
+        print("Error: en_US translation file is not needed")
+        print("English strings in the source code are used as the fallback.")
+        print("No translation file is required for English.")
+        sys.exit(1)
+
     # Get path to built-in template
     module_dir = Path(__file__).parent
     template_path = module_dir / "locales" / "mkdocs_quiz.pot"
@@ -313,8 +320,8 @@ def check_translations() -> None:
         print(f"Error: Locales directory not found at {locales_dir}")
         sys.exit(1)
 
-    # Find all .po files
-    po_files = list(locales_dir.glob("*.po"))
+    # Find all .po files (excluding en_US if it exists)
+    po_files = [f for f in locales_dir.glob("*.po") if f.stem.lower() != "en_us"]
 
     if not po_files:
         print("No translation files found")

@@ -116,7 +116,8 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
 
 3. **Translation Files** ([mkdocs_quiz/locales/](mkdocs_quiz/locales/)):
    - `mkdocs_quiz.pot` - Template extracted from source code
-   - `en_US.po`, `fr_FR.po`, etc. - Language translations
+   - `fr_FR.po`, etc. - Language translations
+   - No `en_US.po` file needed - English keys in source code are the fallback
    - Standard gettext format, compatible with Poedit, Weblate, Crowdin
    - Files contain `msgid` (English source) and `msgstr` (translation)
 
@@ -140,8 +141,8 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
            - pattern: "fr/**/*"
              language: fr_FR
          custom_translations:
-           en_US: translations/en_custom.po
-           ja_JP: translations/ja_JP.po
+           fr_FR: translations/fr_custom.po # Override built-in French
+           ja_JP: translations/ja_JP.po # Add new language
    ```
 
 6. **CLI Tools**:

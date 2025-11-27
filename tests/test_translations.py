@@ -107,7 +107,8 @@ def test_translation_manager_missing_language() -> None:
 
 def test_translation_manager_to_dict() -> None:
     """Test exporting translations as dictionary."""
-    t = TranslationManager(language="en_US")
+    # Use French which has actual translations
+    t = TranslationManager(language="fr_FR")
 
     trans_dict = t.to_dict()
 
@@ -119,6 +120,10 @@ def test_translation_manager_to_dict() -> None:
     trans_dict["Submit"] = "Modified"
     assert t.get("Submit") != "Modified"
 
+    # English should return empty dict (uses fallback instead)
+    t_en = TranslationManager(language="en_US")
+    assert t_en.to_dict() == {}
+
 
 def test_plugin_translation_injection(mock_config: MkDocsConfig) -> None:
     """Test that translations are injected into HTML."""
@@ -129,7 +134,7 @@ def test_plugin_translation_injection(mock_config: MkDocsConfig) -> None:
         "show_correct": True,
         "auto_submit": True,
         "disable_after_submit": True,
-        "language": "en_US",
+        "language": "fr_FR",  # Use French to test actual translation injection
         "custom_translations": {},
         "language_patterns": [],
     }
@@ -159,8 +164,8 @@ What is 2+2?
     assert html_result is not None
     # Should contain translation script
     assert "mkdocsQuizTranslations" in html_result
-    # Should contain submit button text
-    assert "Submit" in html_result
+    # Should contain French submit button text
+    assert "Soumettre" in html_result
 
 
 def test_plugin_per_page_language(mock_config: MkDocsConfig) -> None:

@@ -218,10 +218,11 @@ MkDocs Quiz uses the standard **gettext `.po` format**:
 mkdocs_quiz/
   locales/
     mkdocs_quiz.pot   # Template (source strings)
-    en_US.po          # English (reference)
     fr_FR.po          # French
     es_ES.po          # Spanish (your contribution)
 ```
+
+**Note:** English (`en_US`) does not have a `.po` file because English strings in the source code are used as the fallback.
 
 ## FAQ
 
