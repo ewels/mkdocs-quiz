@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import fnmatch
 import html
+import json
 import logging
 import re
 import sys
@@ -18,6 +20,8 @@ from mkdocs.plugins import BasePlugin
 from mkdocs.structure.files import Files
 from mkdocs.structure.pages import Page
 
+from .translations import TranslationManager
+
 # Compatibility import for Python 3.8
 if sys.version_info >= (3, 9):
     from importlib.resources import files
@@ -29,11 +33,15 @@ from . import css, js
 log = logging.getLogger("mkdocs.plugins.mkdocs_quiz")
 
 # Load CSS and JS resources at module level
+style: str
+js_script: str
+confetti_lib_script: str
+
 try:
     inp_file = files(css) / "quiz.css"
     with inp_file.open("r") as f:
-        style = f.read()
-    style = f'<style type="text/css">{style}</style>'
+        style_content = f.read()
+    style = f'<style type="text/css">{style_content}</style>'
 
     js_file = files(js) / "quiz.js"
     with js_file.open("r") as f:
@@ -119,6 +127,10 @@ class MkDocsQuizPlugin(BasePlugin):
         ("show_progress", config_options.Type(bool, default=True)),
         ("confetti", config_options.Type(bool, default=True)),
         ("progress_sidebar_position", config_options.Type(str, default="top")),
+        # Translation options
+        ("language", config_options.Type(str, default="en_US")),
+        ("custom_translations", config_options.Type(dict, default={})),
+        ("language_patterns", config_options.Type(list, default=[])),
     )
 
     def __init__(self) -> None:
@@ -202,6 +214,45 @@ class MkDocsQuizPlugin(BasePlugin):
             options.update({k: v for k, v in quiz_meta.items() if k in options})
 
         return options
+
+    def _get_translation_manager(self, page: Page, config: MkDocsConfig) -> TranslationManager:
+        """Get translation manager for the current page.
+
+        Args:
+            page: The current page object.
+            config: The MkDocs config object.
+
+        Returns:
+            TranslationManager instance for the resolved language.
+        """
+        # Check page frontmatter for language override
+        quiz_meta = page.meta.get("quiz", {})
+        language = quiz_meta.get("language") if isinstance(quiz_meta, dict) else None
+
+        # Check pattern matching if no page-level language
+        if not language and self.config.get("language_patterns"):
+            for pattern_config in self.config["language_patterns"]:
+                pattern = pattern_config.get("pattern", "")
+                if pattern and fnmatch.fnmatch(page.file.src_path, pattern):
+                    language = pattern_config.get("language")
+                    log.debug(
+                        f"Matched pattern '{pattern}' for {page.file.src_path}, using language: {language}"
+                    )
+                    break
+
+        # Fall back to global config
+        if not language:
+            language = self.config.get("language", "en_US")
+
+        # Get custom translation path for this language
+        custom_translations = self.config.get("custom_translations", {})
+        custom_path = None
+        if custom_trans_path := custom_translations.get(language):
+            # Resolve path relative to mkdocs.yml (config file directory)
+            config_dir = Path(config.config_file_path).parent
+            custom_path = config_dir / custom_trans_path
+
+        return TranslationManager(language, custom_path)
 
     def _parse_quiz_question_and_answers(
         self, quiz_lines: list[str]
@@ -448,6 +499,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Process quizzes and replace with placeholders
         options = self._get_quiz_options(page)
+        translation_manager = self._get_translation_manager(page, config)
 
         # Find all quiz matches
         matches = list(re.finditer(QUIZ_REGEX, masked_markdown, re.DOTALL))
@@ -459,7 +511,9 @@ class MkDocsQuizPlugin(BasePlugin):
         for quiz_id, match in enumerate(matches):
             try:
                 # Generate quiz HTML
-                quiz_html = self._process_quiz(match.group(1), quiz_id, options)
+                quiz_html = self._process_quiz(
+                    match.group(1), quiz_id, options, translation_manager
+                )
 
                 # Create a markdown-safe placeholder
                 placeholder = f"<!-- MKDOCS_QUIZ_PLACEHOLDER_{quiz_id} -->"
@@ -493,13 +547,16 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return markdown
 
-    def _process_quiz(self, quiz_content: str, quiz_id: int, options: dict[str, bool]) -> str:
+    def _process_quiz(
+        self, quiz_content: str, quiz_id: int, options: dict[str, bool], t: TranslationManager
+    ) -> str:
         """Process a single quiz and convert it to HTML.
 
         Args:
             quiz_content: The content inside the quiz tags.
             quiz_id: The unique ID for this quiz.
             options: Quiz options (show_correct, auto_submit, disable_after_submit, auto_number).
+            t: Translation manager for this page.
 
         Returns:
             The HTML representation of the quiz.
@@ -568,10 +625,11 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Hide submit button only if auto-submit is enabled AND it's a single-choice quiz
         # For multiple-choice (checkboxes), always show the submit button
+        submit_text = t.get("Submit")
         submit_button = (
             ""
             if options["auto_submit"] and not as_checkboxes
-            else '<button type="submit" class="quiz-button">Submit</button>'
+            else f'<button type="submit" class="quiz-button">{submit_text}</button>'
         )
         # Generate quiz ID for linking
         quiz_header_id = f"quiz-{quiz_id}"
@@ -582,7 +640,8 @@ class MkDocsQuizPlugin(BasePlugin):
         if options["auto_number"]:
             # quiz_id is 0-indexed, so add 1 for display
             question_number = quiz_id + 1
-            question_header = f'<h4 class="quiz-number">Question {question_number}</h4>'
+            question_text = t.get("Question {n}", n=question_number)
+            question_header = f'<h4 class="quiz-number">{question_text}</h4>'
 
         quiz_html = dedent(f"""
             <div class="quiz" {attrs} id="{quiz_header_id}">
@@ -602,49 +661,66 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return quiz_html
 
-    def _generate_results_html(self) -> str:
+    def _generate_results_html(self, t: TranslationManager) -> str:
         """Generate HTML for the quiz results end screen.
+
+        Args:
+            t: Translation manager for this page.
 
         Returns:
             The HTML representation of the results div.
         """
+        quiz_progress_text = t.get("Quiz Progress")
+        questions_answered_text = t.get("questions answered")
+        correct_text = t.get("correct")
+        quiz_complete_text = t.get("Quiz Complete!")
+        reset_quiz_text = t.get("Reset quiz")
+
         results_html = dedent(
-            """
+            f"""
             <div id="quiz-results" class="quiz-results">
                 <div class="quiz-results-progress">
-                    <h3>Quiz Progress</h3>
+                    <h3>{quiz_progress_text}</h3>
                     <p class="quiz-results-stats">
-                        <span class="quiz-results-answered">0</span> of <span class="quiz-results-total">0</span> questions answered
+                        <span class="quiz-results-answered">0</span> of <span class="quiz-results-total">0</span> {questions_answered_text}
                         (<span class="quiz-results-percentage">0%</span>)
                     </p>
                     <p class="quiz-results-correct-stats">
-                        <span class="quiz-results-correct">0</span> correct
+                        <span class="quiz-results-correct">0</span> {correct_text}
                     </p>
                 </div>
                 <div class="quiz-results-complete hidden">
-                    <h2 class="quiz-results-title">Quiz Complete!</h2>
+                    <h2 class="quiz-results-title">{quiz_complete_text}</h2>
                     <div class="quiz-results-score-display">
                         <span class="quiz-results-score-value">0%</span>
                     </div>
                     <p class="quiz-results-message"></p>
-                    <button type="button" class="md-button md-button--primary quiz-results-reset">Reset quiz</button>
+                    <button type="button" class="md-button md-button--primary quiz-results-reset">{reset_quiz_text}</button>
                 </div>
             </div>
         """
         ).strip()
         return results_html
 
-    def _generate_intro_html(self) -> str:
+    def _generate_intro_html(self, t: TranslationManager) -> str:
         """Generate HTML for the quiz intro text with reset button.
+
+        Args:
+            t: Translation manager for this page.
 
         Returns:
             The HTML representation of the intro div.
         """
+        intro_text = t.get(
+            "Quiz results are saved to your browser's local storage and will persist between sessions."
+        )
+        reset_quiz_text = t.get("Reset quiz")
+
         intro_html = dedent(
-            """
+            f"""
             <div class="quiz-intro">
-                <p>Quiz results are saved to your browser's local storage and will persist between sessions.</p>
-                <button type="button" class="md-button quiz-intro-reset">Reset quiz</button>
+                <p>{intro_text}</p>
+                <button type="button" class="md-button quiz-intro-reset">{reset_quiz_text}</button>
             </div>
         """
         ).strip()
@@ -680,22 +756,25 @@ class MkDocsQuizPlugin(BasePlugin):
         # Get quiz options to check settings
         options = self._get_quiz_options(page)
 
+        # Get translation manager for this page
+        translation_manager = self._get_translation_manager(page, config)
+
         # Handle results div if present
         if self._has_results_div.get(page_key, False):
-            results_html = self._generate_results_html()
+            results_html = self._generate_results_html(translation_manager)
             html = html.replace("<!-- mkdocs-quiz results -->", results_html)
             # Clean up
             del self._has_results_div[page_key]
 
         # Handle intro if present
         if self._has_intro.get(page_key, False):
-            intro_html = self._generate_intro_html()
+            intro_html = self._generate_intro_html(translation_manager)
             html = html.replace("<!-- mkdocs-quiz intro -->", intro_html)
             # Clean up
             del self._has_intro[page_key]
 
         # Add auto-numbering class if enabled
-        auto_number_script = ""
+        auto_number_script: str = ""
         if options["auto_number"]:
             auto_number_script = dedent(
                 """
@@ -710,15 +789,25 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Add confetti library if enabled
         confetti_enabled = self.config.get("confetti", True)
-        confetti_script = ""
+        confetti_script: str = ""
         if confetti_enabled:
             # Use bundled confetti library (v0.12.0) instead of external CDN
             confetti_script = confetti_lib_script
 
+        # Inject translations as JavaScript object
+        translations_json = json.dumps(translation_manager.to_dict(), ensure_ascii=False)
+        translations_script: str = dedent(
+            f"""
+            <script type="text/javascript">
+            window.mkdocsQuizTranslations = {translations_json};
+            </script>
+        """
+        ).strip()
+
         # Add configuration object for JavaScript
         show_progress = options.get("show_progress", True)
         progress_sidebar_position = self.config.get("progress_sidebar_position", "top")
-        config_script = dedent(
+        config_script: str = dedent(
             f"""
             <script type="text/javascript">
             window.mkdocsQuizConfig = {{
@@ -730,4 +819,12 @@ class MkDocsQuizPlugin(BasePlugin):
         """
         ).strip()
 
-        return html + style + confetti_script + config_script + js_script + auto_number_script  # type: ignore[no-any-return]
+        return (
+            html
+            + style
+            + confetti_script
+            + translations_script
+            + config_script
+            + js_script
+            + auto_number_script
+        )
