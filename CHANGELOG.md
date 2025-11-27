@@ -1,5 +1,12 @@
 # Changelog
 
+## **Version 1.2.0** (unreleased)
+
+- Add internationalisation
+  - All UI-element strings are now wrapped in translation functions
+  - Translations handled with `.po` files, plus `mkdocs-quiz translations` helper CLI commands
+  - Initially released with English and French translations, contributions welcome!
+
 ## **Version 1.1.0** (2025-11-13)
 
 - Add `progress_sidebar_position` configuration option [#6](https://github.com/ewels/mkdocs-quiz/issues/6)
