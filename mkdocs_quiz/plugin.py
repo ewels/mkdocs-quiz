@@ -128,7 +128,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("confetti", config_options.Type(bool, default=True)),
         ("progress_sidebar_position", config_options.Type(str, default="top")),
         # Translation options
-        ("language", config_options.Type(str, default="en_US")),
+        ("language", config_options.Type(str, default="en")),
         ("custom_translations", config_options.Type(dict, default={})),
         ("language_patterns", config_options.Type(list, default=[])),
     )
@@ -218,6 +218,14 @@ class MkDocsQuizPlugin(BasePlugin):
     def _get_translation_manager(self, page: Page, config: MkDocsConfig) -> TranslationManager:
         """Get translation manager for the current page.
 
+        Language resolution order (later overrides earlier):
+        1. Default: 'en'
+        2. theme.language from MkDocs config
+        3. extra.alternate - detect active language from page URL
+        4. mkdocs_quiz.language config
+        5. mkdocs_quiz.language_patterns pattern matching
+        6. Page frontmatter quiz.language (highest priority)
+
         Args:
             page: The current page object.
             config: The MkDocs config object.
@@ -225,12 +233,37 @@ class MkDocsQuizPlugin(BasePlugin):
         Returns:
             TranslationManager instance for the resolved language.
         """
-        # Check page frontmatter for language override
-        quiz_meta = page.meta.get("quiz", {})
-        language = quiz_meta.get("language") if isinstance(quiz_meta, dict) else None
+        # 1. Start with default
+        language = "en"
 
-        # Check pattern matching if no page-level language
-        if not language and self.config.get("language_patterns"):
+        # 2. Check theme.language
+        if hasattr(config, "theme") and hasattr(config.theme, "language"):
+            theme_lang = config.theme.get("language")
+            if theme_lang:
+                language = theme_lang
+                log.debug(f"Using theme.language: {language}")
+
+        # 3. Check extra.alternate for multi-language sites
+        if hasattr(config, "extra") and "alternate" in config.extra:
+            page_url = page.url or page.file.url
+            for alternate in config.extra["alternate"]:
+                link = alternate.get("link", "")
+                lang = alternate.get("lang")
+                # Check if page URL starts with this alternate's link prefix
+                if link and lang and page_url.startswith(link.lstrip("/")):
+                    language = lang
+                    log.debug(
+                        f"Matched extra.alternate link '{link}' for {page_url}, using language: {language}"
+                    )
+                    break
+
+        # 4. Check mkdocs_quiz.language config
+        if self.config.get("language"):
+            language = self.config["language"]
+            log.debug(f"Using mkdocs_quiz.language config: {language}")
+
+        # 5. Check pattern matching
+        if self.config.get("language_patterns"):
             for pattern_config in self.config["language_patterns"]:
                 pattern = pattern_config.get("pattern", "")
                 if pattern and fnmatch.fnmatch(page.file.src_path, pattern):
@@ -240,9 +273,11 @@ class MkDocsQuizPlugin(BasePlugin):
                     )
                     break
 
-        # Fall back to global config
-        if not language:
-            language = self.config.get("language", "en_US")
+        # 6. Check page frontmatter for language override (highest priority)
+        quiz_meta = page.meta.get("quiz", {})
+        if isinstance(quiz_meta, dict) and quiz_meta.get("language"):
+            language = quiz_meta["language"]
+            log.debug(f"Using page frontmatter language: {language}")
 
         # Get custom translation path for this language
         custom_translations = self.config.get("custom_translations", {})
@@ -682,7 +717,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 <div class="quiz-results-progress">
                     <h3>{quiz_progress_text}</h3>
                     <p class="quiz-results-stats">
-                        <span class="quiz-results-answered">0</span> of <span class="quiz-results-total">0</span> {questions_answered_text}
+                        <span class="quiz-results-answered">0</span> / <span class="quiz-results-total">0</span> {questions_answered_text}
                         (<span class="quiz-results-percentage">0%</span>)
                     </p>
                     <p class="quiz-results-correct-stats">

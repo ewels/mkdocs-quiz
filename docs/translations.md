@@ -1,19 +1,21 @@
 ---
 quiz:
-  language: fr_FR
+  language: fr
   auto_number: true
 ---
 
 # Translations
 
-MkDocs Quiz supports multiple languages for all user-facing text (buttons, messages, progress tracking, etc.). This page is configured to render quizzes in French:
+MkDocs Quiz supports internationalization (i18n) with multiple languages for all user-facing text. Language codes follow [MkDocs Material conventions](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/): 2-letter ISO 639-1 codes (e.g., `fr`, `de`) with hyphens for regional variants (e.g., `pt-BR`, `zh-TW`).
+
+For example, this page uses French:
 
 !!! info
 
     <!-- mkdocs-quiz intro -->
 
 <quiz>
-Quelles sont les meilleures pâtisseries ?
+Quelles sont les meilleures pâtisseries ?
 - [ ] Brioches à la cannelle
 - [x] Croissant
 - [x] Pain au chocolat
@@ -24,90 +26,101 @@ Quelles sont les meilleures pâtisseries ?
 
 ## Built-in Languages
 
-- **English** (`en_US`) - Default
-- **French** (`fr_FR`)
+- **English** (`en`) - Default
+- **French** (`fr`)
+- **Portuguese (Brazilian)** (`pt-BR`)
 
 !!! note "Want to add a language?"
-See the [Contributing Translations](contributing-translations.md) guide to add a new language to the plugin.
 
-## Basic Configuration
+    See [Contributing Translations](contributing-translations.md) to add a new language.
 
-### Set Global Language
+## Configuration
+
+### Language Resolution Order
+
+MkDocs Quiz automatically detects the language (later overrides earlier):
+
+1. **Default**: `en`
+2. **Theme language**: `theme.language`
+3. **Language selector**: Active language from `extra.alternate` (Material multi-language sites)
+4. **Plugin config**: `mkdocs_quiz.language`
+5. **Pattern matching**: `mkdocs_quiz.language_patterns`
+6. **Page frontmatter**: `quiz.language` (highest priority)
+
+If using Material's theme language or language selector, MkDocs Quiz automatically uses the correct language.
+
+### Use Theme Language
+
+```yaml
+theme:
+  name: material
+  language: fr # MkDocs Quiz uses this automatically
+
+plugins:
+  - mkdocs_quiz # No language config needed
+```
+
+### Use Theme Language Selector
+
+See the [mkdocs material docs](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/#site-language-selector) for more information.
+
+```yaml
+theme:
+  name: material
+
+extra:
+  alternate: # MkDocs Quiz uses this automatically
+    - name: English
+      link: /en/
+      lang: en
+    - name: Français
+      link: /fr/
+      lang: fr
+
+plugins:
+  - mkdocs_quiz # No language config needed
+```
+
+### Set Global Language via Plugin Config
 
 ```yaml
 plugins:
   - mkdocs_quiz:
-      language: fr_FR
+      language: fr
+```
+
+### Set Plugin Language by Path
+
+```yaml
+plugins:
+  - mkdocs_quiz:
+      language_patterns:
+        - pattern: "fr/**/*"
+          language: fr
+        - pattern: "pt/**/*"
+          language: pt-BR
 ```
 
 ### Set Per-Page Language
 
-Override the language for specific pages:
-
-```md
+```yaml
 ---
 quiz:
-  language: fr_FR
+  language: fr
 ---
-
-# Ma Page de Quiz
-
-!!! info
-
-    <!-- mkdocs-quiz intro -->
-
-<quiz>
-Quelles sont les meilleures pâtisseries ?
-- [ ] Brioches à la cannelle
-- [x] Croissant
-- [x] Pain au chocolat
-- [ ] Brioches glacées
-</quiz>
-
-<!-- mkdocs-quiz results -->
 ```
-
-### Set Language by Path
-
-Useful for multilingual sites organized by directory:
-
-```yaml
-plugins:
-  - mkdocs_quiz:
-      language: en_US # Default
-      language_patterns:
-        - pattern: "fr/**/*"
-          language: fr_FR
-        - pattern: "es/**/*"
-          language: es_ES
-```
-
-With this configuration:
-
-- Files in `docs/fr/` automatically use French
-- Files in `docs/es/` automatically use Spanish
-- All others use English
-
-**Language Resolution Order:**
-
-1. Page frontmatter (`quiz.language`)
-2. Pattern matching (`language_patterns`)
-3. Global config (`language`)
-4. Default (`en_US`)
 
 ## Custom Translations
-
-You can add new languages or customize existing ones.
 
 ### Add a New Language
 
 1. **Create translation file:**
 
 ```bash
-mkdocs-quiz translations init ja_JP
+mkdocs-quiz translations init ja
 ```
 
-This creates `ja_JP.po` with all strings to translate.
+This creates `ja.po` with all strings to translate.
 
 2. **Translate the strings:**
 
@@ -126,21 +139,19 @@ msgstr "正解！"
 ```yaml
 plugins:
   - mkdocs_quiz:
-      language: ja_JP
+      language: ja
       custom_translations:
-        ja_JP: translations/ja_JP.po
+        ja: translations/ja.po
 ```
 
 ### Override Built-in Text
 
-Customize specific strings without changing the language:
-
 ```yaml
 plugins:
   - mkdocs_quiz:
-      language: en_US
+      language: en
       custom_translations:
-        en_US: translations/custom.po
+        en: translations/custom.po
 ```
 
 ```po
@@ -152,83 +163,15 @@ msgid "Outstanding! You aced it!"
 msgstr "Perfect score! You're a quiz master!"
 ```
 
-## Examples
-
-### Multilingual Documentation Site
-
-```yaml
-plugins:
-  - mkdocs_quiz:
-      language_patterns:
-        - pattern: "en/**/*"
-          language: en_US
-        - pattern: "fr/**/*"
-          language: fr_FR
-        - pattern: "es/**/*"
-          language: es_ES
-```
-
-Directory structure:
-
-```
-docs/
-  en/
-    getting-started.md  # English
-  fr/
-    demarrage.md        # French
-  es/
-    comenzar.md         # Spanish
-```
-
-### Custom Branding
-
-Override messages to match your brand voice:
-
-```yaml
-# mkdocs.yml
-plugins:
-  - mkdocs_quiz:
-      custom_translations:
-        en_US: translations/brand.po
-```
-
-```po
-# translations/brand.po
-msgid "Outstanding! You aced it!"
-msgstr "Excellent! You're ready for the next level!"
-
-msgid "Try Again"
-msgstr "Give it another shot"
-```
-
-## Translatable Strings
-
-All user-facing text can be translated:
-
-**Buttons:** Submit, Try Again, Reset quiz, Reset
-
-**Feedback:** Correct answer!, Incorrect answer., Incorrect answer. Please try again.
-
-**Progress:** Quiz Progress, Answered:, Correct:, questions answered, correct
-
-**Question Numbering:** Question {n}
-
-**Results:** Quiz Complete!, Outstanding! You aced it!, Great job! You really know your stuff!, Good effort! Keep learning!, Not bad, but there's room for improvement!, Better luck next time! Keep trying!
-
-**Prompts:** Are you sure you want to reset the quiz? This will clear your progress.
-
-**Intro:** Quiz results are saved to your browser's local storage and will persist between sessions.
-
 ## Troubleshooting
 
 ### Translation not loading
 
-1. Check the file path in `custom_translations` is relative to `mkdocs.yml`
-2. Verify the `.po` file format is valid
-3. Check language code matches (e.g., `fr_FR` not `fr`)
-4. Run `mkdocs serve -v` for verbose output
+1. Check file path in `custom_translations` is relative to `mkdocs.yml`
+2. Verify `.po` file format is valid
+3. Run `mkdocs serve -v` for verbose output
 
-### English text appears instead of translation
+### English text appears
 
 1. Verify language code is correct
 2. Check pattern matching if using `language_patterns`
@@ -244,12 +187,10 @@ Ensure your `.po` file has UTF-8 encoding:
 
 ## Technical Details
 
-- **Format:** Standard gettext `.po` files
+- **Format:** Standard gettext `.po` files compatible with [Poedit](https://poedit.net/), [Weblate](https://weblate.org/), [Crowdin](https://crowdin.com/)
 - **Loading:** Translations load at build time (no runtime overhead)
 - **Fallback:** Missing translations fall back to English
 - **JavaScript:** Translations embedded as JSON in generated HTML
-
-Translation files use the industry-standard gettext format, compatible with [Poedit](https://poedit.net/), [Weblate](https://weblate.org/), [Crowdin](https://crowdin.com/), and other translation tools.
 
 ## Contributing
 

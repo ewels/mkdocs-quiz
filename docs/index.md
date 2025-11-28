@@ -12,6 +12,8 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - 🎯 **Single and multiple choice** - One correct answer = radio buttons, multiple = checkboxes
 - ⚡ **Instant feedback** - Visual indicators show correct/incorrect answers
 - 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti :tada:
+- 💾 **Results saved** - Answers are saved to the browser's local storage
+- 🌐 **Internationalization** - Quiz elements support multi-lingual sites
 
 <!-- prettier-ignore-start -->
 ```html

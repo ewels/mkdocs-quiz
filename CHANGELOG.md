@@ -5,7 +5,7 @@
 - Add internationalisation
   - All UI-element strings are now wrapped in translation functions
   - Translations handled with `.po` files, plus `mkdocs-quiz translations` helper CLI commands
-  - Initially released with English and French translations, contributions welcome!
+  - Initially released with English, Brazilian and French translations, contributions welcome!
 
 ## **Version 1.1.0** (2025-11-13)
 
