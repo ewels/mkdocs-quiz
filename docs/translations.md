@@ -27,8 +27,18 @@ Quelles sont les meilleures pâtisseries ?
 ## Built-in Languages
 
 - **English** (`en`) - Default
+- **Chinese (Simplified)** (`zh`)
+- **Esperanto** (`eo`)
 - **French** (`fr`)
+- **German** (`de`)
+- **Hindi** (`hi`)
+- **Indonesian** (`id`)
+- **Japanese** (`ja`)
+- **Korean** (`ko`)
+- **Norwegian** (`no`)
 - **Portuguese (Brazilian)** (`pt-BR`)
+- **Spanish** (`es`)
+- **Swedish** (`sv`)
 
 !!! note "Want to add a language?"
 

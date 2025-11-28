@@ -128,8 +128,18 @@ Sets the default language for quiz UI elements (buttons, messages, progress trac
 Built-in languages include:
 
 - `en` - English (default)
+- `de` - German
+- `eo` - Esperanto
+- `es` - Spanish
 - `fr` - French
+- `hi` - Hindi
+- `id` - Indonesian
+- `ja` - Japanese
+- `ko` - Korean
+- `no` - Norwegian
 - `pt-BR` - Portuguese (Brazilian)
+- `sv` - Swedish
+- `zh` - Chinese (Simplified)
 
 **Auto-detection:** MkDocs Quiz automatically uses `theme.language` if set, and integrates with Material's `extra.alternate` language selector. See [Translations](translations.md) for language resolution order and complete documentation.
 
