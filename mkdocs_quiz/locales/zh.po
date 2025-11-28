@@ -1,0 +1,89 @@
+# Chinese Simplified translations for mkdocs-quiz
+msgid ""
+msgstr ""
+"Project-Id-Version: mkdocs-quiz\n"
+"Report-Msgid-Bugs-To: https://github.com/ewels/mkdocs-quiz/issues\n"
+"POT-Creation-Date: 2025-11-27 22:12+0100\n"
+"PO-Revision-Date: 2025-11-28 12:00+0000\n"
+"Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Generated-By: Babel 2.14.0\n"
+
+#: plugin.py:628
+msgid "Submit"
+msgstr "提交"
+
+#: plugin.py:643
+msgid "Question {n}"
+msgstr "问题 {n}"
+
+#: plugin.py:673
+msgid "Quiz Progress"
+msgstr "测验进度"
+
+#: plugin.py:674
+msgid "questions answered"
+msgstr "已回答的问题"
+
+#: plugin.py:675
+msgid "correct"
+msgstr "正确"
+
+#: plugin.py:676
+msgid "Quiz Complete!"
+msgstr "测验完成！"
+
+#: plugin.py:677 plugin.py:717
+msgid "Reset quiz"
+msgstr "重置测验"
+
+#: plugin.py:714
+msgid ""
+"Quiz results are saved to your browser's local storage and will persist "
+"between sessions."
+msgstr "测验结果已保存到浏览器的本地存储中，将在会话之间保留。"
+
+#: js/quiz.js:334
+msgid "Outstanding! You aced it!"
+msgstr "太棒了！你全答对了！"
+
+#: js/quiz.js:337
+msgid "Great job! You really know your stuff!"
+msgstr "干得好！你真的很懂这些内容！"
+
+#: js/quiz.js:340
+msgid "Good effort! Keep learning!"
+msgstr "做得不错！继续学习！"
+
+#: js/quiz.js:343
+msgid "Not bad, but there's room for improvement!"
+msgstr "还不错，但还有提升空间！"
+
+#: js/quiz.js:346
+msgid "Better luck next time! Keep trying!"
+msgstr "下次会更好！继续努力！"
+
+#: js/quiz.js:462
+msgid ""
+"Are you sure you want to reset the quiz? This will clear your progress."
+msgstr "确定要重置测验吗？这将清除您的进度。"
+
+#: js/quiz.js:579
+msgid "Try Again"
+msgstr "重试"
+
+#: js/quiz.js:617 js/quiz.js:755
+msgid "Correct answer!"
+msgstr "回答正确！"
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer. Please try again."
+msgstr "回答错误，请重试。"
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer."
+msgstr "回答错误。"

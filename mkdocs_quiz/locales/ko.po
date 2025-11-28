@@ -1,0 +1,89 @@
+# Korean translations for mkdocs-quiz
+msgid ""
+msgstr ""
+"Project-Id-Version: mkdocs-quiz\n"
+"Report-Msgid-Bugs-To: https://github.com/ewels/mkdocs-quiz/issues\n"
+"POT-Creation-Date: 2025-11-27 22:12+0100\n"
+"PO-Revision-Date: 2025-11-28 12:00+0000\n"
+"Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Generated-By: Babel 2.14.0\n"
+
+#: plugin.py:628
+msgid "Submit"
+msgstr "제출"
+
+#: plugin.py:643
+msgid "Question {n}"
+msgstr "문제 {n}"
+
+#: plugin.py:673
+msgid "Quiz Progress"
+msgstr "퀴즈 진행 상황"
+
+#: plugin.py:674
+msgid "questions answered"
+msgstr "답변한 문제"
+
+#: plugin.py:675
+msgid "correct"
+msgstr "정답"
+
+#: plugin.py:676
+msgid "Quiz Complete!"
+msgstr "퀴즈 완료!"
+
+#: plugin.py:677 plugin.py:717
+msgid "Reset quiz"
+msgstr "퀴즈 초기화"
+
+#: plugin.py:714
+msgid ""
+"Quiz results are saved to your browser's local storage and will persist "
+"between sessions."
+msgstr "퀴즈 결과는 브라우저의 로컬 저장소에 저장되며 세션 간에 유지됩니다."
+
+#: js/quiz.js:334
+msgid "Outstanding! You aced it!"
+msgstr "훌륭합니다! 완벽하게 해냈어요!"
+
+#: js/quiz.js:337
+msgid "Great job! You really know your stuff!"
+msgstr "잘했어요! 정말 잘 알고 계시네요!"
+
+#: js/quiz.js:340
+msgid "Good effort! Keep learning!"
+msgstr "좋은 노력이에요! 계속 학습하세요!"
+
+#: js/quiz.js:343
+msgid "Not bad, but there's room for improvement!"
+msgstr "나쁘지 않아요, 하지만 개선의 여지가 있어요!"
+
+#: js/quiz.js:346
+msgid "Better luck next time! Keep trying!"
+msgstr "다음에는 더 잘할 거예요! 계속 도전하세요!"
+
+#: js/quiz.js:462
+msgid ""
+"Are you sure you want to reset the quiz? This will clear your progress."
+msgstr "정말 퀴즈를 초기화하시겠습니까? 진행 상황이 삭제됩니다."
+
+#: js/quiz.js:579
+msgid "Try Again"
+msgstr "다시 시도"
+
+#: js/quiz.js:617 js/quiz.js:755
+msgid "Correct answer!"
+msgstr "정답입니다!"
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer. Please try again."
+msgstr "오답입니다. 다시 시도해 주세요."
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer."
+msgstr "오답입니다."

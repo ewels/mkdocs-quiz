@@ -1,0 +1,92 @@
+# Indonesian translations for mkdocs-quiz
+msgid ""
+msgstr ""
+"Project-Id-Version: mkdocs-quiz\n"
+"Report-Msgid-Bugs-To: https://github.com/ewels/mkdocs-quiz/issues\n"
+"POT-Creation-Date: 2025-11-27 22:12+0100\n"
+"PO-Revision-Date: 2025-11-28 12:00+0000\n"
+"Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Generated-By: Babel 2.14.0\n"
+
+#: plugin.py:628
+msgid "Submit"
+msgstr "Kirim"
+
+#: plugin.py:643
+msgid "Question {n}"
+msgstr "Pertanyaan {n}"
+
+#: plugin.py:673
+msgid "Quiz Progress"
+msgstr "Progres Kuis"
+
+#: plugin.py:674
+msgid "questions answered"
+msgstr "pertanyaan terjawab"
+
+#: plugin.py:675
+msgid "correct"
+msgstr "benar"
+
+#: plugin.py:676
+msgid "Quiz Complete!"
+msgstr "Kuis Selesai!"
+
+#: plugin.py:677 plugin.py:717
+msgid "Reset quiz"
+msgstr "Atur ulang kuis"
+
+#: plugin.py:714
+msgid ""
+"Quiz results are saved to your browser's local storage and will persist "
+"between sessions."
+msgstr ""
+"Hasil kuis disimpan di penyimpanan lokal browser Anda dan akan tetap ada "
+"di antara sesi."
+
+#: js/quiz.js:334
+msgid "Outstanding! You aced it!"
+msgstr "Luar biasa! Anda berhasil dengan sempurna!"
+
+#: js/quiz.js:337
+msgid "Great job! You really know your stuff!"
+msgstr "Kerja bagus! Anda benar-benar menguasai materi ini!"
+
+#: js/quiz.js:340
+msgid "Good effort! Keep learning!"
+msgstr "Usaha yang baik! Terus belajar!"
+
+#: js/quiz.js:343
+msgid "Not bad, but there's room for improvement!"
+msgstr "Tidak buruk, tapi masih ada ruang untuk perbaikan!"
+
+#: js/quiz.js:346
+msgid "Better luck next time! Keep trying!"
+msgstr "Semoga lebih baik lain kali! Terus mencoba!"
+
+#: js/quiz.js:462
+msgid ""
+"Are you sure you want to reset the quiz? This will clear your progress."
+msgstr ""
+"Apakah Anda yakin ingin mengatur ulang kuis? Ini akan menghapus progres Anda."
+
+#: js/quiz.js:579
+msgid "Try Again"
+msgstr "Coba Lagi"
+
+#: js/quiz.js:617 js/quiz.js:755
+msgid "Correct answer!"
+msgstr "Jawaban benar!"
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer. Please try again."
+msgstr "Jawaban salah. Silakan coba lagi."
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer."
+msgstr "Jawaban salah."

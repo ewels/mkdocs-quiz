@@ -5,7 +5,10 @@
 - Add internationalisation
   - All UI-element strings are now wrapped in translation functions
   - Translations handled with `.po` files, plus `mkdocs-quiz translations` helper CLI commands
-  - Initially released with English, Brazilian and French translations, contributions welcome!
+  - Initially released with translations for a subset of those [supported by mkdocs-material](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/):
+    - Brazilian Portugese by @dunossauro - [#17](https://github.com/ewels/mkdocs-quiz/issues/17)
+    - French, Spanish, Swedish, German, Norwegian, Chinese (simplified), Korean, Esperanto, Hindi, Indonesian, Japanese all done automatically by @Claude - please submit a PR if something sounds wrong!
+    - New language contributions welcome!
 
 ## **Version 1.1.0** (2025-11-13)
 
