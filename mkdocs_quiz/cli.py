@@ -194,12 +194,12 @@ def init_translation(language: str, output: str | None = None) -> None:
     """Initialize a new translation file from the template.
 
     Args:
-        language: Language code (e.g., 'fr_FR', 'es_ES').
+        language: Language code (e.g., 'fr', 'pt-BR').
         output: Output path (defaults to {language}.po).
     """
-    # Don't create en_US translation files - English is the fallback
-    if language.lower() == "en_us":
-        print("Error: en_US translation file is not needed")
+    # Don't create en translation files - English is the fallback
+    if language.lower() == "en":
+        print("Error: 'en' translation file is not needed")
         print("English strings in the source code are used as the fallback.")
         print("No translation file is required for English.")
         sys.exit(1)
@@ -500,8 +500,8 @@ def check_translations() -> None:
     pot = polib.pofile(str(pot_file))
     expected_strings = {entry.msgid for entry in pot if entry.msgid}
 
-    # Find all .po files (excluding en_US if it exists)
-    po_files = [f for f in locales_dir.glob("*.po") if f.stem.lower() != "en_us"]
+    # Find all .po files (excluding en if it exists)
+    po_files = [f for f in locales_dir.glob("*.po") if f.stem.lower() != "en"]
 
     print("Checking translation files...\n")
 
@@ -601,7 +601,7 @@ def main() -> None:
         "init",
         help="Initialize a new translation file",
     )
-    init_parser.add_argument("language", help="Language code (e.g., fr_FR, es_ES)")
+    init_parser.add_argument("language", help="Language code (e.g., fr, pt-BR)")
     init_parser.add_argument("-o", "--output", help="Output file path (default: {language}.po)")
 
     # translations update

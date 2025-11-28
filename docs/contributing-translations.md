@@ -24,9 +24,9 @@ mkdocs-quiz translations init <language_code> -o mkdocs_quiz/locales/<language_c
 Examples:
 
 ```bash
-mkdocs-quiz translations init es_ES -o mkdocs_quiz/locales/es_ES.po
-mkdocs-quiz translations init de_DE -o mkdocs_quiz/locales/de_DE.po
-mkdocs-quiz translations init ja_JP -o mkdocs_quiz/locales/ja_JP.po
+mkdocs-quiz translations init es -o mkdocs_quiz/locales/es.po
+mkdocs-quiz translations init de -o mkdocs_quiz/locales/de.po
+mkdocs-quiz translations init ja -o mkdocs_quiz/locales/ja.po
 ```
 
 **Note:** The `-o` flag places the file in the plugin's locales directory. Without it, the file is created in your current directory.
@@ -65,8 +65,8 @@ Expected output:
 ```
 Checking translation files...
 
-Language: es_ES
-  File: es_ES.po
+Language: es
+  File: es.po
   Total strings: 21
   Translated: 21 (100.0%)
   Untranslated: 0
@@ -90,7 +90,7 @@ Configure a test page to use your language:
 ```yaml
 ---
 quiz:
-  language: es_ES
+  language: es
 ---
 <quiz>
 ¿Pregunta de prueba?
@@ -104,7 +104,7 @@ quiz:
 Once your translation is complete and tested:
 
 1. Commit your changes: `git add mkdocs_quiz/locales/<language>.po`
-2. Create a descriptive commit message: `Add Spanish (es_ES) translation`
+2. Create a descriptive commit message: `Add Spanish (es) translation`
 3. Push to your fork and open a pull request
 
 ## Translation Guidelines
@@ -203,11 +203,12 @@ MkDocs Quiz uses the standard **gettext `.po` format**:
 mkdocs_quiz/
   locales/
     mkdocs_quiz.pot   # Template (source strings)
-    fr_FR.po          # French
-    es_ES.po          # Spanish (your contribution)
+    fr.po             # French
+    pt-BR.po          # Portuguese (Brazilian)
+    es.po             # Spanish (your contribution)
 ```
 
-**Note:** English (`en_US`) does not have a `.po` file because English strings in the source code are used as the fallback.
+**Note:** English (`en`) does not have a `.po` file because English strings in the source code are used as the fallback.
 
 ## FAQ
 
@@ -225,7 +226,7 @@ Incomplete translations are not accepted. All strings must be translated before 
 
 ### What language codes should I use?
 
-Use standard locale codes: `{language}_{COUNTRY}` (e.g., `es_ES`, `pt_BR`, `zh_CN`).
+Follow [MkDocs Material conventions](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/): 2-letter ISO 639-1 codes (e.g., `fr`, `de`, `es`) with hyphens for regional variants (e.g., `pt-BR`, `zh-TW`).
 
 ### How do I handle plural forms?
 
