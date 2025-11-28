@@ -112,6 +112,108 @@ The content section is optional:
     </quiz>
     ```
 
+## Fill-in-the-Blank Quizzes
+
+Fill-in-the-blank quizzes allow users to type answers into text fields. These are perfect for recall-based questions where users need to remember specific terms, values, or concepts.
+
+### Single Blank
+
+Use double square brackets `[[answer]]` to create a blank:
+
+=== "Example"
+
+    <quiz>
+    The capital of France is [[Paris]].
+    </quiz>
+
+=== "Syntax"
+
+    ```markdown
+    <quiz>
+    The capital of France is [[Paris]].
+    </quiz>
+    ```
+
+### Multiple Blanks
+
+You can include multiple blanks in a single question:
+
+=== "Example"
+
+    <quiz>
+    Python was created by [[Guido van Rossum]] and first released in [[1991]].
+    </quiz>
+
+=== "Syntax"
+
+    ```markdown
+    <quiz>
+    Python was created by [[Guido van Rossum]] and first released in [[1991]].
+    </quiz>
+    ```
+
+### Fill-in-the-Blank with Content
+
+To add optional content (explanations, additional information) to fill-in-the-blank quizzes, use a horizontal rule `---` to separate the question from the content:
+
+=== "Example"
+
+    <quiz>
+    2 + 2 = [[4]]
+
+    ---
+    That's correct! Basic arithmetic is fundamental to programming.
+    </quiz>
+
+=== "Syntax"
+
+    ```markdown
+    <quiz>
+    2 + 2 = [[4]]
+
+    ---
+    That's correct! Basic arithmetic is fundamental to programming.
+    </quiz>
+    ```
+
+### Complex Fill-in-the-Blank
+
+Fill-in-the-blank quizzes support markdown formatting around the blanks and rich content after the horizontal rule:
+
+=== "Example"
+
+    <quiz>
+    Some markdown:
+
+    The answer is [[foo]].
+
+    Another answer is [[bar]].
+
+    ---
+    This *content* is only shown after answering.
+
+    It can have **bold**, `code`, and other markdown formatting.
+    </quiz>
+
+=== "Syntax"
+
+    ```markdown
+    <quiz>
+    Some markdown:
+
+    The answer is [[foo]].
+
+    Another answer is [[bar]].
+
+    ---
+    This *content* is only shown after answering.
+
+    It can have **bold**, `code`, and other markdown formatting.
+    </quiz>
+    ```
+
+**Note:** Answers are case-insensitive and whitespace is trimmed. So "Paris", "paris", and " PARIS " are all accepted.
+
 ## Answer Syntax Variations
 
 All of these checkbox formats are supported:
