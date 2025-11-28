@@ -9,6 +9,7 @@
     - Brazilian Portugese by @dunossauro - [#17](https://github.com/ewels/mkdocs-quiz/issues/17)
     - French, Spanish, Swedish, German, Norwegian, Chinese (simplified), Korean, Esperanto, Hindi, Indonesian, Japanese all done automatically by @Claude - please submit a PR if something sounds wrong!
     - New language contributions welcome!
+- Fixed plugin name in documentation - [#12](https://github.com/ewels/mkdocs-quiz/issues/12)
 
 ## **Version 1.1.0** (2025-11-13)
 
