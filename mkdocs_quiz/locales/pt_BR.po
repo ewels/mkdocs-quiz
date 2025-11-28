@@ -1,0 +1,92 @@
+# Portuguese translations for mkdocs-quiz
+msgid ""
+msgstr ""
+"Project-Id-Version: mkdocs-quiz\n"
+"Report-Msgid-Bugs-To: https://github.com/ewels/mkdocs-quiz/issues\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2025-11-27 20:58-0300\n"
+"Last-Translator: dunossauro <mendesxeduardo@gmail.com>\n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.8\n"
+
+#: plugin.py:628
+msgid "Submit"
+msgstr "Enviar"
+
+#: plugin.py:643
+msgid "Question {n}"
+msgstr "Questão {n}"
+
+#: plugin.py:673
+msgid "Quiz Progress"
+msgstr "Progresso do quiz"
+
+#: plugin.py:674
+msgid "questions answered"
+msgstr "questões respondidas"
+
+#: plugin.py:675
+msgid "correct"
+msgstr "correto"
+
+#: plugin.py:676
+msgid "Quiz Complete!"
+msgstr "Quiz completo!"
+
+#: plugin.py:677 plugin.py:717
+msgid "Reset quiz"
+msgstr "Reiniciar quiz"
+
+#: plugin.py:714
+msgid ""
+"Quiz results are saved to your browser's local storage and will persist "
+"between sessions."
+msgstr ""
+"Os resultados do quiz são salvos no local storage do seu browser e serão "
+"persistidos entre as sessões."
+
+#: js/quiz.js:334
+msgid "Outstanding! You aced it!"
+msgstr "Excelente! Você arrasou!"
+
+#: js/quiz.js:337
+msgid "Great job! You really know your stuff!"
+msgstr "Excelente trabalho! Você realmente entende do assunto!"
+
+#: js/quiz.js:340
+msgid "Good effort! Keep learning!"
+msgstr "Bom trabalho! Continue aprendendo!"
+
+#: js/quiz.js:343
+msgid "Not bad, but there's room for improvement!"
+msgstr "Nada mal, mas há espaço para melhorias!"
+
+#: js/quiz.js:346
+msgid "Better luck next time! Keep trying!"
+msgstr "Boa sorte na próxima vez! Continue tentando!"
+
+#: js/quiz.js:462
+msgid ""
+"Are you sure you want to reset the quiz? This will clear your progress."
+msgstr ""
+"Tem certeza de que deseja reiniciar o teste? Isso apagará seu progresso."
+
+#: js/quiz.js:579
+msgid "Try Again"
+msgstr "Tente novamente"
+
+#: js/quiz.js:617 js/quiz.js:755
+msgid "Correct answer!"
+msgstr "Resposta correta!"
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer. Please try again."
+msgstr "Resposta incorreta. Tente de novo."
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer."
+msgstr "Resposta incorreta."
