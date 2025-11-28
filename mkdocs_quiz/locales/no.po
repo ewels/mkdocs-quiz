@@ -22,7 +22,7 @@ msgstr "Spørsmål {n}"
 
 #: plugin.py:673
 msgid "Quiz Progress"
-msgstr "Quiz-fremgang"
+msgstr "Pågående quiz"
 
 #: plugin.py:674
 msgid "questions answered"
@@ -45,28 +45,28 @@ msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
 msgstr ""
-"Quiz-resultater lagres i nettleserens lokale lagring og vil bestå mellom "
+"Quiz resultatene blir liggende i nettleserens lokale lagring og vil bestå mellom "
 "økter."
 
 #: js/quiz.js:334
 msgid "Outstanding! You aced it!"
-msgstr "Utmerket! Du klarte det perfekt!"
+msgstr "Utmerket! Du er virkelig et ess!"
 
 #: js/quiz.js:337
 msgid "Great job! You really know your stuff!"
-msgstr "Bra jobbet! Du kan virkelig tingene dine!"
+msgstr "Bra jobba! Det her var du flink på!"
 
 #: js/quiz.js:340
 msgid "Good effort! Keep learning!"
-msgstr "Godt forsøk! Fortsett å lære!"
+msgstr "Godt forsøk! Dette emnet kan du mye om!"
 
 #: js/quiz.js:343
 msgid "Not bad, but there's room for improvement!"
-msgstr "Ikke verst, men det er rom for forbedring!"
+msgstr "Ikke verst, men det finnes rom for forbedring!"
 
 #: js/quiz.js:346
 msgid "Better luck next time! Keep trying!"
-msgstr "Bedre lykke neste gang! Fortsett å prøve!"
+msgstr "Bedre lykke neste gang! Ikke gi opp!"
 
 #: js/quiz.js:462
 msgid ""
