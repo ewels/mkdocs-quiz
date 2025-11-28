@@ -16,6 +16,7 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - ⚡ **Instant feedback** - Visual indicators show correct/incorrect answers
 - 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti 🎉
 - 💾 **Results saved** - Answers are saved to the browser's local storage
+- 🌐 **Internationalization** - Quiz elements support multi-lingual sites
 
 > [!TIP]
 > Check out the [examples page](https://ewels.github.io/mkdocs-quiz/examples/) to see the plugin in action.
