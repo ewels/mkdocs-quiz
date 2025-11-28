@@ -34,6 +34,7 @@ classifiers = [
 dependencies = [
     "mkdocs>=1.0.0",
     "importlib-resources>=5.0; python_version < '3.9'",
+    "polib>=1.1.0",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +44,8 @@ dev = [
     "ruff>=0.8.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
+    "babel>=2.9.0",
+    "types-polib>=1.0.0",
 ]
 docs = [
     "mkdocs-material"
@@ -64,7 +67,7 @@ mkdocs-quiz = "mkdocs_quiz.cli:main"
 packages = ["mkdocs_quiz"]
 
 [tool.setuptools.package-data]
-mkdocs_quiz = ["css/*", "js/*", "js/vendor/*", "overrides/*"]
+mkdocs_quiz = ["css/*", "js/*", "js/vendor/*", "overrides/*", "locales/*.po", "locales/*.pot"]
 
 [tool.ruff]
 line-length = 100

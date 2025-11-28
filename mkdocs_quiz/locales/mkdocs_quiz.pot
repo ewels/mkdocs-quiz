@@ -1,0 +1,92 @@
+# Translations template for mkdocs-quiz.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the mkdocs-quiz project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: mkdocs-quiz 1.0.1\n"
+"Report-Msgid-Bugs-To: Phil Ewels <phil.ewels@seqera.io>\n"
+"POT-Creation-Date: 2025-11-27 22:19+0100\n"
+"PO-Revision-Date: 2025-11-27 21:19+0000\n"
+"Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.14.0\n"
+
+#: plugin.py:628
+msgid "Submit"
+msgstr ""
+
+#: plugin.py:643
+msgid "Question {n}"
+msgstr ""
+
+#: plugin.py:673
+msgid "Quiz Progress"
+msgstr ""
+
+#: plugin.py:674
+msgid "questions answered"
+msgstr ""
+
+#: plugin.py:675
+msgid "correct"
+msgstr ""
+
+#: plugin.py:676
+msgid "Quiz Complete!"
+msgstr ""
+
+#: plugin.py:677 plugin.py:717
+msgid "Reset quiz"
+msgstr ""
+
+#: plugin.py:714
+msgid ""
+"Quiz results are saved to your browser's local storage and will persist "
+"between sessions."
+msgstr ""
+
+#: js/quiz.js:334
+msgid "Outstanding! You aced it!"
+msgstr ""
+
+#: js/quiz.js:337
+msgid "Great job! You really know your stuff!"
+msgstr ""
+
+#: js/quiz.js:340
+msgid "Good effort! Keep learning!"
+msgstr ""
+
+#: js/quiz.js:343
+msgid "Not bad, but there's room for improvement!"
+msgstr ""
+
+#: js/quiz.js:346
+msgid "Better luck next time! Keep trying!"
+msgstr ""
+
+#: js/quiz.js:462
+msgid ""
+"Are you sure you want to reset the quiz? This will clear your progress."
+msgstr ""
+
+#: js/quiz.js:579
+msgid "Try Again"
+msgstr ""
+
+#: js/quiz.js:617 js/quiz.js:755
+msgid "Correct answer!"
+msgstr ""
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer. Please try again."
+msgstr ""
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer."
+msgstr ""

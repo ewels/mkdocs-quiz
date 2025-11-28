@@ -28,5 +28,16 @@ repos:
     rev: v1.13.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-PyYAML, types-Markdown, mkdocs>=1.4.0]
+        additional_dependencies:
+          [types-PyYAML, types-Markdown, types-polib>=1.0.0, mkdocs>=1.4.0, polib>=1.1.0, babel>=2.9.0]
         args: [--ignore-missing-imports]
+
+  - repo: local
+    hooks:
+      - id: check-translations
+        name: Check translation completeness
+        entry: python -m mkdocs_quiz.cli translations check
+        language: python
+        pass_filenames: false
+        files: \.po$
+        additional_dependencies: [mkdocs>=1.0.0, polib>=1.1.0, babel>=2.9.0]

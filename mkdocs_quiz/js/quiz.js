@@ -4,6 +4,13 @@
   // Constants
   const STORAGE_KEY_PREFIX = "quiz_progress_";
 
+  // Translation helper function
+  function t(key, params = {}) {
+    let text = window.mkdocsQuizTranslations?.[key] || key;
+    // Simple template replacement for {n} and {key} style placeholders
+    return text.replace(/{(\w+)}/g, (_, k) => (params[k] !== undefined ? params[k] : `{${k}}`));
+  }
+
   // Confetti instance (will be initialized if enabled)
   let jsConfetti = null;
 
@@ -325,19 +332,19 @@
             let message = "";
             if (progress.score >= 90) {
               scoreValue.classList.add("quiz-results-score-excellent");
-              message = "Outstanding! You aced it!";
+              message = t("Outstanding! You aced it!");
             } else if (progress.score >= 75) {
               scoreValue.classList.add("quiz-results-score-good");
-              message = "Great job! You really know your stuff!";
+              message = t("Great job! You really know your stuff!");
             } else if (progress.score >= 60) {
               scoreValue.classList.add("quiz-results-score-average");
-              message = "Good effort! Keep learning!";
+              message = t("Good effort! Keep learning!");
             } else if (progress.score >= 40) {
               scoreValue.classList.add("quiz-results-score-poor");
-              message = "Not bad, but there's room for improvement!";
+              message = t("Not bad, but there's room for improvement!");
             } else {
               scoreValue.classList.add("quiz-results-score-fail");
-              message = "Better luck next time! Keep trying!";
+              message = t("Better luck next time! Keep trying!");
             }
 
             if (scoreMessage) scoreMessage.textContent = message;
@@ -453,7 +460,7 @@
       resetLinks.forEach((resetLink) => {
         const handler = (e) => {
           e.preventDefault();
-          if (confirm("Are you sure you want to reset the quiz? This will clear your progress.")) {
+          if (confirm(t("Are you sure you want to reset the quiz? This will clear your progress."))) {
             quizTracker.resetAllQuiz();
           }
         };
@@ -482,8 +489,21 @@
     },
   };
 
+  // Translate template elements with data-quiz-translate attributes
+  function translateTemplateElements() {
+    document.querySelectorAll("[data-quiz-translate]").forEach((element) => {
+      const key = element.getAttribute("data-quiz-translate");
+      if (key) {
+        element.textContent = t(key);
+      }
+    });
+  }
+
   // Initialize tracker
   quizTracker.init();
+
+  // Translate template elements
+  translateTemplateElements();
 
   // Reposition sidebar for Material theme TOC integration
   // Must run on every page load to support instant navigation
@@ -492,6 +512,7 @@
   // Create sidebar after page loads
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
+      translateTemplateElements();
       repositionSidebar();
       quizTracker.createSidebar();
       initializeResultsDiv();
@@ -511,7 +532,7 @@
     const resetButton = resultsDiv.querySelector(".quiz-results-reset");
     if (resetButton) {
       const handler = () => {
-        if (confirm("Are you sure you want to reset the quiz? This will clear your progress.")) {
+        if (confirm(t("Are you sure you want to reset the quiz? This will clear your progress."))) {
           quizTracker.resetAllQuiz();
         }
       };
@@ -524,7 +545,7 @@
     const introResetButtons = document.querySelectorAll(".quiz-intro-reset");
     introResetButtons.forEach((button) => {
       const handler = () => {
-        if (confirm("Are you sure you want to reset the quiz? This will clear your progress.")) {
+        if (confirm(t("Are you sure you want to reset the quiz? This will clear your progress."))) {
           quizTracker.resetAllQuiz();
         }
       };
@@ -559,7 +580,7 @@
     let resetButton = document.createElement("button");
     resetButton.type = "button";
     resetButton.className = "quiz-button quiz-reset-button hidden";
-    resetButton.textContent = "Try Again";
+    resetButton.textContent = t("Try Again");
     if (submitButton) {
       submitButton.parentNode.insertBefore(resetButton, submitButton.nextSibling);
     } else {
@@ -597,7 +618,7 @@
             }
             feedbackDiv.classList.remove("hidden", "incorrect");
             feedbackDiv.classList.add("correct");
-            feedbackDiv.textContent = "Correct answer!";
+            feedbackDiv.textContent = t("Correct answer!");
 
             // Mark all inputs as correct
             blankInputs.forEach((input) => {
@@ -641,7 +662,7 @@
             feedbackDiv.classList.remove("hidden", "correct");
             feedbackDiv.classList.add("incorrect");
             const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-            const feedbackText = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+            const feedbackText = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
 
             // Show correct answers if show-correct is enabled
             if (quiz.hasAttribute("data-show-correct")) {
@@ -707,7 +728,7 @@
           // Show correct feedback
           feedbackDiv.classList.remove("hidden", "incorrect");
           feedbackDiv.classList.add("correct");
-          feedbackDiv.textContent = "Correct answer!";
+          feedbackDiv.textContent = t("Correct answer!");
 
           // Disable inputs if disable-after-submit is enabled
           if (quiz.hasAttribute("data-disable-after-submit")) {
@@ -756,7 +777,7 @@
           feedbackDiv.classList.remove("hidden", "correct");
           feedbackDiv.classList.add("incorrect");
           const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-          feedbackDiv.textContent = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+          feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
 
           // Disable inputs if disable-after-submit is enabled
           if (quiz.hasAttribute("data-disable-after-submit")) {
@@ -872,7 +893,7 @@
           // Show correct feedback
           feedbackDiv.classList.remove("hidden", "incorrect");
           feedbackDiv.classList.add("correct");
-          feedbackDiv.textContent = "Correct answer!";
+          feedbackDiv.textContent = t("Correct answer!");
         } else {
           // Show incorrect feedback with detailed list
           feedbackDiv.classList.remove("hidden", "correct");
@@ -880,7 +901,7 @@
           const canRetry = !quiz.hasAttribute("data-disable-after-submit");
 
           // Build detailed feedback with bullet list
-          const feedbackText = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+          const feedbackText = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
 
           // Show correct answers if show-correct is enabled
           if (quiz.hasAttribute("data-show-correct")) {
@@ -944,7 +965,7 @@
           // Show correct feedback
           feedbackDiv.classList.remove("hidden", "incorrect");
           feedbackDiv.classList.add("correct");
-          feedbackDiv.textContent = "Correct answer!";
+          feedbackDiv.textContent = t("Correct answer!");
         } else {
           resetFieldset(fieldset);
           // Mark wrong fields with colors
@@ -966,7 +987,7 @@
           feedbackDiv.classList.add("incorrect");
           // Only show "Please try again" if the quiz is not disabled after submission
           const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-          feedbackDiv.textContent = canRetry ? "Incorrect answer. Please try again." : "Incorrect answer.";
+          feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
         }
 
         // Get selected values to save

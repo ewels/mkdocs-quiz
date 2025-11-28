@@ -28,6 +28,9 @@ plugins:
       show_progress: true             # Show progress tracker sidebar and mobile bar
       progress_sidebar_position: top  # Position of progress tracker: "top" or "bottom"
       confetti: true                  # Show confetti animation when all quizzes completed
+      language: en_US                 # Default language for quiz UI
+      language_patterns: []           # Auto-detect language based on file paths
+      custom_translations: {}         # Custom translation files
 ```
 <!-- prettier-ignore-end -->
 
@@ -42,6 +45,7 @@ quiz:
   auto_submit: false
   disable_after_submit: false
   show_progress: false
+  language: fr_FR
 ---
 # Your Page Content
 
@@ -114,3 +118,59 @@ Useful for pages with substantial content where quizzes appear at the end. Only 
 **Type:** `bool` | **Default:** `true`
 
 Enables the confetti animation when all quizzes are completed with a score of 10% or higher. See [Results Screen](results-screen.md) for more details.
+
+### `language`
+
+**Type:** `str` | **Default:** `"en_US"`
+
+Sets the default language for quiz UI elements (buttons, messages, progress tracking, etc.). Built-in languages include:
+
+- `en_US` - English (default)
+- `fr_FR` - French
+
+See [Translations](translations.md) for complete documentation on using translations, adding custom languages, and contributing new translations.
+
+### `language_patterns`
+
+**Type:** `list` | **Default:** `[]`
+
+Automatically detect the language based on file path patterns. Useful for multilingual sites organized by directory.
+
+Example:
+
+```yaml
+plugins:
+  - mkdocs_quiz:
+      language: en_US # Default
+      language_patterns:
+        - pattern: "fr/**/*"
+          language: fr_FR
+        - pattern: "es/**/*"
+          language: es_ES
+```
+
+With this configuration, files under `docs/fr/` will automatically use French translations, files under `docs/es/` will use Spanish, and all others will use English.
+
+See [Translations](translations.md) for more details.
+
+### `custom_translations`
+
+**Type:** `dict` | **Default:** `{}`
+
+Map language codes to custom translation files (`.po` format). Use this to:
+
+- Override built-in translations
+- Add completely new languages
+- Customize text for your site's branding
+
+Example:
+
+```yaml
+plugins:
+  - mkdocs_quiz:
+      custom_translations:
+        en_US: translations/en_custom.po # Override built-in English
+        ja_JP: translations/ja_JP.po # Add Japanese
+```
+
+Translation files should be relative to your `mkdocs.yml` file. See [Translations](translations.md) for complete documentation on creating and managing custom translations.
