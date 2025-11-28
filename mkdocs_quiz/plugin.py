@@ -717,7 +717,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 <div class="quiz-results-progress">
                     <h3>{quiz_progress_text}</h3>
                     <p class="quiz-results-stats">
-                        <span class="quiz-results-answered">0</span> of <span class="quiz-results-total">0</span> {questions_answered_text}
+                        <span class="quiz-results-answered">0</span> / <span class="quiz-results-total">0</span> {questions_answered_text}
                         (<span class="quiz-results-percentage">0%</span>)
                     </p>
                     <p class="quiz-results-correct-stats">
