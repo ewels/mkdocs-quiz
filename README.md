@@ -27,7 +27,7 @@ What's the best static site generator?
 - [ ] Jekyll
 - [ ] Sphinx
 
-You've come to the right place!
+If you entered mkdocs, you've come to the right place!
 
 ![Random cat photo](https://cataas.com/cat)
 </quiz>

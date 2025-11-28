@@ -21,7 +21,7 @@ What's the best static site generator? <!-- (1)! -->
 - [ ] Jekyll <!-- (3)! -->
 - [ ] Sphinx
 
-You've come to the right place! <!-- (4)! -->
+If you entered mkdocs, you've come to the right place! <!-- (4)! -->
 ![Random cat gif](https://cataas.com/cat/gif)
 </quiz>
 ```
@@ -38,7 +38,7 @@ What's the best static site generator? <!-- (1)! -->
 - [ ] Jekyll <!-- (3)! -->
 - [ ] Sphinx
 
-You've come to the right place! <!-- (4)! -->
+If you entered mkdocs, you've come to the right place! <!-- (4)! -->
 
 ![Random cat gif](https://cataas.com/cat/gif){ width="200" }
 </quiz>
