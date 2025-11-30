@@ -91,3 +91,15 @@ msgstr "Mauvaise réponse. Veuillez réessayer."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "Mauvaise réponse."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Répondu :"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Correctes :"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Réinitialiser"

@@ -89,3 +89,15 @@ msgstr "गलत उत्तर। कृपया पुनः प्रय�
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "गलत उत्तर।"
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "उत्तर दिए:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "सही:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "रीसेट"

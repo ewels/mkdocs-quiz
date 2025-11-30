@@ -87,3 +87,15 @@ msgstr "오답입니다. 다시 시도해 주세요."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "오답입니다."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "답변함:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "정답:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "초기화"

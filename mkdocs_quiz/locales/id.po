@@ -90,3 +90,15 @@ msgstr "Jawaban salah. Silakan coba lagi."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "Jawaban salah."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Dijawab:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Benar:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Atur ulang"

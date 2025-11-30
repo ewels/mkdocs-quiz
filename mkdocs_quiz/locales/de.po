@@ -90,3 +90,15 @@ msgstr "Falsche Antwort. Bitte versuche es erneut."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "Falsche Antwort."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Beantwortet:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Richtig:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Zurücksetzen"

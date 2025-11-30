@@ -90,3 +90,15 @@ msgstr "Feil svar. Vennligst prøv igjen."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "Feil svar."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Besvart:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Riktig:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Tilbakestill"

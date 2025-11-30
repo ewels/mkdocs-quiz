@@ -88,3 +88,15 @@ msgstr "不正解です。もう一度お試しください。"
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "不正解です。"
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "回答済み:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "正解:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "リセット"

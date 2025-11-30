@@ -90,3 +90,15 @@ msgstr "Respuesta incorrecta. Por favor, inténtalo de nuevo."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "Respuesta incorrecta."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Respondidas:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Correctas:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Reiniciar"

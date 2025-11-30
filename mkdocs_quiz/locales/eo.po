@@ -90,3 +90,15 @@ msgstr "Malĝusta respondo. Bonvolu reprovi."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "Malĝusta respondo."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Respondita:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Ĝusta:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Restarigi"
