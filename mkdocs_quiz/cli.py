@@ -392,6 +392,54 @@ def _extract_js_strings(js_file: Path, catalog: Any) -> int:
     return count
 
 
+def _extract_html_strings(html_file: Path, catalog: Any) -> int:
+    """Extract translatable strings from HTML template files.
+
+    Looks for data-quiz-translate attributes in HTML elements.
+
+    Args:
+        html_file: Path to HTML file.
+        catalog: Babel catalog to add strings to.
+
+    Returns:
+        Number of strings extracted.
+    """
+    content = html_file.read_text(encoding="utf-8")
+
+    # Remove HTML comments to avoid extracting example code
+    content_no_comments = re.sub(r"<!--.*?-->", "", content, flags=re.DOTALL)
+
+    # Pattern to match data-quiz-translate="..." attributes
+    # Captures the value inside the quotes
+    pattern = r'data-quiz-translate="([^"]+)"'
+
+    count = 0
+    line_number = 1
+    position = 0
+
+    # Find all matches and their line numbers
+    for match in re.finditer(pattern, content_no_comments):
+        # Count newlines up to this match to get line number
+        # Find the match in the original content
+        match_text = match.group(0)
+        start_pos = content.find(match_text, position)
+        if start_pos == -1:
+            continue  # Skip if not found in original (was in comment)
+
+        line_number += content[position:start_pos].count("\n")
+        position = start_pos
+
+        # Extract the string content (group 1 is the value inside quotes)
+        string_content = match.group(1)
+
+        # Add to catalog
+        relative_path = html_file.relative_to(Path(__file__).parent)
+        catalog.add(string_content, locations=[(str(relative_path), line_number)])
+        count += 1
+
+    return count
+
+
 def update_translations() -> None:
     """Extract strings from source and update all translation files.
 
@@ -435,7 +483,16 @@ def update_translations() -> None:
             js_count += _extract_js_strings(js_file, catalog)
         print(f"✓ Extracted {js_count} strings from JavaScript files")
 
-    total_count = count + js_count
+    # Step 3: Extract strings from HTML template files
+    html_count = 0
+    html_files = list(module_dir.glob("overrides/**/*.html"))
+    if html_files:
+        print("Extracting strings from HTML template files...")
+        for html_file in html_files:
+            html_count += _extract_html_strings(html_file, catalog)
+        print(f"✓ Extracted {html_count} strings from HTML template files")
+
+    total_count = count + js_count + html_count
 
     # Update catalog metadata
     now = datetime.now(timezone.utc)
@@ -455,7 +512,7 @@ def update_translations() -> None:
 
     print(f"✓ Total: {total_count} strings extracted to template")
 
-    # Step 3: Update all .po files
+    # Step 4: Update all .po files
     po_files = list(locales_dir.glob("*.po"))
     print(f"Updating {len(po_files)} translation file(s)...")
     for po_file in po_files:

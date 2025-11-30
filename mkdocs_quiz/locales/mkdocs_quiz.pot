@@ -6,45 +6,46 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: mkdocs-quiz 1.0.1\n"
+"Project-Id-Version: mkdocs-quiz 1.2.0\n"
 "Report-Msgid-Bugs-To: Phil Ewels <phil.ewels@seqera.io>\n"
-"POT-Creation-Date: 2025-11-27 22:19+0100\n"
-"PO-Revision-Date: 2025-11-27 21:19+0000\n"
+"POT-Creation-Date: 2025-11-30 07:45+0000\n"
+"PO-Revision-Date: 2025-11-30 07:45+0000\n"
 "Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.14.0\n"
+"Generated-By: Babel 2.17.0\n"
 
-#: plugin.py:628
+#: plugin.py:663
 msgid "Submit"
 msgstr ""
 
-#: plugin.py:643
+#: plugin.py:678
+#, python-brace-format
 msgid "Question {n}"
 msgstr ""
 
-#: plugin.py:673
+#: overrides/main.html:12 plugin.py:708
 msgid "Quiz Progress"
 msgstr ""
 
-#: plugin.py:674
+#: plugin.py:709
 msgid "questions answered"
 msgstr ""
 
-#: plugin.py:675
+#: plugin.py:710
 msgid "correct"
 msgstr ""
 
-#: plugin.py:676
+#: plugin.py:711
 msgid "Quiz Complete!"
 msgstr ""
 
-#: plugin.py:677 plugin.py:717
+#: plugin.py:712 plugin.py:752
 msgid "Reset quiz"
 msgstr ""
 
-#: plugin.py:714
+#: plugin.py:749
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -91,14 +92,14 @@ msgstr ""
 msgid "Incorrect answer."
 msgstr ""
 
-#: overrides/main.html
+#: overrides/main.html:18 overrides/main.html:55
 msgid "Answered:"
 msgstr ""
 
-#: overrides/main.html
+#: overrides/main.html:33 overrides/main.html:58
 msgid "Correct:"
 msgstr ""
 
-#: overrides/main.html
+#: overrides/main.html:36 overrides/main.html:61
 msgid "Reset"
 msgstr ""
