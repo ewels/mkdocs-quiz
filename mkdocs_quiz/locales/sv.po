@@ -7,6 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mkdocs-quiz\n"
 "Report-Msgid-Bugs-To: https://github.com/ewels/mkdocs-quiz/issues\n"
+"PO-Revision-Date: 2025-11-30 07:45+0000\n"
+"Last-Translator: Claude <noreply@anthropic.com>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -90,3 +92,15 @@ msgstr "Fel svar. Försök igen."
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
 msgstr "Fel svar."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Besvarade:"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Korrekta:"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Återställ"
