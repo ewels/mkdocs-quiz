@@ -1,6 +1,6 @@
 # Changelog
 
-## **Version 1.2.1** (unreleased)
+## **Version 1.2.1** (2025-12-01)
 
 - Add translations for sidebar progress strings (`Answered`, `Correct`, `Reset`) - [#20](https://github.com/ewels/mkdocs-quiz/issues/20)
 - Add HTML template extraction to `mkdocs-quiz translations update` CLI command
