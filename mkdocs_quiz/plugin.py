@@ -119,6 +119,8 @@ def get_markdown_converter(config: MkDocsConfig | None = None) -> md.Markdown:
 # Optional content section (supports full markdown)
 # Can include **bold**, *italic*, `code`, etc.
 # </quiz>
+#
+# Note: Asterisk bullets (* [x], * [ ]) are also supported.
 
 QUIZ_START_TAG = "<quiz>"
 QUIZ_END_TAG = "</quiz>"
@@ -335,7 +337,7 @@ class MkDocsQuizPlugin(BasePlugin):
         """Parse quiz question and answers from quiz lines.
 
         The question is everything up to the first checkbox answer.
-        Answers are checkbox items (- [x] or - [ ]).
+        Answers are checkbox items (- [x], - [ ], * [x], or * [ ]).
         Content is everything after the last answer.
 
         Args:
@@ -349,14 +351,15 @@ class MkDocsQuizPlugin(BasePlugin):
         first_answer_index = None
         for i, line in enumerate(quiz_lines):
             # Check if this looks like a checkbox list item (any character in brackets)
-            checkbox_check = re.match(r"^- \[(.?)\] (.*)$", line)
+            # Supports both hyphen (-) and asterisk (*) bullets
+            checkbox_check = re.match(r"^[-*] \[(.?)\] (.*)$", line)
             if checkbox_check:
                 checkbox_content = checkbox_check.group(1)
                 # Strictly validate: only accept x, X, space, or empty
                 if checkbox_content not in ["x", "X", " ", ""]:
                     raise ValueError(
-                        f"Invalid checkbox format: '- [{checkbox_content}]'. "
-                        f"Only '- [x]', '- [X]', '- [ ]', or '- []' are allowed. "
+                        f"Invalid checkbox format: '[{checkbox_content}]'. "
+                        f"Only '[x]', '[X]', '[ ]', or '[]' are allowed (with - or * bullet). "
                         f"Found in line: {line}"
                     )
                 first_answer_index = i
@@ -379,14 +382,15 @@ class MkDocsQuizPlugin(BasePlugin):
 
         for i, line in enumerate(quiz_lines[first_answer_index:], start=first_answer_index):
             # First check if this looks like a checkbox item (any character in brackets)
-            checkbox_pattern = re.match(r"^- \[(.?)\] (.*)$", line)
+            # Supports both hyphen (-) and asterisk (*) bullets
+            checkbox_pattern = re.match(r"^[-*] \[(.?)\] (.*)$", line)
             if checkbox_pattern:
                 checkbox_content = checkbox_pattern.group(1)
                 # Strictly validate: only accept x, X, space, or empty
                 if checkbox_content not in ["x", "X", " ", ""]:
                     raise ValueError(
-                        f"Invalid checkbox format: '- [{checkbox_content}]'. "
-                        f"Only '- [x]', '- [X]', '- [ ]', or '- []' are allowed. "
+                        f"Invalid checkbox format: '[{checkbox_content}]'. "
+                        f"Only '[x]', '[X]', '[ ]', or '[]' are allowed (with - or * bullet). "
                         f"Found in line: {line}"
                     )
                 is_correct = checkbox_content.lower() == "x"
