@@ -46,6 +46,7 @@ dev = [
     "pre-commit>=3.0.0",
     "babel>=2.9.0",
     "types-polib>=1.0.0",
+    "types-Markdown",
 ]
 docs = [
     "mkdocs-material"
