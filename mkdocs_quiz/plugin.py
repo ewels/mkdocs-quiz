@@ -606,9 +606,23 @@ class MkDocsQuizPlugin(BasePlugin):
                 segments.append(placeholder)
                 last_end = match.end()
 
-            except ValueError:
-                # Re-raise ValueError to crash the build (malformed quiz)
-                raise
+            except ValueError as e:
+                # Re-raise ValueError with additional context to help identify the problematic quiz
+                # Calculate line number from match position
+                line_number = markdown[:match.start()].count("\n") + 1
+
+                # Get a preview of the quiz content (first 60 chars, single line)
+                quiz_preview = match.group(1).strip()[:60].replace("\n", " ")
+                if len(match.group(1).strip()) > 60:
+                    quiz_preview += "..."
+
+                # Build helpful error message
+                error_msg = (
+                    f"Error in quiz #{quiz_id + 1} in {page.file.src_path} "
+                    f"(line {line_number}): {e}\n"
+                    f"  Quiz preview: {quiz_preview}"
+                )
+                raise ValueError(error_msg) from e
             except Exception as e:
                 # Log other errors but continue
                 log.error(f"Failed to process quiz {quiz_id} in {page.file.src_path}: {e}")
