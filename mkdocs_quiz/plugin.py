@@ -128,7 +128,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("confetti", config_options.Type(bool, default=True)),
         ("progress_sidebar_position", config_options.Type(str, default="top")),
         # Translation options
-        ("language", config_options.Type(str, default="en")),
+        ("language", config_options.Type((str, type(None)), default=None)),
         ("custom_translations", config_options.Type(dict, default={})),
         ("language_patterns", config_options.Type(list, default=[])),
     )
@@ -237,8 +237,8 @@ class MkDocsQuizPlugin(BasePlugin):
         language = "en"
 
         # 2. Check theme.language
-        if hasattr(config, "theme") and hasattr(config.theme, "language"):
-            theme_lang = config.theme.get("language")
+        if hasattr(config, "theme") and "language" in config.theme:
+            theme_lang = config.theme["language"]
             if theme_lang:
                 language = theme_lang
                 log.debug(f"Using theme.language: {language}")
@@ -257,9 +257,10 @@ class MkDocsQuizPlugin(BasePlugin):
                     )
                     break
 
-        # 4. Check mkdocs_quiz.language config
-        if self.config.get("language"):
-            language = self.config["language"]
+        # 4. Check mkdocs_quiz.language config (only if explicitly set by user)
+        plugin_language = self.config.get("language")
+        if plugin_language is not None:
+            language = plugin_language
             log.debug(f"Using mkdocs_quiz.language config: {language}")
 
         # 5. Check pattern matching

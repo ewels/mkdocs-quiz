@@ -1,5 +1,9 @@
 # Changelog
 
+## **Version 1.2.2** (2025-12-02)
+
+- Fix bug with detection of config `theme.language`
+
 ## **Version 1.2.1** (2025-12-01)
 
 - Add translations for sidebar progress strings (`Answered`, `Correct`, `Reset`) - [#20](https://github.com/ewels/mkdocs-quiz/issues/20)
