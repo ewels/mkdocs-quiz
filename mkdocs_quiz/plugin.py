@@ -63,14 +63,49 @@ except OSError as e:
 _markdown_converter_local = threading.local()
 
 
-def get_markdown_converter() -> md.Markdown:
+def get_markdown_converter(config: MkDocsConfig | None = None) -> md.Markdown:
     """Get or create a thread-local markdown converter instance.
+
+    When config is provided, uses the same markdown extensions configured
+    in mkdocs.yml. This enables features like pymdownx.superfences,
+    pymdownx.highlight with line highlighting, etc.
+
+    Args:
+        config: Optional MkDocs config to get markdown extensions from.
+                If None or no extensions configured, falls back to basic extensions.
 
     Returns:
         A thread-local Markdown converter instance.
     """
-    if not hasattr(_markdown_converter_local, "converter"):
-        _markdown_converter_local.converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
+    # Default extensions used when no config is provided or config has no extensions
+    default_extensions = ["extra", "codehilite", "toc"]
+
+    # Compute a cache key based on the extensions configured
+    if config is not None and config.markdown_extensions:
+        # Get extensions from mkdocs config (user has explicitly configured them)
+        extensions = config.markdown_extensions
+        extension_configs = config.mdx_configs or {}
+        # Create a hashable key for cache comparison
+        cache_key = (
+            tuple(extensions),
+            tuple(sorted(extension_configs.keys())) if extension_configs else (),
+        )
+    else:
+        # Fallback to basic extensions when no config or no extensions configured
+        extensions = default_extensions
+        extension_configs = {}
+        cache_key = (tuple(extensions), ())
+
+    # Check if we need to recreate the converter (different config)
+    if (
+        not hasattr(_markdown_converter_local, "converter")
+        or getattr(_markdown_converter_local, "cache_key", None) != cache_key
+    ):
+        _markdown_converter_local.converter = md.Markdown(
+            extensions=extensions, extension_configs=extension_configs
+        )
+        _markdown_converter_local.cache_key = cache_key
+
     return _markdown_converter_local.converter  # type: ignore[no-any-return]
 
 
@@ -96,17 +131,21 @@ OLD_SYNTAX_PATTERNS = [
 ]
 
 
-def convert_inline_markdown(text: str) -> str:
+def convert_inline_markdown(text: str, config: MkDocsConfig | None = None) -> str:
     """Convert markdown to HTML for inline content (questions/answers).
+
+    Uses the same markdown extensions configured in mkdocs.yml when config
+    is provided, enabling features like syntax highlighting in code blocks.
 
     Args:
         text: The markdown text to convert.
+        config: Optional MkDocs config to get markdown extensions from.
 
     Returns:
         The HTML string with wrapping <p> tags removed.
     """
     # Reset the converter state
-    converter = get_markdown_converter()
+    converter = get_markdown_converter(config)
     converter.reset()
     html_content = converter.convert(text)
     # Remove wrapping <p> tags for inline content
@@ -291,7 +330,7 @@ class MkDocsQuizPlugin(BasePlugin):
         return TranslationManager(language, custom_path)
 
     def _parse_quiz_question_and_answers(
-        self, quiz_lines: list[str]
+        self, quiz_lines: list[str], config: MkDocsConfig | None = None
     ) -> tuple[str, list[str], list[str], int]:
         """Parse quiz question and answers from quiz lines.
 
@@ -301,6 +340,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
         Args:
             quiz_lines: The lines of the quiz content.
+            config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
             A tuple of (question_text, all_answers, correct_answers, content_start_index).
@@ -351,7 +391,7 @@ class MkDocsQuizPlugin(BasePlugin):
                     )
                 is_correct = checkbox_content.lower() == "x"
                 answer_text = checkbox_pattern.group(2)
-                answer_html = convert_inline_markdown(answer_text)
+                answer_html = convert_inline_markdown(answer_text, config)
                 all_answers.append(answer_html)
                 if is_correct:
                     correct_answers.append(answer_html)
@@ -548,7 +588,7 @@ class MkDocsQuizPlugin(BasePlugin):
             try:
                 # Generate quiz HTML
                 quiz_html = self._process_quiz(
-                    match.group(1), quiz_id, options, translation_manager
+                    match.group(1), quiz_id, options, translation_manager, config
                 )
 
                 # Create a markdown-safe placeholder
@@ -584,7 +624,12 @@ class MkDocsQuizPlugin(BasePlugin):
         return markdown
 
     def _process_quiz(
-        self, quiz_content: str, quiz_id: int, options: dict[str, bool], t: TranslationManager
+        self,
+        quiz_content: str,
+        quiz_id: int,
+        options: dict[str, bool],
+        t: TranslationManager,
+        config: MkDocsConfig | None = None,
     ) -> str:
         """Process a single quiz and convert it to HTML.
 
@@ -593,6 +638,7 @@ class MkDocsQuizPlugin(BasePlugin):
             quiz_id: The unique ID for this quiz.
             options: Quiz options (show_correct, auto_submit, disable_after_submit, auto_number).
             t: Translation manager for this page.
+            config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
             The HTML representation of the quiz.
@@ -617,7 +663,7 @@ class MkDocsQuizPlugin(BasePlugin):
         # Parse question and answers
         # Question is everything up to the first checkbox answer
         question_text, all_answers, correct_answers, content_start_index = (
-            self._parse_quiz_question_and_answers(quiz_lines)
+            self._parse_quiz_question_and_answers(quiz_lines, config)
         )
 
         # Validate quiz structure
@@ -629,7 +675,7 @@ class MkDocsQuizPlugin(BasePlugin):
             raise ValueError("Quiz must have at least one correct answer")
 
         # Convert question markdown to HTML (supports multi-line questions with markdown)
-        converter = get_markdown_converter()
+        converter = get_markdown_converter(config)
         converter.reset()
         question = converter.convert(question_text)
 
@@ -645,7 +691,7 @@ class MkDocsQuizPlugin(BasePlugin):
         if content_lines:
             content_text = "\n".join(content_lines)
             # Use full markdown conversion for content section
-            converter = get_markdown_converter()
+            converter = get_markdown_converter(config)
             converter.reset()
             content_html = converter.convert(content_text)
 

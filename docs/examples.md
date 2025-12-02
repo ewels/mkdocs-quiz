@@ -354,10 +354,152 @@ See the [Results Screen](results-screen.md) page to read how to add one of these
 
 <!-- mkdocs-quiz results -->
 
+## Markdown Extensions Support
+
+Quizzes automatically use the same `markdown_extensions` configured in your `mkdocs.yml`. This means you can use advanced markdown features like syntax highlighting with line numbers, admonitions, and more.
+
+### Code with Line Highlighting
+
+If you have `pymdownx.highlight` configured, you can use line highlighting in quiz code blocks:
+
+=== "Example"
+
+    <quiz>
+    Testing `markdown_extentions`. Python code `#!py int | str`:
+
+    ```python title="test_file.py" linenums="42" hl_lines="3"
+    def checksum(a):
+        assert 2 + 2 == 4
+    ```
+
+    - [ ] 3
+    - [x] 4 *(not `four`)*
+    - [ ] 5
+
+    </quiz>
+
+=== "Syntax"
+
+    ~~~markdown
+    <quiz>
+    Testing `markdown_extentions`. Python code `#!py int | str`:
+
+    ```python title="test_file.py" linenums="42" hl_lines="3"
+    def checksum(a):
+        assert 2 + 2 == 4
+    ```
+
+    - [ ] 3
+    - [x] 4 *(not `four`)*
+    - [ ] 5
+
+    </quiz>
+    ~~~
+
+=== "mkdocs.yml"
+
+    ```yaml
+    markdown_extensions:
+      - pymdownx.highlight:
+          anchor_linenums: true
+          line_spans: __span
+          pygments_lang_class: true
+      - pymdownx.superfences
+    ```
+
+### Code blocks in the extra content
+
+Markdown extensions also work in the extra content that is shown after questions are answered:
+
+=== "Example"
+
+    <quiz>
+    What line prints `"hello"`?
+    - [x] Line 2
+    - [ ] Line 1
+    - [ ] Line 3
+
+    ```python hl_lines="2"
+    def greet():
+        print("hello")
+        return True
+    ```
+    </quiz>
+
+=== "Syntax"
+
+    ~~~markdown
+    <quiz>
+    What line prints `"hello"`?
+    - [x] Line 2
+    - [ ] Line 1
+    - [ ] Line 3
+
+    ```python hl_lines="2"
+    def greet():
+        print("hello")
+        return True
+    ```
+    </quiz>
+    ~~~
+
+=== "mkdocs.yml"
+
+    ```yaml
+    markdown_extensions:
+      - pymdownx.highlight:
+          anchor_linenums: true
+          line_spans: __span
+          pygments_lang_class: true
+      - pymdownx.superfences
+    ```
+
+### Admonitions in Quizzes
+
+If you have the `admonition` extension configured, you can use admonitions in quiz content:
+
+=== "Example"
+
+    <quiz>
+    What type of admonition is shown below?
+    - [x] A warning
+    - [ ] An error
+    - [ ] A note
+
+    !!! warning
+        This is a warning admonition!
+    </quiz>
+
+=== "Syntax"
+
+    ```markdown
+    <quiz>
+    What type of admonition is shown below?
+    - [x] A warning
+    - [ ] An error
+    - [ ] A note
+
+    !!! warning
+        This is a warning admonition!
+    </quiz>
+    ```
+
+### Other Extensions
+
+All markdown extensions configured in your `mkdocs.yml` work within quizzes, including:
+
+- `pymdownx.superfences` - Enhanced code blocks
+- `pymdownx.highlight` - Syntax highlighting with options
+- `pymdownx.inlinehilite` - Inline code highlighting
+- `admonition` - Callout boxes
+- `attr_list` - Add attributes to elements
+- `tables` - Markdown tables
+- And any other extensions you have configured!
+
 ## Important Notes
 
 1. **Content must be valid markdown/HTML**: The content section is processed as markdown and must be valid
 2. **Checkbox syntax is recognized**: Use `- [x]`, `- [X]`, `- [ ]`, or `- []`
 3. **At least one correct answer required**: Every quiz must have at least one `- [x]` answer
 4. **Empty lines are ignored**: Blank lines between answers are okay
-5. **Question comes first**: The f∂irst block of lines after `<quiz>` until the first checkbox is always the question
+5. **Question comes first**: The first block of lines after `<quiz>` until the first checkbox is always the question

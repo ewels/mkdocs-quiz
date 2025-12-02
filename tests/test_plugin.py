@@ -1154,3 +1154,148 @@ Real question?
     assert "Real question?" in html_result
     # Old syntax should remain in code block
     assert "<?quiz?>" in html_result
+
+
+def test_markdown_extensions_from_config(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that markdown extensions from mkdocs.yml config are used in quizzes."""
+    # Configure admonition extension in mock config
+    mock_config["markdown_extensions"] = ["admonition"]
+
+    markdown = """
+<quiz>
+What is this?
+- [x] An admonition
+- [ ] A paragraph
+
+!!! note
+    This is a note admonition.
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should have admonition processed
+    assert "admonition" in html_result
+    assert "note" in html_result
+
+
+def test_markdown_extensions_with_config_options(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that markdown extension configs are passed through."""
+    # Configure toc extension with a custom option
+    mock_config["markdown_extensions"] = ["toc"]
+    mock_config["mdx_configs"] = {"toc": {"permalink": True}}
+
+    markdown = """
+<quiz>
+## What is this heading?
+- [x] A quiz question with heading
+- [ ] Nothing
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should have heading with permalink (toc extension config applied)
+    assert "What is this heading?" in html_result
+    # The heading should be converted
+    assert "<h2" in html_result
+
+
+def test_default_extensions_when_config_empty(plugin: MkDocsQuizPlugin, mock_page: Page) -> None:
+    """Test that default extensions are used when config has no extensions."""
+    # Create a config with no extensions explicitly set
+    empty_config = MkDocsConfig()
+    assert empty_config.markdown_extensions == []
+
+    markdown = """
+<quiz>
+What is `inline code`?
+- [x] Code with **bold** text
+- [ ] Plain text
+
+```python
+def hello():
+    print("world")
+```
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, empty_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=empty_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Default extensions should be used:
+    # - extra: processes inline code and bold
+    # - codehilite: syntax highlighting for code blocks
+    assert "<code>" in html_result
+    assert "<strong>bold</strong>" in html_result
+    # codehilite should be active for syntax highlighting
+    assert "codehilite" in html_result
+
+
+def test_tables_extension_in_quiz(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that tables extension works in quiz content section."""
+    # The 'extra' extension includes tables
+    mock_config["markdown_extensions"] = ["extra"]
+
+    markdown = """
+<quiz>
+What is shown below?
+- [x] A table
+- [ ] A list
+
+| Header 1 | Header 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Table should be converted to HTML
+    assert "<table>" in html_result
+    assert "<th>" in html_result or "Header 1" in html_result
+
+
+def test_pymdownx_superfences_if_installed(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that pymdownx.superfences works if installed."""
+    try:
+        import pymdownx  # noqa: F401
+    except ImportError:
+        pytest.skip("pymdownx not installed")
+
+    mock_config["markdown_extensions"] = ["pymdownx.superfences"]
+
+    markdown = """
+<quiz>
+What does this code do?
+- [x] Prints hello
+- [ ] Nothing
+
+```python
+print("hello")
+```
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Superfences should wrap code blocks
+    assert "print" in html_result
+    # Superfences uses highlight class by default
+    assert (
+        "highlight" in html_result
+        or "codehilite" in html_result
+        or "language-python" in html_result
+    )

@@ -2,8 +2,11 @@
 
 ## **Version 1.2.2** (2025-12-02)
 
-- Fix bug with detection of config `theme.language`
-- Fix JS bug that caused scroll to top and problems when `navigation.instant` was enabled - [#20](https://github.com/ewels/mkdocs-quiz/issues/20)
+- Support markdown extensions within quiz markdown - [#24](https://github.com/ewels/mkdocs-quiz/issues/24)
+- Fix bug with detection of config `theme.language` - [#23](https://github.com/ewels/mkdocs-quiz/issues/23)
+- Fix JS bug that caused scroll to top and problems when `navigation.instant` was enabled - [#22](https://github.com/ewels/mkdocs-quiz/issues/22)
+
+Many thanks to @dunossauro for testing the plugin and reporting issues!
 
 ## **Version 1.2.1** (2025-12-01)
 
