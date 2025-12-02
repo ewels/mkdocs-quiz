@@ -37,6 +37,8 @@ This is a MkDocs plugin that hooks into the MkDocs build pipeline:
 3. **HTML generation** (`_process_quiz`):
    - Parses quiz lines to extract question, answers, and content
    - Converts question and answers from markdown to HTML using `markdown_converter`
+   - Uses the same `markdown_extensions` configured in `mkdocs.yml` for conversion
+   - This enables features like `pymdownx.superfences`, `pymdownx.highlight`, admonitions, etc.
    - Generates form HTML with proper input types (radio/checkbox)
    - Adds `correct` attribute to correct answers (used by JS)
    - Content section is hidden until quiz is answered
