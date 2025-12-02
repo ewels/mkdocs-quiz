@@ -365,6 +365,55 @@ If you have `pymdownx.highlight` configured, you can use line highlighting in qu
 === "Example"
 
     <quiz>
+    Testing `markdown_extentions`. Python code `#!py int | str`:
+
+    ```python title="test_file.py" linenums="42" hl_lines="3"
+    def checksum(a):
+        assert 2 + 2 == 4
+    ```
+
+    - [ ] 3
+    - [x] 4 *(not `four`)*
+    - [ ] 5
+
+    </quiz>
+
+=== "Syntax"
+
+    ~~~markdown
+    <quiz>
+    Testing `markdown_extentions`. Python code `#!py int | str`:
+
+    ```python title="test_file.py" linenums="42" hl_lines="3"
+    def checksum(a):
+        assert 2 + 2 == 4
+    ```
+
+    - [ ] 3
+    - [x] 4 *(not `four`)*
+    - [ ] 5
+
+    </quiz>
+    ~~~
+
+=== "mkdocs.yml"
+
+    ```yaml
+    markdown_extensions:
+      - pymdownx.highlight:
+          anchor_linenums: true
+          line_spans: __span
+          pygments_lang_class: true
+      - pymdownx.superfences
+    ```
+
+### Code blocks in the extra content
+
+Markdown extensions also work in the extra content that is shown after questions are answered:
+
+=== "Example"
+
+    <quiz>
     What line prints `"hello"`?
     - [x] Line 2
     - [ ] Line 1
