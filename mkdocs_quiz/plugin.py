@@ -686,7 +686,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 <div class="quiz-question">
                     {question}
                 </div>
-                <form>
+                <form action="javascript:void(0);" onsubmit="return false;">
                     <fieldset>{answers_html}</fieldset>
                     <div class="quiz-feedback hidden"></div>
                     {submit_button}
