@@ -26,8 +26,14 @@ Optional content revealed after correct answer <!-- (6)! -->
 
 !!! tip "Asterisk bullets"
 
-    You can also use asterisk bullets (`*`) instead of hyphens (`-`) for answers:
-    `* [x] Correct` and `* [ ] Incorrect`
+    You can also use asterisk bullets (`*`) instead of hyphens (`-`) for answers.
+    This is equally valid:
+
+    ```markdown
+    * [x] Correct answer
+    * [ ] Incorrect answer
+    * [ ] Another incorrect answer
+    ```
 
 This results in:
 
