@@ -379,7 +379,7 @@ If you have `pymdownx.highlight` configured, you can use line highlighting in qu
 
 === "Syntax"
 
-    `````markdown
+    ~~~markdown
     <quiz>
     What line prints `"hello"`?
     - [x] Line 2
@@ -392,7 +392,7 @@ If you have `pymdownx.highlight` configured, you can use line highlighting in qu
         return True
     ```
     </quiz>
-    `````
+    ~~~
 
 === "mkdocs.yml"
 
