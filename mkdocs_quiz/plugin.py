@@ -608,8 +608,15 @@ class MkDocsQuizPlugin(BasePlugin):
 
             except ValueError as e:
                 # Re-raise ValueError with additional context to help identify the problematic quiz
-                # Calculate line number from match position
-                line_number = markdown[:match.start()].count("\n") + 1
+                # Calculate line number by finding the quiz in the original markdown
+                # (match position is in masked_markdown which has different offsets)
+                quiz_tag = f"<quiz>{match.group(1)}</quiz>"
+                original_pos = markdown.find(quiz_tag)
+                if original_pos >= 0:
+                    line_number = markdown[:original_pos].count("\n") + 1
+                else:
+                    # Fallback: use masked markdown position (may be approximate)
+                    line_number = masked_markdown[:match.start()].count("\n") + 1
 
                 # Get a preview of the quiz content (first 60 chars, single line)
                 quiz_preview = match.group(1).strip()[:60].replace("\n", " ")
