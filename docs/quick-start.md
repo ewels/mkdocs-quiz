@@ -24,6 +24,17 @@ Optional content revealed after correct answer <!-- (6)! -->
 6.  Additional content, only shown after the answer is submitted (correctly or incorrectly).
 7.  Closing tag for the quiz signifies the end.
 
+!!! tip "Asterisk bullets"
+
+    You can also use asterisk bullets (`*`) instead of hyphens (`-`) for answers.
+    This is equally valid:
+
+    ```markdown
+    * [x] Correct answer
+    * [ ] Incorrect answer
+    * [ ] Another incorrect answer
+    ```
+
 This results in:
 
 <quiz>

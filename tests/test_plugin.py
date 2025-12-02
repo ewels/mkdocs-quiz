@@ -857,7 +857,7 @@ Question?
     # Should raise ValueError and prevent build from completing
     with pytest.raises(
         ValueError,
-        match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed",
+        match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed.*- or \* bullet",
     ):
         plugin.on_page_markdown(markdown, mock_page, mock_config)
 
@@ -1299,3 +1299,138 @@ print("hello")
         or "codehilite" in html_result
         or "language-python" in html_result
     )
+
+
+def test_asterisk_bullet_single_choice(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that asterisk bullets work for single choice quizzes."""
+    markdown = """
+<quiz>
+What is 2+2?
+* [x] 4
+* [ ] 3
+* [ ] 5
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    assert "What is 2+2?" in html_result
+    assert 'type="radio"' in html_result
+    assert "correct" in html_result
+
+
+def test_asterisk_bullet_multiple_choice(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that asterisk bullets work for multiple choice quizzes."""
+    markdown = """
+<quiz>
+Which are even numbers?
+* [x] 2
+* [ ] 3
+* [x] 4
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    assert "Which are even numbers?" in html_result
+    assert 'type="checkbox"' in html_result
+    # Two correct answers
+    assert html_result.count(" correct>") == 2
+
+
+def test_mixed_bullet_styles(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that mixing hyphen and asterisk bullets works within same quiz."""
+    markdown = """
+<quiz>
+Mixed bullets?
+- [x] Hyphen correct
+* [ ] Asterisk wrong
+- [ ] Hyphen wrong
+* [x] Asterisk correct
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should have all 4 answers
+    assert html_result.count('type="checkbox"') == 4
+    # Two correct answers
+    assert html_result.count(" correct>") == 2
+    assert "Hyphen correct" in html_result
+    assert "Asterisk wrong" in html_result
+    assert "Hyphen wrong" in html_result
+    assert "Asterisk correct" in html_result
+
+
+def test_asterisk_bullet_all_valid_formats(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that all valid checkbox formats work with asterisk bullets."""
+    markdown = """
+<quiz>
+Which are valid?
+* [x] Lowercase x (correct)
+* [X] Uppercase X (correct)
+* [ ] Space (incorrect)
+* [] Empty (incorrect)
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should process successfully with all 4 formats
+    assert 'type="checkbox"' in html_result
+    assert html_result.count('type="checkbox"') == 4
+    # Both [x] and [X] should be marked as correct
+    assert html_result.count(" correct>") == 2
+
+
+def test_asterisk_bullet_with_content(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that asterisk bullets work with content section."""
+    markdown = """
+<quiz>
+What is Python?
+* [x] A programming language
+* [ ] A snake
+
+Python is a high-level programming language.
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    assert "What is Python?" in html_result
+    assert "A programming language" in html_result
+    assert "high-level programming language" in html_result
+    assert '<section class="content hidden">' in html_result
+
+
+def test_asterisk_bullet_malformed_checkbox_raises_error(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that malformed checkbox with asterisk bullet raises ValueError."""
+    markdown = """
+<quiz>
+Question?
+* [y] This should raise an error
+* [x] Correct answer
+</quiz>
+"""
+    with pytest.raises(
+        ValueError,
+        match=r"Invalid checkbox format.*\[y\]",
+    ):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
