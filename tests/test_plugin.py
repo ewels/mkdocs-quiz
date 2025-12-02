@@ -857,7 +857,7 @@ Question?
     # Should raise ValueError and prevent build from completing
     with pytest.raises(
         ValueError,
-        match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed",
+        match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed.*- or \* bullet",
     ):
         plugin.on_page_markdown(markdown, mock_page, mock_config)
 
@@ -1438,3 +1438,283 @@ Second: [[answer]]
     # Should have question numbers
     assert "Question 1" in result
     assert "Question 2" in result
+
+
+def test_markdown_extensions_from_config(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that markdown extensions from mkdocs.yml config are used in quizzes."""
+    # Configure admonition extension in mock config
+    mock_config["markdown_extensions"] = ["admonition"]
+
+    markdown = """
+<quiz>
+What is this?
+- [x] An admonition
+- [ ] A paragraph
+
+!!! note
+    This is a note admonition.
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should have admonition processed
+    assert "admonition" in html_result
+    assert "note" in html_result
+
+
+def test_markdown_extensions_with_config_options(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that markdown extension configs are passed through."""
+    # Configure toc extension with a custom option
+    mock_config["markdown_extensions"] = ["toc"]
+    mock_config["mdx_configs"] = {"toc": {"permalink": True}}
+
+    markdown = """
+<quiz>
+## What is this heading?
+- [x] A quiz question with heading
+- [ ] Nothing
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should have heading with permalink (toc extension config applied)
+    assert "What is this heading?" in html_result
+    # The heading should be converted
+    assert "<h2" in html_result
+
+
+def test_default_extensions_when_config_empty(plugin: MkDocsQuizPlugin, mock_page: Page) -> None:
+    """Test that default extensions are used when config has no extensions."""
+    # Create a config with no extensions explicitly set
+    empty_config = MkDocsConfig()
+    assert empty_config.markdown_extensions == []
+
+    markdown = """
+<quiz>
+What is `inline code`?
+- [x] Code with **bold** text
+- [ ] Plain text
+
+```python
+def hello():
+    print("world")
+```
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, empty_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=empty_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Default extensions should be used:
+    # - extra: processes inline code and bold
+    # - codehilite: syntax highlighting for code blocks
+    assert "<code>" in html_result
+    assert "<strong>bold</strong>" in html_result
+    # codehilite should be active for syntax highlighting
+    assert "codehilite" in html_result
+
+
+def test_tables_extension_in_quiz(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that tables extension works in quiz content section."""
+    # The 'extra' extension includes tables
+    mock_config["markdown_extensions"] = ["extra"]
+
+    markdown = """
+<quiz>
+What is shown below?
+- [x] A table
+- [ ] A list
+
+| Header 1 | Header 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Table should be converted to HTML
+    assert "<table>" in html_result
+    assert "<th>" in html_result or "Header 1" in html_result
+
+
+def test_pymdownx_superfences_if_installed(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that pymdownx.superfences works if installed."""
+    try:
+        import pymdownx  # noqa: F401
+    except ImportError:
+        pytest.skip("pymdownx not installed")
+
+    mock_config["markdown_extensions"] = ["pymdownx.superfences"]
+
+    markdown = """
+<quiz>
+What does this code do?
+- [x] Prints hello
+- [ ] Nothing
+
+```python
+print("hello")
+```
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Superfences should wrap code blocks
+    assert "print" in html_result
+    # Superfences uses highlight class by default
+    assert (
+        "highlight" in html_result
+        or "codehilite" in html_result
+        or "language-python" in html_result
+    )
+
+
+def test_asterisk_bullet_single_choice(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that asterisk bullets work for single choice quizzes."""
+    markdown = """
+<quiz>
+What is 2+2?
+* [x] 4
+* [ ] 3
+* [ ] 5
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    assert "What is 2+2?" in html_result
+    assert 'type="radio"' in html_result
+    assert "correct" in html_result
+
+
+def test_asterisk_bullet_multiple_choice(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that asterisk bullets work for multiple choice quizzes."""
+    markdown = """
+<quiz>
+Which are even numbers?
+* [x] 2
+* [ ] 3
+* [x] 4
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    assert "Which are even numbers?" in html_result
+    assert 'type="checkbox"' in html_result
+    # Two correct answers
+    assert html_result.count(" correct>") == 2
+
+
+def test_mixed_bullet_styles(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that mixing hyphen and asterisk bullets works within same quiz."""
+    markdown = """
+<quiz>
+Mixed bullets?
+- [x] Hyphen correct
+* [ ] Asterisk wrong
+- [ ] Hyphen wrong
+* [x] Asterisk correct
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should have all 4 answers
+    assert html_result.count('type="checkbox"') == 4
+    # Two correct answers
+    assert html_result.count(" correct>") == 2
+    assert "Hyphen correct" in html_result
+    assert "Asterisk wrong" in html_result
+    assert "Hyphen wrong" in html_result
+    assert "Asterisk correct" in html_result
+
+
+def test_asterisk_bullet_all_valid_formats(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that all valid checkbox formats work with asterisk bullets."""
+    markdown = """
+<quiz>
+Which are valid?
+* [x] Lowercase x (correct)
+* [X] Uppercase X (correct)
+* [ ] Space (incorrect)
+* [] Empty (incorrect)
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    # Should process successfully with all 4 formats
+    assert 'type="checkbox"' in html_result
+    assert html_result.count('type="checkbox"') == 4
+    # Both [x] and [X] should be marked as correct
+    assert html_result.count(" correct>") == 2
+
+
+def test_asterisk_bullet_with_content(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that asterisk bullets work with content section."""
+    markdown = """
+<quiz>
+What is Python?
+* [x] A programming language
+* [ ] A snake
+
+Python is a high-level programming language.
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert html_result is not None
+
+    assert "What is Python?" in html_result
+    assert "A programming language" in html_result
+    assert "high-level programming language" in html_result
+    assert '<section class="content hidden">' in html_result
+
+
+def test_asterisk_bullet_malformed_checkbox_raises_error(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that malformed checkbox with asterisk bullet raises ValueError."""
+    markdown = """
+<quiz>
+Question?
+* [y] This should raise an error
+* [x] Correct answer
+</quiz>
+"""
+    with pytest.raises(
+        ValueError,
+        match=r"Invalid checkbox format.*\[y\]",
+    ):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)

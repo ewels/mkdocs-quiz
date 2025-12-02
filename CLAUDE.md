@@ -61,6 +61,8 @@ The plugin automatically detects which type based on the content:
 3. **HTML generation** (`_process_quiz` and `_process_fill_in_blank_quiz`):
    - **Multiple-choice**: Parses quiz lines to extract question, answers, and content
      - Converts question and answers from markdown to HTML using `markdown_converter`
+     - Uses the same `markdown_extensions` configured in `mkdocs.yml` for conversion
+     - This enables features like `pymdownx.superfences`, `pymdownx.highlight`, admonitions, etc.
      - Generates form HTML with proper input types (radio/checkbox)
      - Adds `correct` attribute to correct answers (used by JS)
    - **Fill-in-the-blank**: Replaces `[[answer]]` with text inputs
@@ -151,18 +153,21 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
    - `polib` is a required dependency
 
 3. **Translation Files** ([mkdocs_quiz/locales/](mkdocs_quiz/locales/)):
+   - Language codes follow [MkDocs Material conventions](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/): 2-letter ISO 639-1 codes (e.g., `fr`, `de`) with hyphens for regional variants (e.g., `pt-BR`, `zh-TW`)
    - `mkdocs_quiz.pot` - Template extracted from source code
-   - `fr_FR.po`, etc. - Language translations
-   - No `en_US.po` file needed - English keys in source code are the fallback
+   - `fr.po`, `pt-BR.po`, etc. - Language translations
+   - No `en.po` file needed - English keys in source code are the fallback
    - Standard gettext format, compatible with Poedit, Weblate, Crowdin
    - Files contain `msgid` (English source) and `msgstr` (translation)
 
 4. **Integration Flow**:
-   - `_get_translation_manager()` determines language for each page:
-     - Page frontmatter (`quiz.language`)
-     - Pattern matching (`language_patterns` config)
-     - Global `language` config
-     - Fallback to `en_US`
+   - `_get_translation_manager()` determines language for each page (later overrides earlier):
+     - Default: `en`
+     - `theme.language` from MkDocs config
+     - `extra.alternate` - Active language from Material's language selector (auto-detected from page URL)
+     - `language` config
+     - `language_patterns` config
+     - Page frontmatter (`quiz.language`) - highest priority
    - Python generates HTML with translated strings using `t.get("English text")`
    - Translations passed to JavaScript via `window.mkdocsQuizTranslations`
    - JavaScript uses `t("English text", params)` helper for dynamic text
@@ -170,15 +175,32 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
 5. **Configuration Options**:
 
    ```yaml
+   # Automatically uses theme language if set
+   theme:
+     name: material
+     language: fr
+
+   # Automatically uses alternate i8n from mkdocs
+   extra:
+      alternate:
+         - name: English
+            link: /en/
+            lang: en
+         - name: Français
+            link: /fr/
+            lang: fr
+
    plugins:
      - mkdocs_quiz:
-         language: fr_FR # Global default
+         language: fr # Global default (optional if theme.language is set)
          language_patterns:
            - pattern: "fr/**/*"
-             language: fr_FR
+             language: fr
+           - pattern: "pt/**/*"
+             language: pt-BR
          custom_translations:
-           fr_FR: translations/fr_custom.po # Override built-in French
-           ja_JP: translations/ja_JP.po # Add new language
+           fr: translations/fr_custom.po # Override built-in French
+           ja: translations/ja.po # Add new language
    ```
 
 6. **CLI Tools**:

@@ -30,12 +30,7 @@ theme:
     - toc.follow
 
 plugins:
-  - mkdocs_quiz:
-      enabled_by_default: true
-      auto_number: false
-      show_correct: true
-      auto_submit: true
-      disable_after_submit: true
+  - mkdocs_quiz
 
 markdown_extensions:
   - admonition

@@ -1,0 +1,105 @@
+# French translations for mkdocs-quiz
+msgid ""
+msgstr ""
+"Project-Id-Version: mkdocs-quiz\n"
+"Report-Msgid-Bugs-To: https://github.com/ewels/mkdocs-quiz/issues\n"
+"POT-Creation-Date: 2025-11-27 22:12+0100\n"
+"PO-Revision-Date: 2025-11-30 07:45+0000\n"
+"Last-Translator: Claude <noreply@anthropic.com>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Generated-By: Babel 2.14.0\n"
+
+#: plugin.py:628
+msgid "Submit"
+msgstr "Soumettre"
+
+#: plugin.py:643
+msgid "Question {n}"
+msgstr "Question {n}"
+
+#: plugin.py:673
+msgid "Quiz Progress"
+msgstr "Progression du quiz"
+
+#: plugin.py:674
+msgid "questions answered"
+msgstr "questions répondues"
+
+#: plugin.py:675
+msgid "correct"
+msgstr "correctes"
+
+#: plugin.py:676
+msgid "Quiz Complete!"
+msgstr "Quiz terminé !"
+
+#: plugin.py:677 plugin.py:717
+msgid "Reset quiz"
+msgstr "Réinitialiser le quiz"
+
+#: plugin.py:714
+msgid ""
+"Quiz results are saved to your browser's local storage and will persist "
+"between sessions."
+msgstr ""
+"Les résultats du quiz sont enregistrés dans le stockage local de votre "
+"navigateur et persisteront entre les sessions."
+
+#: js/quiz.js:334
+msgid "Outstanding! You aced it!"
+msgstr "Exceptionnel ! Vous avez tout réussi !"
+
+#: js/quiz.js:337
+msgid "Great job! You really know your stuff!"
+msgstr "Excellent travail ! Vous maîtrisez vraiment le sujet !"
+
+#: js/quiz.js:340
+msgid "Good effort! Keep learning!"
+msgstr "Bon effort ! Continuez à apprendre !"
+
+#: js/quiz.js:343
+msgid "Not bad, but there's room for improvement!"
+msgstr "Pas mal, mais il y a de la place pour s'améliorer !"
+
+#: js/quiz.js:346
+msgid "Better luck next time! Keep trying!"
+msgstr "Plus de chance la prochaine fois ! Continuez d'essayer !"
+
+#: js/quiz.js:462
+msgid ""
+"Are you sure you want to reset the quiz? This will clear your progress."
+msgstr ""
+"Êtes-vous sûr de vouloir réinitialiser le quiz ? Cela effacera votre "
+"progression."
+
+#: js/quiz.js:579
+msgid "Try Again"
+msgstr "Réessayer"
+
+#: js/quiz.js:617 js/quiz.js:755
+msgid "Correct answer!"
+msgstr "Bonne réponse !"
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer. Please try again."
+msgstr "Mauvaise réponse. Veuillez réessayer."
+
+#: js/quiz.js:664 js/quiz.js:777
+msgid "Incorrect answer."
+msgstr "Mauvaise réponse."
+
+#: overrides/main.html
+msgid "Answered:"
+msgstr "Répondu :"
+
+#: overrides/main.html
+msgid "Correct:"
+msgstr "Correctes :"
+
+#: overrides/main.html
+msgid "Reset"
+msgstr "Réinitialiser"

@@ -3,103 +3,104 @@
 # This file is distributed under the same license as the mkdocs-quiz project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: mkdocs-quiz 1.2.0\n"
-"Report-Msgid-Bugs-To: Phil Ewels <phil.ewels@seqera.io>\n"
-"POT-Creation-Date: 2025-11-30 07:45+0000\n"
+"Project-Id-Version: mkdocs-quiz\n"
+"Report-Msgid-Bugs-To: https://github.com/ewels/mkdocs-quiz/issues\n"
 "PO-Revision-Date: 2025-11-30 07:45+0000\n"
-"Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
+"Last-Translator: Claude <noreply@anthropic.com>\n"
+"Language: sv\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
 
-#: plugin.py:663
+#: plugin.py:628
 msgid "Submit"
-msgstr ""
+msgstr "Skicka"
 
-#: plugin.py:678
-#, python-brace-format
+#: plugin.py:643
 msgid "Question {n}"
-msgstr ""
+msgstr "Fråga {n}"
 
-#: overrides/main.html:12 plugin.py:708
+#: plugin.py:673
 msgid "Quiz Progress"
-msgstr ""
+msgstr "Quiz-framsteg"
 
-#: plugin.py:709
+#: plugin.py:674
 msgid "questions answered"
-msgstr ""
+msgstr "frågor besvarade"
 
-#: plugin.py:710
+#: plugin.py:675
 msgid "correct"
-msgstr ""
+msgstr "korrekt"
 
-#: plugin.py:711
+#: plugin.py:676
 msgid "Quiz Complete!"
-msgstr ""
+msgstr "Quiz slutfört!"
 
-#: plugin.py:712 plugin.py:752
+#: plugin.py:677 plugin.py:717
 msgid "Reset quiz"
-msgstr ""
+msgstr "Återställ quiz"
 
-#: plugin.py:749
+#: plugin.py:714
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
 msgstr ""
+"Quiz-resultat sparas i webbläsarens lokala lagring och kommer att finnas "
+"kvar mellan sessioner."
 
 #: js/quiz.js:334
 msgid "Outstanding! You aced it!"
-msgstr ""
+msgstr "Enastående! Du klarade det perfekt!"
 
 #: js/quiz.js:337
 msgid "Great job! You really know your stuff!"
-msgstr ""
+msgstr "Bra gjort! Du kan verkligen dina saker!"
 
 #: js/quiz.js:340
 msgid "Good effort! Keep learning!"
-msgstr ""
+msgstr "Bra försök! Fortsätt lära!"
 
 #: js/quiz.js:343
 msgid "Not bad, but there's room for improvement!"
-msgstr ""
+msgstr "Inte dåligt, men det finns utrymme för förbättring!"
 
 #: js/quiz.js:346
 msgid "Better luck next time! Keep trying!"
-msgstr ""
+msgstr "Bättre lycka nästa gång! Fortsätt försöka!"
 
 #: js/quiz.js:462
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr ""
+"Är du säker på att du vill återställa quizet? Detta kommer att radera dina "
+"framsteg."
 
 #: js/quiz.js:579
 msgid "Try Again"
-msgstr ""
+msgstr "Försök igen"
 
 #: js/quiz.js:617 js/quiz.js:755
 msgid "Correct answer!"
-msgstr ""
+msgstr "Rätt svar!"
 
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer. Please try again."
-msgstr ""
+msgstr "Fel svar. Försök igen."
 
 #: js/quiz.js:664 js/quiz.js:777
 msgid "Incorrect answer."
-msgstr ""
+msgstr "Fel svar."
 
-#: overrides/main.html:18 overrides/main.html:55
+#: overrides/main.html
 msgid "Answered:"
-msgstr ""
+msgstr "Besvarade:"
 
-#: overrides/main.html:33 overrides/main.html:58
+#: overrides/main.html
 msgid "Correct:"
-msgstr ""
+msgstr "Korrekta:"
 
-#: overrides/main.html:36 overrides/main.html:61
+#: overrides/main.html
 msgid "Reset"
-msgstr ""
+msgstr "Återställ"

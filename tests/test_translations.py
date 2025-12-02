@@ -46,7 +46,7 @@ msgstr "Question {n}"
 
 def test_translation_manager_fallback_to_english() -> None:
     """Test that missing translations fall back to English key."""
-    t = TranslationManager(language="en_US")
+    t = TranslationManager(language="en")
 
     # Should return the key itself if no translation exists
     assert t.get("Non-existent key") == "Non-existent key"
@@ -54,7 +54,7 @@ def test_translation_manager_fallback_to_english() -> None:
 
 def test_translation_manager_builtin_english() -> None:
     """Test loading built-in English translation."""
-    t = TranslationManager(language="en_US")
+    t = TranslationManager(language="en")
 
     # Should load English translations
     assert t.get("Submit") == "Submit"
@@ -63,7 +63,7 @@ def test_translation_manager_builtin_english() -> None:
 
 def test_translation_manager_builtin_french() -> None:
     """Test loading built-in French translation."""
-    t = TranslationManager(language="fr_FR")
+    t = TranslationManager(language="fr")
 
     # Should load French translations
     assert t.get("Submit") != "Submit"  # Should be translated
@@ -72,7 +72,7 @@ def test_translation_manager_builtin_french() -> None:
 
 def test_translation_manager_format_substitution() -> None:
     """Test format string substitution with placeholders."""
-    t = TranslationManager(language="en_US")
+    t = TranslationManager(language="en")
 
     # Should substitute {n} placeholder
     assert t.get("Question {n}", n=5) == "Question 5"
@@ -81,7 +81,7 @@ def test_translation_manager_format_substitution() -> None:
 
 def test_translation_manager_custom_override(temp_po_file: Path) -> None:
     """Test custom translation overriding built-in."""
-    t = TranslationManager(language="en_US", custom_path=temp_po_file)
+    t = TranslationManager(language="en", custom_path=temp_po_file)
 
     # Custom translation should override built-in
     assert t.get("Submit") == "Soumettre"
@@ -91,7 +91,7 @@ def test_translation_manager_custom_override(temp_po_file: Path) -> None:
 def test_translation_manager_missing_custom_file() -> None:
     """Test graceful handling when custom file doesn't exist."""
     non_existent = Path("/tmp/non_existent_translation.po")
-    t = TranslationManager(language="en_US", custom_path=non_existent)
+    t = TranslationManager(language="en", custom_path=non_existent)
 
     # Should fall back to built-in English
     assert t.get("Submit") == "Submit"
@@ -99,7 +99,7 @@ def test_translation_manager_missing_custom_file() -> None:
 
 def test_translation_manager_missing_language() -> None:
     """Test fallback when language doesn't exist."""
-    t = TranslationManager(language="xx_XX")  # Non-existent language
+    t = TranslationManager(language="xx-XX")  # Non-existent language
 
     # Should fall back to English keys
     assert t.get("Submit") == "Submit"
@@ -108,7 +108,7 @@ def test_translation_manager_missing_language() -> None:
 def test_translation_manager_to_dict() -> None:
     """Test exporting translations as dictionary."""
     # Use French which has actual translations
-    t = TranslationManager(language="fr_FR")
+    t = TranslationManager(language="fr")
 
     trans_dict = t.to_dict()
 
@@ -121,7 +121,7 @@ def test_translation_manager_to_dict() -> None:
     assert t.get("Submit") != "Modified"
 
     # English should return empty dict (uses fallback instead)
-    t_en = TranslationManager(language="en_US")
+    t_en = TranslationManager(language="en")
     assert t_en.to_dict() == {}
 
 
@@ -134,7 +134,7 @@ def test_plugin_translation_injection(mock_config: MkDocsConfig) -> None:
         "show_correct": True,
         "auto_submit": True,
         "disable_after_submit": True,
-        "language": "fr_FR",  # Use French to test actual translation injection
+        "language": "fr",  # Use French to test actual translation injection
         "custom_translations": {},
         "language_patterns": [],
     }
@@ -177,7 +177,7 @@ def test_plugin_per_page_language(mock_config: MkDocsConfig) -> None:
         "show_correct": True,
         "auto_submit": True,
         "disable_after_submit": True,
-        "language": "en_US",
+        "language": "en",
         "custom_translations": {},
         "language_patterns": [],
     }
@@ -190,13 +190,13 @@ def test_plugin_per_page_language(mock_config: MkDocsConfig) -> None:
         use_directory_urls=True,
     )
     page = Page(None, file, mock_config)
-    page.meta = {"quiz": {"language": "fr_FR"}}
+    page.meta = {"quiz": {"language": "fr"}}
 
     # Get translation manager for this page
     t = plugin._get_translation_manager(page, mock_config)
 
     # Should use French
-    assert t.language == "fr_FR"
+    assert t.language == "fr"
 
 
 def test_plugin_pattern_matching(mock_config: MkDocsConfig) -> None:
@@ -204,11 +204,11 @@ def test_plugin_pattern_matching(mock_config: MkDocsConfig) -> None:
     plugin = MkDocsQuizPlugin()
     plugin.config = {
         "enabled_by_default": True,
-        "language": "en_US",
+        "language": "en",
         "custom_translations": {},
         "language_patterns": [
-            {"pattern": "fr/*", "language": "fr_FR"},
-            {"pattern": "es/*", "language": "es_ES"},
+            {"pattern": "fr/*", "language": "fr"},
+            {"pattern": "es/*", "language": "es"},
         ],
     }
 
@@ -223,7 +223,7 @@ def test_plugin_pattern_matching(mock_config: MkDocsConfig) -> None:
     page_fr.meta = {}
 
     t_fr = plugin._get_translation_manager(page_fr, mock_config)
-    assert t_fr.language == "fr_FR"
+    assert t_fr.language == "fr"
 
     # Create Spanish page (matches pattern)
     file_es = File(
@@ -236,7 +236,7 @@ def test_plugin_pattern_matching(mock_config: MkDocsConfig) -> None:
     page_es.meta = {}
 
     t_es = plugin._get_translation_manager(page_es, mock_config)
-    assert t_es.language == "es_ES"
+    assert t_es.language == "es"
 
     # Create English page (no pattern match, uses default)
     file_en = File(
@@ -249,16 +249,16 @@ def test_plugin_pattern_matching(mock_config: MkDocsConfig) -> None:
     page_en.meta = {}
 
     t_en = plugin._get_translation_manager(page_en, mock_config)
-    assert t_en.language == "en_US"
+    assert t_en.language == "en"
 
 
 def test_plugin_language_resolution_order(mock_config: MkDocsConfig) -> None:
     """Test language resolution priority: page > pattern > global."""
     plugin = MkDocsQuizPlugin()
     plugin.config = {
-        "language": "en_US",
+        "language": "en",
         "language_patterns": [
-            {"pattern": "fr/**/*", "language": "fr_FR"},
+            {"pattern": "fr/**/*", "language": "fr"},
         ],
         "custom_translations": {},
     }
@@ -271,12 +271,12 @@ def test_plugin_language_resolution_order(mock_config: MkDocsConfig) -> None:
         use_directory_urls=True,
     )
     page = Page(None, file, mock_config)
-    page.meta = {"quiz": {"language": "es_ES"}}  # Override to Spanish
+    page.meta = {"quiz": {"language": "es"}}  # Override to Spanish
 
     t = plugin._get_translation_manager(page, mock_config)
 
     # Page frontmatter should win over pattern and global
-    assert t.language == "es_ES"
+    assert t.language == "es"
 
 
 def test_translation_with_multiple_quizzes(mock_config: MkDocsConfig) -> None:
@@ -288,7 +288,7 @@ def test_translation_with_multiple_quizzes(mock_config: MkDocsConfig) -> None:
         "show_correct": True,
         "auto_submit": True,
         "disable_after_submit": True,
-        "language": "en_US",
+        "language": "en",
         "custom_translations": {},
         "language_patterns": [],
     }
@@ -327,7 +327,7 @@ Second question?
 
 def test_translation_format_error_propagates() -> None:
     """Test that format errors propagate (no defensive catching)."""
-    t = TranslationManager(language="en_US")
+    t = TranslationManager(language="en")
 
     # Create a translation with placeholder, call format with wrong parameter
     # This should raise KeyError since we removed defensive exception handling
@@ -348,7 +348,7 @@ def test_custom_translation_malformed_raises() -> None:
     try:
         # Should raise an error from polib (no defensive exception handling)
         # We don't catch the specific exception type because we want any error to propagate
-        TranslationManager(language="en_US", custom_path=temp_path)
+        TranslationManager(language="en", custom_path=temp_path)
         # If we get here, the test should fail
         pytest.fail("Expected TranslationManager to raise an error for malformed .po file")
     except Exception:
@@ -367,7 +367,7 @@ def test_translated_button_text_in_html(mock_config: MkDocsConfig) -> None:
         "show_correct": True,
         "auto_submit": False,  # Show submit button
         "disable_after_submit": True,
-        "language": "en_US",
+        "language": "en",
         "custom_translations": {},
         "language_patterns": [],
     }
@@ -416,7 +416,7 @@ msgstr "Translated!"
         temp_path = Path(f.name)
 
     try:
-        t = TranslationManager(language="en_US", custom_path=temp_path)
+        t = TranslationManager(language="en", custom_path=temp_path)
 
         # Empty msgstr should fall back to English key
         assert t.get("Submit") == "Submit"

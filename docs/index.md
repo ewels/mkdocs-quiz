@@ -12,6 +12,8 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - 🎯 **Multiple quiz types** - Single choice (radio), multiple choice (checkboxes), and fill-in-the-blank
 - ⚡ **Instant feedback** - Visual indicators show correct/incorrect answers
 - 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti :tada:
+- 💾 **Results saved** - Answers are saved to the browser's local storage
+- 🌐 **Internationalization** - Quiz elements support multi-lingual sites
 
 <!-- prettier-ignore-start -->
 ```html
@@ -21,7 +23,7 @@ What's the best static site generator? <!-- (1)! -->
 - [ ] Jekyll <!-- (3)! -->
 - [ ] Sphinx
 
-You've come to the right place! <!-- (4)! -->
+If you entered mkdocs, you've come to the right place! <!-- (4)! -->
 ![Random cat gif](https://cataas.com/cat/gif)
 </quiz>
 ```
@@ -38,7 +40,7 @@ What's the best static site generator? <!-- (1)! -->
 - [ ] Jekyll <!-- (3)! -->
 - [ ] Sphinx
 
-You've come to the right place! <!-- (4)! -->
+If you entered mkdocs, you've come to the right place! <!-- (4)! -->
 
 ![Random cat gif](https://cataas.com/cat/gif){ width="200" }
 </quiz>

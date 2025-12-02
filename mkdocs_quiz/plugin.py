@@ -63,14 +63,49 @@ except OSError as e:
 _markdown_converter_local = threading.local()
 
 
-def get_markdown_converter() -> md.Markdown:
+def get_markdown_converter(config: MkDocsConfig | None = None) -> md.Markdown:
     """Get or create a thread-local markdown converter instance.
+
+    When config is provided, uses the same markdown extensions configured
+    in mkdocs.yml. This enables features like pymdownx.superfences,
+    pymdownx.highlight with line highlighting, etc.
+
+    Args:
+        config: Optional MkDocs config to get markdown extensions from.
+                If None or no extensions configured, falls back to basic extensions.
 
     Returns:
         A thread-local Markdown converter instance.
     """
-    if not hasattr(_markdown_converter_local, "converter"):
-        _markdown_converter_local.converter = md.Markdown(extensions=["extra", "codehilite", "toc"])
+    # Default extensions used when no config is provided or config has no extensions
+    default_extensions = ["extra", "codehilite", "toc"]
+
+    # Compute a cache key based on the extensions configured
+    if config is not None and config.markdown_extensions:
+        # Get extensions from mkdocs config (user has explicitly configured them)
+        extensions = config.markdown_extensions
+        extension_configs = config.mdx_configs or {}
+        # Create a hashable key for cache comparison
+        cache_key = (
+            tuple(extensions),
+            tuple(sorted(extension_configs.keys())) if extension_configs else (),
+        )
+    else:
+        # Fallback to basic extensions when no config or no extensions configured
+        extensions = default_extensions
+        extension_configs = {}
+        cache_key = (tuple(extensions), ())
+
+    # Check if we need to recreate the converter (different config)
+    if (
+        not hasattr(_markdown_converter_local, "converter")
+        or getattr(_markdown_converter_local, "cache_key", None) != cache_key
+    ):
+        _markdown_converter_local.converter = md.Markdown(
+            extensions=extensions, extension_configs=extension_configs
+        )
+        _markdown_converter_local.cache_key = cache_key
+
     return _markdown_converter_local.converter  # type: ignore[no-any-return]
 
 
@@ -92,6 +127,8 @@ def get_markdown_converter() -> md.Markdown:
 # ---
 # Optional content section
 # </quiz>
+#
+# Note: Asterisk bullets (* [x], * [ ]) are also supported.
 
 QUIZ_START_TAG = "<quiz>"
 QUIZ_END_TAG = "</quiz>"
@@ -106,17 +143,21 @@ OLD_SYNTAX_PATTERNS = [
 ]
 
 
-def convert_inline_markdown(text: str) -> str:
+def convert_inline_markdown(text: str, config: MkDocsConfig | None = None) -> str:
     """Convert markdown to HTML for inline content (questions/answers).
+
+    Uses the same markdown extensions configured in mkdocs.yml when config
+    is provided, enabling features like syntax highlighting in code blocks.
 
     Args:
         text: The markdown text to convert.
+        config: Optional MkDocs config to get markdown extensions from.
 
     Returns:
         The HTML string with wrapping <p> tags removed.
     """
     # Reset the converter state
-    converter = get_markdown_converter()
+    converter = get_markdown_converter(config)
     converter.reset()
     html_content = converter.convert(text)
     # Remove wrapping <p> tags for inline content
@@ -138,7 +179,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("confetti", config_options.Type(bool, default=True)),
         ("progress_sidebar_position", config_options.Type(str, default="top")),
         # Translation options
-        ("language", config_options.Type(str, default="en_US")),
+        ("language", config_options.Type((str, type(None)), default=None)),
         ("custom_translations", config_options.Type(dict, default={})),
         ("language_patterns", config_options.Type(list, default=[])),
     )
@@ -228,6 +269,14 @@ class MkDocsQuizPlugin(BasePlugin):
     def _get_translation_manager(self, page: Page, config: MkDocsConfig) -> TranslationManager:
         """Get translation manager for the current page.
 
+        Language resolution order (later overrides earlier):
+        1. Default: 'en'
+        2. theme.language from MkDocs config
+        3. extra.alternate - detect active language from page URL
+        4. mkdocs_quiz.language config
+        5. mkdocs_quiz.language_patterns pattern matching
+        6. Page frontmatter quiz.language (highest priority)
+
         Args:
             page: The current page object.
             config: The MkDocs config object.
@@ -235,12 +284,38 @@ class MkDocsQuizPlugin(BasePlugin):
         Returns:
             TranslationManager instance for the resolved language.
         """
-        # Check page frontmatter for language override
-        quiz_meta = page.meta.get("quiz", {})
-        language = quiz_meta.get("language") if isinstance(quiz_meta, dict) else None
+        # 1. Start with default
+        language = "en"
 
-        # Check pattern matching if no page-level language
-        if not language and self.config.get("language_patterns"):
+        # 2. Check theme.language
+        if hasattr(config, "theme") and "language" in config.theme:
+            theme_lang = config.theme["language"]
+            if theme_lang:
+                language = theme_lang
+                log.debug(f"Using theme.language: {language}")
+
+        # 3. Check extra.alternate for multi-language sites
+        if hasattr(config, "extra") and "alternate" in config.extra:
+            page_url = page.url or page.file.url
+            for alternate in config.extra["alternate"]:
+                link = alternate.get("link", "")
+                lang = alternate.get("lang")
+                # Check if page URL starts with this alternate's link prefix
+                if link and lang and page_url.startswith(link.lstrip("/")):
+                    language = lang
+                    log.debug(
+                        f"Matched extra.alternate link '{link}' for {page_url}, using language: {language}"
+                    )
+                    break
+
+        # 4. Check mkdocs_quiz.language config (only if explicitly set by user)
+        plugin_language = self.config.get("language")
+        if plugin_language is not None:
+            language = plugin_language
+            log.debug(f"Using mkdocs_quiz.language config: {language}")
+
+        # 5. Check pattern matching
+        if self.config.get("language_patterns"):
             for pattern_config in self.config["language_patterns"]:
                 pattern = pattern_config.get("pattern", "")
                 if pattern and fnmatch.fnmatch(page.file.src_path, pattern):
@@ -250,9 +325,11 @@ class MkDocsQuizPlugin(BasePlugin):
                     )
                     break
 
-        # Fall back to global config
-        if not language:
-            language = self.config.get("language", "en_US")
+        # 6. Check page frontmatter for language override (highest priority)
+        quiz_meta = page.meta.get("quiz", {})
+        if isinstance(quiz_meta, dict) and quiz_meta.get("language"):
+            language = quiz_meta["language"]
+            log.debug(f"Using page frontmatter language: {language}")
 
         # Get custom translation path for this language
         custom_translations = self.config.get("custom_translations", {})
@@ -265,16 +342,17 @@ class MkDocsQuizPlugin(BasePlugin):
         return TranslationManager(language, custom_path)
 
     def _parse_quiz_question_and_answers(
-        self, quiz_lines: list[str]
+        self, quiz_lines: list[str], config: MkDocsConfig | None = None
     ) -> tuple[str, list[str], list[str], int]:
         """Parse quiz question and answers from quiz lines.
 
         The question is everything up to the first checkbox answer.
-        Answers are checkbox items (- [x] or - [ ]).
+        Answers are checkbox items (- [x], - [ ], * [x], or * [ ]).
         Content is everything after the last answer.
 
         Args:
             quiz_lines: The lines of the quiz content.
+            config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
             A tuple of (question_text, all_answers, correct_answers, content_start_index).
@@ -283,14 +361,15 @@ class MkDocsQuizPlugin(BasePlugin):
         first_answer_index = None
         for i, line in enumerate(quiz_lines):
             # Check if this looks like a checkbox list item (any character in brackets)
-            checkbox_check = re.match(r"^- \[(.?)\] (.*)$", line)
+            # Supports both hyphen (-) and asterisk (*) bullets
+            checkbox_check = re.match(r"^[-*] \[(.?)\] (.*)$", line)
             if checkbox_check:
                 checkbox_content = checkbox_check.group(1)
                 # Strictly validate: only accept x, X, space, or empty
                 if checkbox_content not in ["x", "X", " ", ""]:
                     raise ValueError(
-                        f"Invalid checkbox format: '- [{checkbox_content}]'. "
-                        f"Only '- [x]', '- [X]', '- [ ]', or '- []' are allowed. "
+                        f"Invalid checkbox format: '[{checkbox_content}]'. "
+                        f"Only '[x]', '[X]', '[ ]', or '[]' are allowed (with - or * bullet). "
                         f"Found in line: {line}"
                     )
                 first_answer_index = i
@@ -313,19 +392,20 @@ class MkDocsQuizPlugin(BasePlugin):
 
         for i, line in enumerate(quiz_lines[first_answer_index:], start=first_answer_index):
             # First check if this looks like a checkbox item (any character in brackets)
-            checkbox_pattern = re.match(r"^- \[(.?)\] (.*)$", line)
+            # Supports both hyphen (-) and asterisk (*) bullets
+            checkbox_pattern = re.match(r"^[-*] \[(.?)\] (.*)$", line)
             if checkbox_pattern:
                 checkbox_content = checkbox_pattern.group(1)
                 # Strictly validate: only accept x, X, space, or empty
                 if checkbox_content not in ["x", "X", " ", ""]:
                     raise ValueError(
-                        f"Invalid checkbox format: '- [{checkbox_content}]'. "
-                        f"Only '- [x]', '- [X]', '- [ ]', or '- []' are allowed. "
+                        f"Invalid checkbox format: '[{checkbox_content}]'. "
+                        f"Only '[x]', '[X]', '[ ]', or '[]' are allowed (with - or * bullet). "
                         f"Found in line: {line}"
                     )
                 is_correct = checkbox_content.lower() == "x"
                 answer_text = checkbox_pattern.group(2)
-                answer_html = convert_inline_markdown(answer_text)
+                answer_html = convert_inline_markdown(answer_text, config)
                 all_answers.append(answer_html)
                 if is_correct:
                     correct_answers.append(answer_html)
@@ -669,7 +749,7 @@ class MkDocsQuizPlugin(BasePlugin):
             try:
                 # Generate quiz HTML
                 quiz_html = self._process_quiz(
-                    match.group(1), quiz_id, options, translation_manager
+                    match.group(1), quiz_id, options, translation_manager, config
                 )
 
                 # Create a markdown-safe placeholder
@@ -683,9 +763,30 @@ class MkDocsQuizPlugin(BasePlugin):
                 segments.append(placeholder)
                 last_end = match.end()
 
-            except ValueError:
-                # Re-raise ValueError to crash the build (malformed quiz)
-                raise
+            except ValueError as e:
+                # Re-raise ValueError with additional context to help identify the problematic quiz
+                # Calculate line number by finding the quiz in the original markdown
+                # (match position is in masked_markdown which has different offsets)
+                quiz_tag = f"<quiz>{match.group(1)}</quiz>"
+                original_pos = markdown.find(quiz_tag)
+                if original_pos >= 0:
+                    line_number = markdown[:original_pos].count("\n") + 1
+                else:
+                    # Fallback: use masked markdown position (may be approximate)
+                    line_number = masked_markdown[: match.start()].count("\n") + 1
+
+                # Get a preview of the quiz content (first 60 chars, single line)
+                quiz_preview = match.group(1).strip()[:60].replace("\n", " ")
+                if len(match.group(1).strip()) > 60:
+                    quiz_preview += "..."
+
+                # Build helpful error message
+                error_msg = (
+                    f"Error in quiz #{quiz_id + 1} in {page.file.src_path} "
+                    f"(line {line_number}): {e}\n"
+                    f"  Quiz preview: {quiz_preview}"
+                )
+                raise ValueError(error_msg) from e
             except Exception as e:
                 # Log other errors but continue
                 log.error(f"Failed to process quiz {quiz_id} in {page.file.src_path}: {e}")
@@ -705,7 +806,12 @@ class MkDocsQuizPlugin(BasePlugin):
         return markdown
 
     def _process_quiz(
-        self, quiz_content: str, quiz_id: int, options: dict[str, bool], t: TranslationManager
+        self,
+        quiz_content: str,
+        quiz_id: int,
+        options: dict[str, bool],
+        t: TranslationManager,
+        config: MkDocsConfig | None = None,
     ) -> str:
         """Process a single quiz and convert it to HTML.
 
@@ -714,6 +820,7 @@ class MkDocsQuizPlugin(BasePlugin):
             quiz_id: The unique ID for this quiz.
             options: Quiz options (show_correct, auto_submit, disable_after_submit, auto_number).
             t: Translation manager for this page.
+            config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
             The HTML representation of the quiz.
@@ -742,7 +849,7 @@ class MkDocsQuizPlugin(BasePlugin):
         # Parse question and answers
         # Question is everything up to the first checkbox answer
         question_text, all_answers, correct_answers, content_start_index = (
-            self._parse_quiz_question_and_answers(quiz_lines)
+            self._parse_quiz_question_and_answers(quiz_lines, config)
         )
 
         # Validate quiz structure
@@ -754,7 +861,7 @@ class MkDocsQuizPlugin(BasePlugin):
             raise ValueError("Quiz must have at least one correct answer")
 
         # Convert question markdown to HTML (supports multi-line questions with markdown)
-        converter = get_markdown_converter()
+        converter = get_markdown_converter(config)
         converter.reset()
         question = converter.convert(question_text)
 
@@ -770,7 +877,7 @@ class MkDocsQuizPlugin(BasePlugin):
         if content_lines:
             content_text = "\n".join(content_lines)
             # Use full markdown conversion for content section
-            converter = get_markdown_converter()
+            converter = get_markdown_converter(config)
             converter.reset()
             content_html = converter.convert(content_text)
 
@@ -811,7 +918,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 <div class="quiz-question">
                     {question}
                 </div>
-                <form>
+                <form action="javascript:void(0);" onsubmit="return false;">
                     <fieldset>{answers_html}</fieldset>
                     <div class="quiz-feedback hidden"></div>
                     {submit_button}
@@ -843,7 +950,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 <div class="quiz-results-progress">
                     <h3>{quiz_progress_text}</h3>
                     <p class="quiz-results-stats">
-                        <span class="quiz-results-answered">0</span> of <span class="quiz-results-total">0</span> {questions_answered_text}
+                        <span class="quiz-results-answered">0</span> / <span class="quiz-results-total">0</span> {questions_answered_text}
                         (<span class="quiz-results-percentage">0%</span>)
                     </p>
                     <p class="quiz-results-correct-stats">

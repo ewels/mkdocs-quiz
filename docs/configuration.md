@@ -28,7 +28,7 @@ plugins:
       show_progress: true             # Show progress tracker sidebar and mobile bar
       progress_sidebar_position: top  # Position of progress tracker: "top" or "bottom"
       confetti: true                  # Show confetti animation when all quizzes completed
-      language: en_US                 # Default language for quiz UI
+      language: en                    # Default language for quiz UI
       language_patterns: []           # Auto-detect language based on file paths
       custom_translations: {}         # Custom translation files
 ```
@@ -45,7 +45,7 @@ quiz:
   auto_submit: false
   disable_after_submit: false
   show_progress: false
-  language: fr_FR
+  language: fr
 ---
 # Your Page Content
 
@@ -121,14 +121,29 @@ Enables the confetti animation when all quizzes are completed with a score of 10
 
 ### `language`
 
-**Type:** `str` | **Default:** `"en_US"`
+**Type:** `str` | **Default:** `"en"`
 
-Sets the default language for quiz UI elements (buttons, messages, progress tracking, etc.). Built-in languages include:
+Sets the default language for quiz UI elements (buttons, messages, progress tracking, etc.). Language codes follow [MkDocs Material conventions](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/): 2-letter ISO 639-1 codes (e.g., `fr`, `de`) with hyphens for regional variants (e.g., `pt-BR`, `zh-TW`).
 
-- `en_US` - English (default)
-- `fr_FR` - French
+Built-in languages include:
 
-See [Translations](translations.md) for complete documentation on using translations, adding custom languages, and contributing new translations.
+- `en` - English (default)
+- `de` - German
+- `eo` - Esperanto
+- `es` - Spanish
+- `fr` - French
+- `hi` - Hindi
+- `id` - Indonesian
+- `ja` - Japanese
+- `ko` - Korean
+- `no` - Norwegian
+- `pt-BR` - Portuguese (Brazilian)
+- `sv` - Swedish
+- `zh` - Chinese (Simplified)
+
+**Auto-detection:** MkDocs Quiz automatically uses `theme.language` if set, and integrates with Material's `extra.alternate` language selector. See [Translations](translations.md) for language resolution order and complete documentation.
+
+This `mkdocs_quiz` specific configuration is only needed if you need to override those settings for some reason.
 
 ### `language_patterns`
 
@@ -141,15 +156,19 @@ Example:
 ```yaml
 plugins:
   - mkdocs_quiz:
-      language: en_US # Default
+      language: en # Default
       language_patterns:
         - pattern: "fr/**/*"
-          language: fr_FR
+          language: fr
         - pattern: "es/**/*"
-          language: es_ES
+          language: es
 ```
 
 With this configuration, files under `docs/fr/` will automatically use French translations, files under `docs/es/` will use Spanish, and all others will use English.
+
+It's recommended to use mkdocs-material's [built-in internationalsation features](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/).
+the `extra: alternate:` config options will be picked up by mkdocs-quiz automatically.
+However, you can use the above configuration as an alternative if you wish.
 
 See [Translations](translations.md) for more details.
 
@@ -169,8 +188,8 @@ Example:
 plugins:
   - mkdocs_quiz:
       custom_translations:
-        en_US: translations/en_custom.po # Override built-in English
-        ja_JP: translations/ja_JP.po # Add Japanese
+        en: translations/en_custom.po # Override built-in English
+        ja: translations/ja.po # Add Japanese
 ```
 
 Translation files should be relative to your `mkdocs.yml` file. See [Translations](translations.md) for complete documentation on creating and managing custom translations.

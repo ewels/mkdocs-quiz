@@ -26,13 +26,13 @@ class TranslationManager:
 
     def __init__(
         self,
-        language: str = "en_US",
+        language: str = "en",
         custom_path: Path | None = None,
     ):
         """Initialize translation manager.
 
         Args:
-            language: Language code (e.g., 'en_US', 'fr_FR').
+            language: Language code (e.g., 'en', 'fr', 'pt-BR').
             custom_path: Optional path to user's custom .po file.
         """
         self.language = language
@@ -47,10 +47,10 @@ class TranslationManager:
         if builtin_po.exists():
             self.translations = self._parse_po_file(builtin_po)
             log.debug(f"Loaded built-in translation: {self.language}")
-        elif self.language != "en_US":
+        elif self.language != "en":
             log.warning(
                 f"Built-in translation for '{self.language}' not found. "
-                f"Available languages: en_US, fr_FR. "
+                f"Available languages: en, fr, pt-BR. "
                 f"Using English strings as fallback."
             )
 

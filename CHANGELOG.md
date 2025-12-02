@@ -1,11 +1,32 @@
 # Changelog
 
-## **Version 1.2.0** (unreleased)
+## **Version 1.2.2** (2025-12-02)
+
+- Support markdown extensions within quiz markdown - [#24](https://github.com/ewels/mkdocs-quiz/issues/24)
+- Support both hyphens (`-`) and asterisks (`*`) for answer lists - [#27](https://github.com/ewels/mkdocs-quiz/pull/27)
+- Improve error message when no questions detected to help identify which quiz - [#28](https://github.com/ewels/mkdocs-quiz/pull/28)
+- Fix bug with detection of config `theme.language` - [#23](https://github.com/ewels/mkdocs-quiz/issues/23)
+- Fix JS bug that caused scroll to top and problems when `navigation.instant` was enabled - [#22](https://github.com/ewels/mkdocs-quiz/issues/22)
+
+Many thanks to @dunossauro for testing the plugin and reporting issues!
+
+## **Version 1.2.1** (2025-12-01)
+
+- Add translations for sidebar progress strings (`Answered`, `Correct`, `Reset`) - [#20](https://github.com/ewels/mkdocs-quiz/issues/20)
+- Add HTML template extraction to `mkdocs-quiz translations update` CLI command
+  - Ensures `data-quiz-translate` attributes in HTML templates are tracked in translation files
+- Revised Norwegian translations - [#19](https://github.com/ewels/mkdocs-quiz/pull/19) by @remiolsen
+
+## **Version 1.2.0** (2025-11-29)
 
 - Add internationalisation
   - All UI-element strings are now wrapped in translation functions
   - Translations handled with `.po` files, plus `mkdocs-quiz translations` helper CLI commands
-  - Initially released with English and French translations, contributions welcome!
+  - Initially released with translations for a subset of those [supported by mkdocs-material](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/):
+    - Brazilian Portugese by @dunossauro - [#17](https://github.com/ewels/mkdocs-quiz/issues/17)
+    - French, Spanish, Swedish, German, Norwegian, Chinese (simplified), Korean, Esperanto, Hindi, Indonesian, Japanese all done automatically by @Claude - please submit a PR if something sounds wrong!
+    - New language contributions welcome!
+- Fixed plugin name in documentation - [#12](https://github.com/ewels/mkdocs-quiz/issues/12)
 
 ## **Version 1.1.0** (2025-11-13)
 
