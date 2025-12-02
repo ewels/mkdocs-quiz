@@ -39,7 +39,6 @@ jobs:
       - name: Type check with mypy
         run: |
           mypy mkdocs_quiz
-        continue-on-error: true
 
       - name: Test with pytest
         run: |
