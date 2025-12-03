@@ -431,7 +431,12 @@ class MkDocsQuizPlugin(BasePlugin):
         return bool(re.search(FILL_BLANK_REGEX, quiz_content))
 
     def _process_fill_in_blank_quiz(
-        self, quiz_content: str, quiz_id: int, options: dict[str, bool]
+        self,
+        quiz_content: str,
+        quiz_id: int,
+        options: dict[str, bool],
+        t: TranslationManager,
+        config: MkDocsConfig | None = None,
     ) -> str:
         """Process a fill-in-the-blank quiz.
 
@@ -439,6 +444,8 @@ class MkDocsQuizPlugin(BasePlugin):
             quiz_content: The content inside the quiz tags.
             quiz_id: The unique ID for this quiz.
             options: Quiz options (show_correct, auto_submit, disable_after_submit, auto_number).
+            t: Translation manager for this page.
+            config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
             The HTML representation of the fill-in-the-blank quiz.
@@ -513,8 +520,8 @@ class MkDocsQuizPlugin(BasePlugin):
         # Replace blanks with placeholders before markdown conversion
         question_with_placeholders = re.sub(FILL_BLANK_REGEX, create_placeholder, question_text)
 
-        # Convert markdown to HTML
-        question_html = convert_inline_markdown(question_with_placeholders)
+        # Convert markdown to HTML using configured markdown extensions
+        question_html = convert_inline_markdown(question_with_placeholders, config)
 
         # Now replace placeholders with actual input fields
         for placeholder, original in placeholders.items():
@@ -528,7 +535,8 @@ class MkDocsQuizPlugin(BasePlugin):
         content_html = ""
         if content_lines and any(l.strip() for l in content_lines):
             content_text = "\n".join(content_lines)
-            converter = get_markdown_converter()
+            # Use configured markdown extensions for content section
+            converter = get_markdown_converter(config)
             converter.reset()
             content_html = converter.convert(content_text)
 
@@ -547,7 +555,11 @@ class MkDocsQuizPlugin(BasePlugin):
         question_header = ""
         if options["auto_number"]:
             question_number = quiz_id + 1
-            question_header = f'<h4 class="quiz-number">Question {question_number}</h4>'
+            question_text = t.get("Question {n}", n=question_number)
+            question_header = f'<h4 class="quiz-number">{question_text}</h4>'
+
+        # Get translated submit button text
+        submit_text = t.get("Submit")
 
         quiz_html = dedent(f"""
             <div class="quiz quiz-fill-blank" {attrs} id="{quiz_header_id}">
@@ -556,9 +568,9 @@ class MkDocsQuizPlugin(BasePlugin):
                 <div class="quiz-question">
                     {question_html}
                 </div>
-                <form>
+                <form action="javascript:void(0);" onsubmit="return false;">
                     <div class="quiz-feedback hidden"></div>
-                    <button type="submit" class="quiz-button">Submit</button>
+                    <button type="submit" class="quiz-button">{submit_text}</button>
                 </form>
                 <section class="content hidden">{content_html}</section>
             </div>
@@ -830,7 +842,7 @@ class MkDocsQuizPlugin(BasePlugin):
         """
         # Check if this is a fill-in-the-blank quiz
         if self._is_fill_in_blank_quiz(quiz_content):
-            return self._process_fill_in_blank_quiz(quiz_content, quiz_id, options)
+            return self._process_fill_in_blank_quiz(quiz_content, quiz_id, options, t, config)
 
         # Dedent the quiz content to handle indented quizzes (e.g., in content tabs)
         quiz_content = dedent(quiz_content)

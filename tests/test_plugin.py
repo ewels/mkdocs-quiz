@@ -1440,6 +1440,37 @@ Second: [[answer]]
     assert "Question 2" in result
 
 
+def test_fill_in_blank_markdown_extensions(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that fill-in-the-blank quizzes use markdown extensions from config."""
+    # Configure markdown extensions
+    mock_config["markdown_extensions"] = ["extra"]
+
+    markdown = """
+<quiz>
+The answer is **bold** and the blank is [[answer]].
+
+---
+This *content* has `code` and uses extensions.
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should convert markdown in question text
+    assert "<strong>bold</strong>" in result
+    # Should convert markdown in content section
+    assert "<em>content</em>" in result
+    assert "<code>code</code>" in result
+    # Should still have fill-blank quiz functionality
+    assert 'data-quiz-type="fill-blank"' in result
+    assert 'data-answer="answer"' in result
+
+
 def test_markdown_extensions_from_config(
     plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
 ) -> None:
