@@ -533,7 +533,7 @@ class MkDocsQuizPlugin(BasePlugin):
         # Get content section
         content_lines = lines[content_start_index:]
         content_html = ""
-        if content_lines and any(l.strip() for l in content_lines):
+        if content_lines and any(line.strip() for line in content_lines):
             content_text = "\n".join(content_lines)
             # Use configured markdown extensions for content section
             converter = get_markdown_converter(config)
