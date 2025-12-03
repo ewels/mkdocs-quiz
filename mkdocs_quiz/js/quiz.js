@@ -702,101 +702,101 @@
         const allAnswers = fieldset.querySelectorAll('input[name="answer"]');
         const correctAnswers = fieldset.querySelectorAll('input[name="answer"][correct]');
 
-      if (savedState.answered) {
-        // Restore selected answers based on saved values
-        if (savedState.selectedValues && savedState.selectedValues.length > 0) {
-          allAnswers.forEach((input) => {
-            if (savedState.selectedValues.includes(input.value)) {
-              input.checked = true;
-            }
-          });
-        }
-
-        if (savedState.correct) {
-          // Show the content section
-          if (section) {
-            section.classList.remove("hidden");
-          }
-
-          // Only mark the correct answers in green (don't highlight wrong answers)
-          allAnswers.forEach((input) => {
-            if (input.hasAttribute("correct")) {
-              input.parentElement.classList.add("correct");
-            }
-          });
-
-          // Show correct feedback
-          feedbackDiv.classList.remove("hidden", "incorrect");
-          feedbackDiv.classList.add("correct");
-          feedbackDiv.textContent = t("Correct answer!");
-
-          // Disable inputs if disable-after-submit is enabled
-          if (quiz.hasAttribute("data-disable-after-submit")) {
+        if (savedState.answered) {
+          // Restore selected answers based on saved values
+          if (savedState.selectedValues && savedState.selectedValues.length > 0) {
             allAnswers.forEach((input) => {
-              input.disabled = true;
+              if (savedState.selectedValues.includes(input.value)) {
+                input.checked = true;
+              }
             });
-            if (submitButton) {
-              submitButton.disabled = true;
-            }
-            resetButton.classList.add("hidden");
-          } else {
-            // Show reset button, hide submit button
-            resetButton.classList.remove("hidden");
-            if (submitButton) {
-              submitButton.classList.add("hidden");
-            }
-          }
-        } else {
-          // Restore incorrect answer state
-          const selectedInputs = Array.from(allAnswers).filter((input) =>
-            savedState.selectedValues.includes(input.value),
-          );
-
-          // Show the content section for incorrect answers too
-          if (section) {
-            section.classList.remove("hidden");
           }
 
-          // Mark selected answers
-          selectedInputs.forEach((input) => {
-            if (input.hasAttribute("correct")) {
-              input.parentElement.classList.add("correct");
+          if (savedState.correct) {
+            // Show the content section
+            if (section) {
+              section.classList.remove("hidden");
+            }
+
+            // Only mark the correct answers in green (don't highlight wrong answers)
+            allAnswers.forEach((input) => {
+              if (input.hasAttribute("correct")) {
+                input.parentElement.classList.add("correct");
+              }
+            });
+
+            // Show correct feedback
+            feedbackDiv.classList.remove("hidden", "incorrect");
+            feedbackDiv.classList.add("correct");
+            feedbackDiv.textContent = t("Correct answer!");
+
+            // Disable inputs if disable-after-submit is enabled
+            if (quiz.hasAttribute("data-disable-after-submit")) {
+              allAnswers.forEach((input) => {
+                input.disabled = true;
+              });
+              if (submitButton) {
+                submitButton.disabled = true;
+              }
+              resetButton.classList.add("hidden");
             } else {
-              input.parentElement.classList.add("wrong");
+              // Show reset button, hide submit button
+              resetButton.classList.remove("hidden");
+              if (submitButton) {
+                submitButton.classList.add("hidden");
+              }
             }
-          });
-
-          // Show correct answers if show-correct is enabled
-          if (quiz.hasAttribute("data-show-correct")) {
-            correctAnswers.forEach((input) => {
-              input.parentElement.classList.add("correct");
-            });
-          }
-
-          // Show incorrect feedback
-          feedbackDiv.classList.remove("hidden", "correct");
-          feedbackDiv.classList.add("incorrect");
-          const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-          feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
-
-          // Disable inputs if disable-after-submit is enabled
-          if (quiz.hasAttribute("data-disable-after-submit")) {
-            allAnswers.forEach((input) => {
-              input.disabled = true;
-            });
-            if (submitButton) {
-              submitButton.disabled = true;
-            }
-            resetButton.classList.add("hidden");
           } else {
-            // Show reset button, hide submit button
-            resetButton.classList.remove("hidden");
-            if (submitButton) {
-              submitButton.classList.add("hidden");
+            // Restore incorrect answer state
+            const selectedInputs = Array.from(allAnswers).filter((input) =>
+              savedState.selectedValues.includes(input.value),
+            );
+
+            // Show the content section for incorrect answers too
+            if (section) {
+              section.classList.remove("hidden");
+            }
+
+            // Mark selected answers
+            selectedInputs.forEach((input) => {
+              if (input.hasAttribute("correct")) {
+                input.parentElement.classList.add("correct");
+              } else {
+                input.parentElement.classList.add("wrong");
+              }
+            });
+
+            // Show correct answers if show-correct is enabled
+            if (quiz.hasAttribute("data-show-correct")) {
+              correctAnswers.forEach((input) => {
+                input.parentElement.classList.add("correct");
+              });
+            }
+
+            // Show incorrect feedback
+            feedbackDiv.classList.remove("hidden", "correct");
+            feedbackDiv.classList.add("incorrect");
+            const canRetry = !quiz.hasAttribute("data-disable-after-submit");
+            feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+
+            // Disable inputs if disable-after-submit is enabled
+            if (quiz.hasAttribute("data-disable-after-submit")) {
+              allAnswers.forEach((input) => {
+                input.disabled = true;
+              });
+              if (submitButton) {
+                submitButton.disabled = true;
+              }
+              resetButton.classList.add("hidden");
+            } else {
+              // Show reset button, hide submit button
+              resetButton.classList.remove("hidden");
+              if (submitButton) {
+                submitButton.classList.add("hidden");
+              }
             }
           }
         }
-      }
       }
     }
 

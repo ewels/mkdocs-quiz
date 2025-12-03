@@ -525,9 +525,9 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Now replace placeholders with actual input fields
         for placeholder, original in placeholders.items():
-            match = re.match(FILL_BLANK_REGEX, original)
-            if match:
-                input_html = replace_with_input(match)
+            blank_match: re.Match[str] | None = re.match(FILL_BLANK_REGEX, original)
+            if blank_match:
+                input_html = replace_with_input(blank_match)
                 question_html = question_html.replace(placeholder, input_html)
 
         # Get content section

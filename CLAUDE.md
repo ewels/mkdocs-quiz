@@ -35,6 +35,7 @@ The plugin supports two types of quizzes:
    - Always requires explicit submit button
 
 The plugin automatically detects which type based on the content:
+
 - If `[[...]]` patterns are found → fill-in-the-blank
 - Otherwise → multiple-choice (requires checkbox items)
 
