@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MkDocs Quiz is a plugin for MkDocs that creates interactive quizzes directly in markdown documentation. It processes custom `<?quiz?>` tags in markdown files and converts them to interactive HTML/JS quiz elements.
+MkDocs Quiz is a plugin for MkDocs that creates interactive quizzes directly in markdown documentation. It processes custom `<quiz>` tags in markdown files and converts them to interactive HTML/JS quiz elements. Supports both multiple-choice and fill-in-the-blank question types.
 
 ## Architecture
 
@@ -19,6 +19,26 @@ This is a MkDocs plugin that hooks into the MkDocs build pipeline:
   2. `on_page_markdown()` - Processes markdown to convert quiz tags to placeholders and stores quiz HTML
   3. `on_page_content()` - Replaces placeholders with actual quiz HTML and injects CSS/JS assets
 
+### Quiz Types
+
+The plugin supports two types of quizzes:
+
+1. **Multiple-choice quizzes**: Use checkbox syntax (`- [x]` for correct, `- [ ]` for incorrect)
+   - Single correct answer → radio buttons
+   - Multiple correct answers → checkboxes
+   - Auto-submit option for single-choice (default: enabled)
+
+2. **Fill-in-the-blank quizzes**: Use double square brackets (`[[answer]]`) to mark blanks
+   - Supports single or multiple blanks in one question
+   - Case-insensitive validation (trimmed whitespace)
+   - Markdown formatting works around blanks
+   - Always requires explicit submit button
+
+The plugin automatically detects which type based on the content:
+
+- If `[[...]]` patterns are found → fill-in-the-blank
+- Otherwise → multiple-choice (requires checkbox items)
+
 ### Quiz Processing Flow
 
 1. **Code block masking** (`_mask_code_blocks`):
@@ -28,20 +48,30 @@ This is a MkDocs plugin that hooks into the MkDocs build pipeline:
 2. **Markdown parsing** (`on_page_markdown`):
    - Regex pattern `<quiz>(.*?)</quiz>` finds quiz blocks
    - Each quiz is passed to `_process_quiz()` method
-   - Quiz syntax uses markdown checkbox lists: `- [x]` for correct answers, `- [ ]` for incorrect
-   - Question is everything before the first checkbox answer
-   - Content section (optional) is everything after the last answer
-   - Single correct answer = radio buttons; multiple correct = checkboxes
+   - `_process_quiz()` detects quiz type using `_is_fill_in_blank_quiz()`
+   - **Multiple-choice**: Uses checkbox lists (`- [x]` correct, `- [ ]` incorrect)
+     - Question is everything before the first checkbox answer
+     - Content section (optional) is everything after the last answer
+     - Single correct answer = radio buttons; multiple correct = checkboxes
+   - **Fill-in-the-blank**: Uses `[[answer]]` patterns
+     - Question text with blanks replaced by text inputs
+     - Correct answers stored in `data-answer` attributes (HTML-escaped)
+     - Content section separated by horizontal rule (`---`)
    - Quizzes replaced with placeholders (`<!-- MKDOCS_QUIZ_PLACEHOLDER_N -->`) in markdown
 
-3. **HTML generation** (`_process_quiz`):
-   - Parses quiz lines to extract question, answers, and content
-   - Converts question and answers from markdown to HTML using `markdown_converter`
-   - Uses the same `markdown_extensions` configured in `mkdocs.yml` for conversion
-   - This enables features like `pymdownx.superfences`, `pymdownx.highlight`, admonitions, etc.
-   - Generates form HTML with proper input types (radio/checkbox)
-   - Adds `correct` attribute to correct answers (used by JS)
-   - Content section is hidden until quiz is answered
+3. **HTML generation** (`_process_quiz` and `_process_fill_in_blank_quiz`):
+   - **Multiple-choice**: Parses quiz lines to extract question, answers, and content
+     - Converts question and answers from markdown to HTML using `markdown_converter`
+     - Uses the same `markdown_extensions` configured in `mkdocs.yml` for conversion
+     - This enables features like `pymdownx.superfences`, `pymdownx.highlight`, admonitions, etc.
+     - Generates form HTML with proper input types (radio/checkbox)
+     - Adds `correct` attribute to correct answers (used by JS)
+   - **Fill-in-the-blank**: Replaces `[[answer]]` with text inputs
+     - Uses HTML comment placeholders (`<!--BLANK_PLACEHOLDER_N-->`) during markdown conversion
+     - Replaces placeholders with `<input type="text" class="quiz-blank-input">`
+     - Stores correct answers in `data-answer` attributes (HTML-escaped)
+     - Adds `autocomplete="off"` to prevent browser autofill
+   - Content section is hidden until quiz is answered (both types)
    - Each quiz gets unique ID for deep linking (`id="quiz-N"`)
    - Quiz HTML is stored in `_quiz_storage` dict keyed by page path
 
@@ -63,11 +93,18 @@ The [quiz.js](mkdocs_quiz/js/quiz.js) file:
   - Creates progress sidebar automatically when multiple quizzes exist
   - Dispatches `quizProgressUpdate` custom events for integration
 - **Form handling**: Attaches submit handlers to all `.quiz` forms on page load
-- **Validation**: Validates selected answers against `[correct]` attribute
+- **Validation**:
+  - **Multiple-choice**: Validates selected answers against `[correct]` attribute
+  - **Fill-in-the-blank**: Compares input values with `data-answer` attributes
+    - Case-insensitive comparison using `normalizeAnswer()` (trim + lowercase)
+    - All blanks must be correct for quiz to pass
 - **Visual feedback**: Shows/hides content section, adds `.correct` and `.wrong` classes
-- **Auto-submit**: If enabled and single-choice (radio), submits on selection change
+  - **Fill-in-the-blank**: Wrong answers show correct answer as placeholder if `show_correct` enabled
+- **Auto-submit**: If enabled and single-choice (radio), submits on selection change (multiple-choice only)
 - **Persistence**: Restores quiz state from localStorage on page load
+  - **Fill-in-the-blank**: Saves user input values in `selectedValues` array
 - **Reset functionality**: "Try Again" button to reset individual quizzes (if not disabled after submit)
+  - **Fill-in-the-blank**: Clears input values and removes styling
 - **Helper**: `resetFieldset()` clears previous styling before re-validation
 
 ### Configuration Options
