@@ -6,6 +6,7 @@ import fnmatch
 import html
 import json
 import logging
+import random
 import re
 import sys
 import threading
@@ -165,6 +166,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("show_correct", config_options.Type(bool, default=True)),
         ("auto_submit", config_options.Type(bool, default=True)),
         ("disable_after_submit", config_options.Type(bool, default=True)),
+        ("shuffle_answers", config_options.Type(bool, default=False)),
         ("show_progress", config_options.Type(bool, default=True)),
         ("confetti", config_options.Type(bool, default=True)),
         ("progress_sidebar_position", config_options.Type(str, default="top")),
@@ -238,7 +240,8 @@ class MkDocsQuizPlugin(BasePlugin):
             page: The current page object.
 
         Returns:
-            Dictionary with show_correct, auto_submit, disable_after_submit, auto_number, and show_progress options.
+            Dictionary with show_correct, auto_submit, disable_after_submit, auto_number,
+            shuffle_answers, and show_progress options.
         """
         # Start with plugin defaults
         options = {
@@ -246,6 +249,7 @@ class MkDocsQuizPlugin(BasePlugin):
             "auto_submit": self.config.get("auto_submit", True),
             "disable_after_submit": self.config.get("disable_after_submit", True),
             "auto_number": self.config.get("auto_number", False),
+            "shuffle_answers": self.config.get("shuffle_answers", False),
             "show_progress": self.config.get("show_progress", True),
         }
 
@@ -410,7 +414,11 @@ class MkDocsQuizPlugin(BasePlugin):
         return question_text, all_answers, correct_answers, content_start_index
 
     def _generate_answer_html(
-        self, all_answers: list[str], correct_answers: list[str], quiz_id: int
+        self,
+        all_answers: list[str],
+        correct_answers: list[str],
+        quiz_id: int,
+        shuffle_answers: bool = False,
     ) -> tuple[list[str], bool]:
         """Generate HTML for quiz answers.
 
@@ -418,6 +426,7 @@ class MkDocsQuizPlugin(BasePlugin):
             all_answers: List of all answer texts.
             correct_answers: List of correct answer texts.
             quiz_id: The unique ID for this quiz.
+            shuffle_answers: Whether to randomize the order of answers.
 
         Returns:
             A tuple of (list of answer HTML strings, whether to use checkboxes).
@@ -425,9 +434,14 @@ class MkDocsQuizPlugin(BasePlugin):
         # Determine if multiple choice (checkboxes) or single choice (radio)
         as_checkboxes = len(correct_answers) > 1
 
+        # Shuffle answers if enabled (create a copy to avoid modifying the original)
+        answers_to_render = list(all_answers)
+        if shuffle_answers:
+            random.shuffle(answers_to_render)
+
         # Generate answer HTML
         answer_html_list = []
-        for i, answer in enumerate(all_answers):
+        for i, answer in enumerate(answers_to_render):
             is_correct = answer in correct_answers
             input_id = f"quiz-{quiz_id}-{i}"
             input_type = "checkbox" if as_checkboxes else "radio"
@@ -706,7 +720,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Generate answer HTML
         answer_html_list, as_checkboxes = self._generate_answer_html(
-            all_answers, correct_answers, quiz_id
+            all_answers, correct_answers, quiz_id, options.get("shuffle_answers", False)
         )
 
         # Get quiz content (everything after the last answer)
