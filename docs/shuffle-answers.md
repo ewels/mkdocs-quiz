@@ -1,9 +1,9 @@
-# Shuffle Answers
-
 ---
 quiz:
   shuffle_answers: true
 ---
+
+# Shuffle Answers
 
 The `shuffle_answers` option randomizes the order of answer choices on every page load. This prevents users from memorizing answer positions rather than learning the content.
 
