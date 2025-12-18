@@ -96,9 +96,9 @@ When enabled, disables the quiz after the first submission. Users cannot change 
 
 **Type:** `bool` | **Default:** `false`
 
-When enabled, randomizes the order of answer options for each quiz. This helps prevent users from memorizing answer positions rather than learning the content.
+When enabled, randomizes the order of answer options for each quiz on every page load. This helps prevent users from memorizing answer positions rather than learning the content.
 
-The shuffling occurs at build time, so the order will be consistent for a given build but different from the original markdown order. Correct answer tracking is preserved regardless of display order.
+The shuffling occurs in JavaScript at page load time, so users see a different order each time they visit the page. Correct answer tracking is preserved regardless of display order.
 
 ### `show_progress`
 
