@@ -55,15 +55,16 @@ nav:
   - Overview: index.md
   - installation.md
   - quick-start.md
-  - examples.md
-  - auto-numbering.md
-  - intro-text.md
-  - results-screen.md
-  - shuffle-answers.md
-  - translations.md
   - configuration.md
-  - updating.md
+  - Features:
+      - examples.md
+      - intro-text.md
+      - results-screen.md
+      - auto-numbering.md
+      - shuffle-answers.md
+      - translations.md
   - Contributing:
       - Contributing guidelines: contributing.md
       - contributing-translations.md
+  - updating.md
   - changelog.md
