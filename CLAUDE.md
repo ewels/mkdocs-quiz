@@ -82,6 +82,7 @@ plugins:
       show_correct: true # Show correct answers when wrong (default: true)
       auto_submit: true # Auto-submit single-choice quizzes (default: true)
       disable_after_submit: true # Disable quiz after submission (default: true)
+      shuffle_answers: false # Randomize answer order (default: false)
       progress_sidebar_position: top # Position of progress tracker: "top" or "bottom" (default: "top")
 ```
 
@@ -95,6 +96,7 @@ quiz:
   auto_submit: false # Require explicit submit button
   disable_after_submit: false # Allow retries after submission
   auto_number: true # Number questions on this page
+  shuffle_answers: true # Randomize answer order on this page
 ---
 ```
 

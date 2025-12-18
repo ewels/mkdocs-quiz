@@ -25,6 +25,7 @@ plugins:
       show_correct: true              # Show correct answers when user gets it wrong
       auto_submit: true               # Auto-submit single-choice quizzes on selection
       disable_after_submit: true      # Disable question after first submission
+      shuffle_answers: false          # Randomize the order of answers
       show_progress: true             # Show progress tracker sidebar and mobile bar
       progress_sidebar_position: top  # Position of progress tracker: "top" or "bottom"
       confetti: true                  # Show confetti animation when all quizzes completed
@@ -44,6 +45,7 @@ quiz:
   show_correct: false
   auto_submit: false
   disable_after_submit: false
+  shuffle_answers: true
   show_progress: false
   language: fr
 ---
@@ -89,6 +91,14 @@ Automatically submits single-choice quizzes (radio buttons) when the user select
 **Type:** `bool` | **Default:** `true`
 
 When enabled, disables the quiz after the first submission. Users cannot change their answers or retry. When disabled, a "Try Again" button appears allowing users to retry the quiz.
+
+### `shuffle_answers`
+
+**Type:** `bool` | **Default:** `false`
+
+When enabled, randomizes the order of answer options for each quiz on every page load. This helps prevent users from memorizing answer positions rather than learning the content.
+
+The shuffling occurs in JavaScript at page load time, so users see a different order each time they visit the page. Correct answer tracking is preserved regardless of display order.
 
 ### `show_progress`
 

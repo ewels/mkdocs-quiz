@@ -527,6 +527,27 @@
     });
   }
 
+  // Shuffle an array using Fisher-Yates algorithm
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Shuffle the answer elements in a fieldset
+  function shuffleAnswers(fieldset) {
+    const answerDivs = Array.from(fieldset.querySelectorAll(":scope > div"));
+    if (answerDivs.length <= 1) return;
+
+    // Shuffle the array of elements
+    shuffleArray(answerDivs);
+
+    // Re-append elements in shuffled order
+    answerDivs.forEach((div) => fieldset.appendChild(div));
+  }
+
   // Initialize all quiz elements on the page
   function initializeQuizzes() {
     document.querySelectorAll(".quiz").forEach((quiz) => {
@@ -534,6 +555,11 @@
       let fieldset = form.querySelector("fieldset");
       let submitButton = form.querySelector('button[type="submit"]');
       let feedbackDiv = form.querySelector(".quiz-feedback");
+
+      // Shuffle answers if enabled (before any state restoration)
+      if (quiz.hasAttribute("data-shuffle-answers")) {
+        shuffleAnswers(fieldset);
+      }
 
       // Get quiz ID from the quiz div itself
       const quizId = quiz.id;
