@@ -550,7 +550,7 @@ def update_translations() -> None:
 def export_qti(
     path: str,
     output: str | None = None,
-    version: str = "1.2",
+    qti_version: str = "1.2",
     title: str | None = None,
     recursive: bool = True,
 ) -> None:
@@ -559,7 +559,7 @@ def export_qti(
     Args:
         path: Path to a markdown file or directory containing markdown files.
         output: Output ZIP file path (default: quizzes.zip).
-        version: QTI version to export (1.2 or 2.1).
+        qti_version: QTI version to export (1.2 or 2.1).
         title: Title for the quiz package.
         recursive: Whether to search directories recursively.
     """
@@ -571,9 +571,9 @@ def export_qti(
     )
     from .qti.models import QuizCollection
 
-    # Validate and parse version
+    # Validate and parse QTI version
     try:
-        qti_version = QTIVersion.from_string(version)
+        qti_ver = QTIVersion.from_string(qti_version)
     except ValueError as e:
         print(f"Error: {e}")
         sys.exit(1)
@@ -585,7 +585,7 @@ def export_qti(
         print(f"Error: Path '{path}' does not exist")
         sys.exit(1)
 
-    print(f"MkDocs Quiz QTI Export (version {qti_version})")
+    print(f"MkDocs Quiz QTI Export (version {qti_ver})")
     print(f"Source: {source_path}")
     print()
 
@@ -638,7 +638,7 @@ def export_qti(
     print(f"  - Multiple choice: {collection.multiple_choice_count}")
     print()
 
-    exporter = QTIExporter.create(collection, qti_version)
+    exporter = QTIExporter.create(collection, qti_ver)
     result_path = exporter.export_to_zip(output_path)
 
     print(f"✓ Exported to: {result_path}")
@@ -826,7 +826,7 @@ def main() -> None:
             export_qti(
                 path=args.path,
                 output=args.output,
-                version=args.qti_version,
+                qti_version=args.qti_version,
                 title=args.title,
                 recursive=not args.no_recursive,
             )
