@@ -8,39 +8,11 @@ Reference: IMS Question & Test Interoperability Specification v2.1
 
 from __future__ import annotations
 
-import re
 from xml.sax.saxutils import escape as xml_escape
 
 from .base import QTIExporter, QTIVersion
 from .models import Quiz
-
-
-def _strip_html_tags(text: str) -> str:
-    """Remove HTML tags from text for plain-text contexts.
-
-    Args:
-        text: Text that may contain HTML tags.
-
-    Returns:
-        Text with HTML tags removed.
-    """
-    return re.sub(r"<[^>]+>", "", text)
-
-
-def _to_html_content(text: str) -> str:
-    """Convert text to safe HTML content for QTI 2.1.
-
-    Args:
-        text: The text content.
-
-    Returns:
-        Safe HTML/XML content wrapped in CDATA if needed.
-    """
-    # Check if text contains HTML tags
-    if re.search(r"<[^>]+>", text):
-        return f"<![CDATA[{text}]]>"
-    else:
-        return xml_escape(text)
+from .utils import make_title, to_html_content
 
 
 class QTI21Exporter(QTIExporter):
@@ -55,25 +27,16 @@ class QTI21Exporter(QTIExporter):
         return QTIVersion.V2_1
 
     def generate_manifest(self) -> str:
-        """Generate IMS manifest for QTI 2.1 package.
+        """Generate IMS manifest for QTI 2.1 package."""
+        item_resources = "\n".join(
+            f'<resource identifier="{q.identifier}" type="imsqti_item_xmlv2p1" '
+            f'href="items/{q.identifier}.xml">\n'
+            f'  <file href="items/{q.identifier}.xml"/>\n'
+            f"</resource>"
+            for q in self.collection.quizzes
+        )
 
-        Returns:
-            The imsmanifest.xml content.
-        """
-        # Build resource entries for each item
-        item_resources = []
-        for quiz in self.collection.quizzes:
-            item_id = quiz.identifier
-            item_resources.append(
-                f'<resource identifier="{item_id}" type="imsqti_item_xmlv2p1" '
-                f'href="items/{item_id}.xml">\n'
-                f'  <file href="items/{item_id}.xml"/>\n'
-                f"</resource>"
-            )
-
-        resources_xml = "\n".join(item_resources)
-
-        manifest = f"""<?xml version="1.0" encoding="UTF-8"?>
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
 <manifest identifier="{self.collection.identifier}"
           xmlns="http://www.imsglobal.org/xsd/imscp_v1p1"
           xmlns:imsmd="http://ltsc.ieee.org/xsd/LOM"
@@ -94,37 +57,24 @@ class QTI21Exporter(QTIExporter):
     <resource identifier="assessment" type="imsqti_test_xmlv2p1" href="assessment.xml">
       <file href="assessment.xml"/>
     </resource>
-{resources_xml}
+{item_resources}
   </resources>
 </manifest>
 """
-        return manifest
 
     def generate_assessment(self) -> str:
-        """Generate assessment XML for QTI 2.1.
+        """Generate assessment XML for QTI 2.1."""
+        items_xml = "\n".join(
+            f'<assessmentItemRef identifier="{q.identifier}" href="items/{q.identifier}.xml"/>'
+            for q in self.collection.quizzes
+        )
 
-        Returns:
-            The assessment.xml content.
-        """
-        # Build assessment item references
-        item_refs = []
-        for quiz in self.collection.quizzes:
-            item_refs.append(
-                f'<assessmentItemRef identifier="{quiz.identifier}" '
-                f'href="items/{quiz.identifier}.xml"/>'
-            )
-
-        items_xml = "\n".join(item_refs)
-
-        # Escape title for XML
-        title = xml_escape(self.collection.title)
-
-        assessment = f"""<?xml version="1.0" encoding="UTF-8"?>
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
 <assessmentTest xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
                identifier="{self.collection.identifier}"
-               title="{title}">
+               title="{xml_escape(self.collection.title)}">
   <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
     <defaultValue>
       <value>0</value>
@@ -137,58 +87,51 @@ class QTI21Exporter(QTIExporter):
   </testPart>
 </assessmentTest>
 """
-        return assessment
 
-    def _generate_single_choice_item(self, quiz: Quiz) -> str:
-        """Generate QTI 2.1 XML for a single-choice (choiceInteraction) question.
+    def _build_choices(self, quiz: Quiz) -> str:
+        """Build QTI 2.1 simple choices for all answers."""
+        return "\n".join(
+            f'<simpleChoice identifier="{a.identifier}">{to_html_content(a.text)}</simpleChoice>'
+            for a in quiz.answers
+        )
 
-        Args:
-            quiz: The Quiz object to convert.
+    def _build_feedback(self, quiz: Quiz) -> tuple[str, str]:
+        """Build feedback declarations and modal feedback if quiz has content.
 
         Returns:
-            The assessmentItem XML content.
+            Tuple of (outcome declaration, modal feedback XML).
         """
-        # Build simple choices
-        choices = []
-        for answer in quiz.answers:
-            answer_content = _to_html_content(answer.text)
-            choices.append(
-                f'<simpleChoice identifier="{answer.identifier}">'
-                f"{answer_content}</simpleChoice>"
-            )
+        if not quiz.content:
+            return "", ""
 
-        choices_xml = "\n".join(choices)
+        declaration = (
+            '<outcomeDeclaration identifier="FEEDBACK" '
+            'cardinality="single" baseType="identifier"/>\n'
+        )
+        modal = (
+            f'<modalFeedback outcomeIdentifier="FEEDBACK" '
+            f'showHide="show" identifier="general">\n'
+            f"  <div>{to_html_content(quiz.content)}</div>\n"
+            f"</modalFeedback>\n"
+        )
+        return declaration, modal
 
-        # Get correct answer
-        correct_answer = quiz.correct_answers[0]
+    def _generate_single_choice_item(self, quiz: Quiz) -> str:
+        """Generate QTI 2.1 XML for a single-choice question."""
+        correct_id = quiz.correct_answers[0].identifier
+        feedback_decl, modal_feedback = self._build_feedback(quiz)
 
-        # Build feedback if content exists
-        feedback_xml = ""
-        modal_feedback_xml = ""
-        if quiz.content:
-            content_html = _to_html_content(quiz.content)
-            feedback_xml = '<outcomeDeclaration identifier="FEEDBACK" cardinality="single" baseType="identifier"/>\n'
-            modal_feedback_xml = (
-                f'<modalFeedback outcomeIdentifier="FEEDBACK" showHide="show" identifier="general">\n'
-                f"  <div>{content_html}</div>\n"
-                f"</modalFeedback>\n"
-            )
-
-        # Question content
-        question_content = _to_html_content(quiz.question)
-        title = xml_escape(_strip_html_tags(quiz.question)[:50])
-
-        item = f"""<?xml version="1.0" encoding="UTF-8"?>
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
 <assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
                identifier="{quiz.identifier}"
-               title="{title}"
+               title="{make_title(quiz.question)}"
                adaptive="false"
                timeDependent="false">
   <responseDeclaration identifier="RESPONSE" cardinality="single" baseType="identifier">
     <correctResponse>
-      <value>{correct_answer.identifier}</value>
+      <value>{correct_id}</value>
     </correctResponse>
   </responseDeclaration>
   <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
@@ -196,12 +139,12 @@ class QTI21Exporter(QTIExporter):
       <value>0</value>
     </defaultValue>
   </outcomeDeclaration>
-{feedback_xml}  <itemBody>
+{feedback_decl}  <itemBody>
     <div class="question">
-      {question_content}
+      {to_html_content(quiz.question)}
     </div>
     <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
-{choices_xml}
+{self._build_choices(quiz)}
     </choiceInteraction>
   </itemBody>
   <responseProcessing>
@@ -217,64 +160,25 @@ class QTI21Exporter(QTIExporter):
       </responseIf>
     </responseCondition>
   </responseProcessing>
-{modal_feedback_xml}</assessmentItem>
+{modal_feedback}</assessmentItem>
 """
-        return item
 
     def _generate_multiple_choice_item(self, quiz: Quiz) -> str:
-        """Generate QTI 2.1 XML for a multiple-choice (checkbox) question.
+        """Generate QTI 2.1 XML for a multiple-choice question."""
+        correct_values = "\n".join(f"<value>{a.identifier}</value>" for a in quiz.correct_answers)
+        feedback_decl, modal_feedback = self._build_feedback(quiz)
 
-        Args:
-            quiz: The Quiz object to convert.
-
-        Returns:
-            The assessmentItem XML content.
-        """
-        # Build simple choices
-        choices = []
-        for answer in quiz.answers:
-            answer_content = _to_html_content(answer.text)
-            choices.append(
-                f'<simpleChoice identifier="{answer.identifier}">'
-                f"{answer_content}</simpleChoice>"
-            )
-
-        choices_xml = "\n".join(choices)
-
-        # Build correct response values
-        correct_values = []
-        for answer in quiz.correct_answers:
-            correct_values.append(f"<value>{answer.identifier}</value>")
-        correct_values_xml = "\n".join(correct_values)
-
-        # Build feedback if content exists
-        feedback_xml = ""
-        modal_feedback_xml = ""
-        if quiz.content:
-            content_html = _to_html_content(quiz.content)
-            feedback_xml = '<outcomeDeclaration identifier="FEEDBACK" cardinality="single" baseType="identifier"/>\n'
-            modal_feedback_xml = (
-                f'<modalFeedback outcomeIdentifier="FEEDBACK" showHide="show" identifier="general">\n'
-                f"  <div>{content_html}</div>\n"
-                f"</modalFeedback>\n"
-            )
-
-        # Question content
-        question_content = _to_html_content(quiz.question)
-        title = xml_escape(_strip_html_tags(quiz.question)[:50])
-
-        # For multiple choice, use map response for partial credit scoring
-        item = f"""<?xml version="1.0" encoding="UTF-8"?>
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
 <assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
                identifier="{quiz.identifier}"
-               title="{title}"
+               title="{make_title(quiz.question)}"
                adaptive="false"
                timeDependent="false">
   <responseDeclaration identifier="RESPONSE" cardinality="multiple" baseType="identifier">
     <correctResponse>
-{correct_values_xml}
+{correct_values}
     </correctResponse>
   </responseDeclaration>
   <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
@@ -282,12 +186,12 @@ class QTI21Exporter(QTIExporter):
       <value>0</value>
     </defaultValue>
   </outcomeDeclaration>
-{feedback_xml}  <itemBody>
+{feedback_decl}  <itemBody>
     <div class="question">
-      {question_content}
+      {to_html_content(quiz.question)}
     </div>
     <choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="0">
-{choices_xml}
+{self._build_choices(quiz)}
     </choiceInteraction>
   </itemBody>
   <responseProcessing>
@@ -303,25 +207,16 @@ class QTI21Exporter(QTIExporter):
       </responseIf>
     </responseCondition>
   </responseProcessing>
-{modal_feedback_xml}</assessmentItem>
+{modal_feedback}</assessmentItem>
 """
-        return item
 
     def generate_items(self) -> dict[str, str]:
-        """Generate individual item XML files.
-
-        Returns:
-            Dictionary mapping filenames to XML content.
-        """
-        items = {}
-
-        for quiz in self.collection.quizzes:
-            if quiz.is_multiple_choice:
-                xml_content = self._generate_multiple_choice_item(quiz)
-            else:
-                xml_content = self._generate_single_choice_item(quiz)
-
-            filename = f"items/{quiz.identifier}.xml"
-            items[filename] = xml_content
-
-        return items
+        """Generate individual item XML files."""
+        return {
+            f"items/{q.identifier}.xml": (
+                self._generate_multiple_choice_item(q)
+                if q.is_multiple_choice
+                else self._generate_single_choice_item(q)
+            )
+            for q in self.collection.quizzes
+        }

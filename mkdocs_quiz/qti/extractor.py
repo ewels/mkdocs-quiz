@@ -6,16 +6,10 @@ extract quiz data into the model format for QTI export.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
+from ..parsing import ANSWER_PATTERN, find_quizzes, mask_code_blocks, parse_answer
 from .models import Answer, Quiz, QuizCollection
-
-# Quiz tag patterns (same as in plugin.py)
-QUIZ_REGEX = r"<quiz>(.*?)</quiz>"
-
-# Checkbox answer pattern
-ANSWER_PATTERN = re.compile(r"^[-*]\s*\[([xX ]?)\]\s*(.*)$")
 
 
 def _parse_quiz_content(
@@ -52,7 +46,6 @@ def _parse_quiz_content(
             break
 
     if first_answer_idx is None:
-        # No answers found
         return None
 
     # Question is everything before first answer
@@ -67,16 +60,12 @@ def _parse_quiz_content(
     content_start_idx = len(lines)
 
     for i, line in enumerate(lines[first_answer_idx:], start=first_answer_idx):
-        stripped = line.strip()
-        match = ANSWER_PATTERN.match(stripped)
-
-        if match:
-            checkbox_content = match.group(1)
-            answer_text = match.group(2).strip()
-            is_correct = checkbox_content.lower() == "x"
+        parsed = parse_answer(line)
+        if parsed:
+            is_correct, answer_text = parsed
             answers.append(Answer(text=answer_text, is_correct=is_correct))
             content_start_idx = i + 1
-        elif stripped:
+        elif line.strip():
             # Non-empty, non-answer line = start of content section
             break
 
@@ -96,51 +85,6 @@ def _parse_quiz_content(
     )
 
 
-def _mask_code_blocks(markdown: str) -> tuple[str, dict[str, str]]:
-    """Temporarily mask fenced code blocks outside quiz tags.
-
-    This prevents processing quiz tags shown as examples in code blocks.
-
-    Args:
-        markdown: The markdown content.
-
-    Returns:
-        Tuple of (masked markdown, placeholder->original mapping).
-    """
-    placeholders: dict[str, str] = {}
-    counter = 0
-
-    # Find all quiz blocks first
-    quiz_ranges = []
-    for match in re.finditer(QUIZ_REGEX, markdown, re.DOTALL):
-        quiz_ranges.append((match.start(), match.end()))
-
-    def replace_fenced(match: re.Match[str]) -> str:
-        nonlocal counter
-        match_start = match.start()
-        match_end = match.end()
-
-        # Check if this code block is inside a quiz
-        for quiz_start, quiz_end in quiz_ranges:
-            if quiz_start < match_start < quiz_end or quiz_start < match_end < quiz_end:
-                return match.group(0)
-
-        placeholder = f"__CODEBLOCK_{counter}__"
-        placeholders[placeholder] = match.group(0)
-        counter += 1
-        return placeholder
-
-    # Match fenced code blocks
-    markdown = re.sub(
-        r"^[ \t]*`{3,}.*?\n.*?^[ \t]*`{3,}|^[ \t]*~{3,}.*?\n.*?^[ \t]*~{3,}",
-        replace_fenced,
-        markdown,
-        flags=re.MULTILINE | re.DOTALL,
-    )
-
-    return markdown, placeholders
-
-
 def extract_quizzes_from_file(file_path: Path) -> list[Quiz]:
     """Extract all quizzes from a single markdown file.
 
@@ -156,11 +100,11 @@ def extract_quizzes_from_file(file_path: Path) -> list[Quiz]:
         raise ValueError(f"Failed to read file {file_path}: {e}") from e
 
     # Mask code blocks to avoid false positives
-    masked_content, _ = _mask_code_blocks(content)
+    masked_content, _ = mask_code_blocks(content)
 
     quizzes: list[Quiz] = []
 
-    for match in re.finditer(QUIZ_REGEX, masked_content, re.DOTALL):
+    for match in find_quizzes(masked_content):
         # Calculate line number
         line_number = content[: match.start()].count("\n") + 1
 

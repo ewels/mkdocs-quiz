@@ -20,6 +20,12 @@ from mkdocs.plugins import BasePlugin
 from mkdocs.structure.files import Files
 from mkdocs.structure.pages import Page
 
+from .parsing import (
+    OLD_SYNTAX_PATTERNS,
+    find_quizzes,
+    mask_code_blocks,
+    unmask_code_blocks,
+)
 from .translations import TranslationManager
 
 # Compatibility import for Python 3.8
@@ -121,16 +127,7 @@ def get_markdown_converter(config: MkDocsConfig | None = None) -> md.Markdown:
 # </quiz>
 #
 # Note: Asterisk bullets (* [x], * [ ]) are also supported.
-
-QUIZ_START_TAG = "<quiz>"
-QUIZ_END_TAG = "</quiz>"
-QUIZ_REGEX = r"<quiz>(.*?)</quiz>"
-
-# Old v0.x syntax patterns (no longer supported)
-OLD_SYNTAX_PATTERNS = [
-    r"<\?quiz\?>",  # Old quiz opening tag
-    r"<\?/quiz\?>",  # Old quiz closing tag
-]
+# Quiz patterns are defined in parsing.py
 
 
 def convert_inline_markdown(text: str, config: MkDocsConfig | None = None) -> str:
@@ -451,68 +448,6 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return answer_html_list, as_checkboxes
 
-    def _mask_code_blocks(self, markdown: str) -> tuple[str, dict[str, str]]:
-        """Temporarily mask fenced code blocks to prevent processing quiz tags inside them.
-
-        Only masks code blocks that are NOT inside quiz tags, to avoid breaking quizzes
-        that contain code examples in their content sections.
-
-        Args:
-            markdown: The markdown content.
-
-        Returns:
-            A tuple of (masked markdown, dictionary of placeholders to original content).
-        """
-        placeholders = {}
-        counter = 0
-
-        # Find all quiz blocks first
-        quiz_ranges = []
-        for match in re.finditer(QUIZ_REGEX, markdown, re.DOTALL):
-            quiz_ranges.append((match.start(), match.end()))
-
-        # Mask fenced code blocks (```...``` or ~~~...~~~)
-        def replace_fenced(match: re.Match[str]) -> str:
-            nonlocal counter
-            # Check if this code block is inside a quiz
-            match_start = match.start()
-            match_end = match.end()
-            for quiz_start, quiz_end in quiz_ranges:
-                if quiz_start < match_start < quiz_end or quiz_start < match_end < quiz_end:
-                    # Code block is inside a quiz, don't mask it
-                    return match.group(0)
-
-            # Code block is outside quizzes, mask it
-            placeholder = f"__CODEBLOCK_{counter}__"
-            placeholders[placeholder] = match.group(0)
-            counter += 1
-            return placeholder
-
-        # Match fenced code blocks with optional language specifier
-        # Supports ``` and ~~~ delimiters (3 or more), with optional indentation
-        markdown = re.sub(
-            r"^[ \t]*`{3,}.*?\n.*?^[ \t]*`{3,}|^[ \t]*~{3,}.*?\n.*?^[ \t]*~{3,}",
-            replace_fenced,
-            markdown,
-            flags=re.MULTILINE | re.DOTALL,
-        )
-
-        return markdown, placeholders
-
-    def _unmask_code_blocks(self, markdown: str, placeholders: dict[str, str]) -> str:
-        """Restore code blocks that were temporarily masked.
-
-        Args:
-            markdown: The markdown content with placeholders.
-            placeholders: Dictionary of placeholders to original content.
-
-        Returns:
-            The markdown with code blocks restored.
-        """
-        for placeholder, original in placeholders.items():
-            markdown = markdown.replace(placeholder, original)
-        return markdown
-
     def _check_for_old_syntax(self, markdown: str, page: Page) -> None:
         """Check if the page contains old v0.x quiz syntax and fail with helpful error.
 
@@ -577,7 +512,7 @@ class MkDocsQuizPlugin(BasePlugin):
         self._has_intro[page_key] = intro_comment in markdown
 
         # Mask code blocks to prevent processing quiz tags inside them
-        masked_markdown, placeholders = self._mask_code_blocks(markdown)
+        masked_markdown, placeholders = mask_code_blocks(markdown)
 
         # Check for old v1.x syntax after masking code blocks
         # This prevents false positives from documentation examples in code blocks
@@ -588,7 +523,7 @@ class MkDocsQuizPlugin(BasePlugin):
         translation_manager = self._get_translation_manager(page, config)
 
         # Find all quiz matches
-        matches = list(re.finditer(QUIZ_REGEX, masked_markdown, re.DOTALL))
+        matches = find_quizzes(masked_markdown)
 
         # Build replacement segments efficiently (O(n) instead of O(n²))
         segments = []
@@ -650,7 +585,7 @@ class MkDocsQuizPlugin(BasePlugin):
         masked_markdown = "".join(segments)
 
         # Restore code blocks
-        markdown = self._unmask_code_blocks(masked_markdown, placeholders)
+        markdown = unmask_code_blocks(masked_markdown, placeholders)
 
         return markdown
 
