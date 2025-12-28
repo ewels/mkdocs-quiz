@@ -272,9 +272,54 @@ mkdocs-quiz migrate docs/
 mkdocs-quiz translations init <lang_code>   # Create new translation file
 mkdocs-quiz translations update             # Extract strings & update .po files (maintainers)
 mkdocs-quiz translations check              # Validate completeness
+
+# Export quizzes to QTI format for LMS import (Canvas, Blackboard, Moodle)
+mkdocs-quiz export qti docs/                # Export all quizzes from docs/
+mkdocs-quiz export qti docs/ -v 2.1         # Use QTI 2.1 format (default: 1.2)
+mkdocs-quiz export qti docs/ -o my-quiz.zip # Custom output filename
+mkdocs-quiz export qti docs/ -t "My Quiz"   # Set quiz title
 ```
 
-The CLI tool ([mkdocs_quiz/cli.py](mkdocs_quiz/cli.py)) provides utilities for quiz migration, translation management, and validation.
+The CLI tool ([mkdocs_quiz/cli.py](mkdocs_quiz/cli.py)) provides utilities for quiz migration, translation management, QTI export, and validation.
+
+## QTI Export
+
+The plugin can export quizzes to QTI (Question and Test Interoperability) format for import into Learning Management Systems like Canvas, Blackboard, and Moodle.
+
+### Architecture
+
+The QTI export module is located in `mkdocs_quiz/qti/`:
+
+- **models.py**: Data models (`Quiz`, `Answer`, `QuizCollection`) for quiz representation
+- **extractor.py**: Functions to parse markdown files and extract quiz data
+- **base.py**: Abstract base class `QTIExporter` and `QTIVersion` enum
+- **qti12.py**: QTI 1.2 format implementation (widest LMS compatibility)
+- **qti21.py**: QTI 2.1 format implementation (modern standard)
+
+### Supported QTI Versions
+
+- **QTI 1.2** (default): Widest compatibility - Canvas Classic Quizzes, Blackboard, older LMS
+- **QTI 2.1**: Modern standard - Canvas New Quizzes, Moodle 4+, newer LMS
+
+### Question Type Mapping
+
+| mkdocs-quiz Type | QTI Type |
+|------------------|----------|
+| Single correct answer (radio) | `multiple_choice_question` |
+| Multiple correct answers (checkbox) | `multiple_answers_question` |
+
+### Export Package Structure
+
+The exported ZIP file follows the IMS Content Package format:
+
+```
+quizzes.zip
+├── imsmanifest.xml      # Package manifest
+├── assessment.xml       # Quiz/test metadata
+└── items/               # Individual question files
+    ├── quiz_abc123.xml
+    └── quiz_def456.xml
+```
 
 ## Material Theme Integration
 
