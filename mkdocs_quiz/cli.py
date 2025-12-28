@@ -769,10 +769,11 @@ def main() -> None:
         help="Output ZIP file path (default: quizzes.zip)",
     )
     export_qti_parser.add_argument(
-        "-v",
-        "--version",
+        "-q",
+        "--qti-version",
         default="1.2",
         choices=["1.2", "2.1"],
+        dest="qti_version",
         help="QTI version to export (default: 1.2 for widest compatibility)",
     )
     export_qti_parser.add_argument(
@@ -825,7 +826,7 @@ def main() -> None:
             export_qti(
                 path=args.path,
                 output=args.output,
-                version=args.version,
+                version=args.qti_version,
                 title=args.title,
                 recursive=not args.no_recursive,
             )

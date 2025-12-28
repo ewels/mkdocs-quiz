@@ -274,10 +274,10 @@ mkdocs-quiz translations update             # Extract strings & update .po files
 mkdocs-quiz translations check              # Validate completeness
 
 # Export quizzes to QTI format for LMS import (Canvas, Blackboard, Moodle)
-mkdocs-quiz export qti docs/                # Export all quizzes from docs/
-mkdocs-quiz export qti docs/ -v 2.1         # Use QTI 2.1 format (default: 1.2)
-mkdocs-quiz export qti docs/ -o my-quiz.zip # Custom output filename
-mkdocs-quiz export qti docs/ -t "My Quiz"   # Set quiz title
+mkdocs-quiz export qti docs/                 # Export all quizzes from docs/
+mkdocs-quiz export qti docs/ -q 2.1          # Use QTI 2.1 format (default: 1.2)
+mkdocs-quiz export qti docs/ -o my-quiz.zip  # Custom output filename
+mkdocs-quiz export qti docs/ -t "My Quiz"    # Set quiz title
 ```
 
 The CLI tool ([mkdocs_quiz/cli.py](mkdocs_quiz/cli.py)) provides utilities for quiz migration, translation management, QTI export, and validation.
