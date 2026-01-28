@@ -63,6 +63,7 @@ nav:
       - auto-numbering.md
       - shuffle-answers.md
       - translations.md
+      - qti-export.md
   - Contributing:
       - Contributing guidelines: contributing.md
       - contributing-translations.md

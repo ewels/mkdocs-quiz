@@ -547,6 +547,105 @@ def update_translations() -> None:
     print("Translate new strings and run 'mkdocs-quiz translations check' to verify")
 
 
+def export_qti(
+    path: str,
+    output: str | None = None,
+    qti_version: str = "1.2",
+    title: str | None = None,
+    recursive: bool = True,
+) -> None:
+    """Export quizzes to QTI format for LMS import.
+
+    Args:
+        path: Path to a markdown file or directory containing markdown files.
+        output: Output ZIP file path (default: quizzes.zip).
+        qti_version: QTI version to export (1.2 or 2.1).
+        title: Title for the quiz package.
+        recursive: Whether to search directories recursively.
+    """
+    from .qti import (
+        QTIExporter,
+        QTIVersion,
+        extract_quizzes_from_directory,
+        extract_quizzes_from_file,
+    )
+    from .qti.models import QuizCollection
+
+    # Validate and parse QTI version
+    try:
+        qti_ver = QTIVersion.from_string(qti_version)
+    except ValueError as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+
+    # Convert path to Path object
+    source_path = Path(path)
+
+    if not source_path.exists():
+        print(f"Error: Path '{path}' does not exist")
+        sys.exit(1)
+
+    print(f"MkDocs Quiz QTI Export (version {qti_ver})")
+    print(f"Source: {source_path}")
+    print()
+
+    # Extract quizzes
+    if source_path.is_file():
+        if source_path.suffix.lower() != ".md":
+            print(f"Error: File must be a markdown file (.md): {source_path}")
+            sys.exit(1)
+
+        quizzes = extract_quizzes_from_file(source_path)
+        collection = QuizCollection(
+            title=title or source_path.stem,
+            quizzes=quizzes,
+            description=f"Exported from {source_path.name}",
+        )
+    else:
+        collection = extract_quizzes_from_directory(
+            source_path,
+            recursive=recursive,
+        )
+        if title:
+            collection.title = title
+
+    # Check if we found any quizzes
+    if not collection.quizzes:
+        print("No quizzes found in the specified path")
+        sys.exit(0)
+
+    # Validate quizzes
+    errors = collection.validate()
+    if errors:
+        print("Warning: Some quizzes have validation errors:")
+        for quiz_id, quiz_errors in errors.items():
+            for error in quiz_errors:
+                print(f"  - {quiz_id}: {error}")
+        print()
+
+    # Determine output path
+    if output is None:
+        output = "quizzes.zip"
+    output_path = Path(output)
+
+    # Ensure .zip extension
+    if output_path.suffix.lower() != ".zip":
+        output_path = output_path.with_suffix(".zip")
+
+    # Export
+    print(f"Found {collection.total_questions} quiz question(s):")
+    print(f"  - Single choice: {collection.single_choice_count}")
+    print(f"  - Multiple choice: {collection.multiple_choice_count}")
+    print()
+
+    exporter = QTIExporter.create(collection, qti_ver)
+    result_path = exporter.export_to_zip(output_path)
+
+    print(f"✓ Exported to: {result_path}")
+    print()
+    print("Import this ZIP file into your LMS (Canvas, Blackboard, Moodle, etc.)")
+
+
 def check_translations() -> None:
     """Check translation completeness and validity."""
     module_dir = Path(__file__).parent
@@ -643,6 +742,51 @@ def main() -> None:
         help="Show what would be changed without modifying files",
     )
 
+    # Export subcommand group
+    export_parser = subparsers.add_parser(
+        "export",
+        help="Export quizzes to various formats",
+    )
+    export_subparsers = export_parser.add_subparsers(
+        dest="export_command",
+        help="Export format commands",
+    )
+
+    # export qti
+    export_qti_parser = export_subparsers.add_parser(
+        "qti",
+        help="Export quizzes to QTI format for LMS import (Canvas, Blackboard, Moodle)",
+    )
+    export_qti_parser.add_argument(
+        "path",
+        nargs="?",
+        default="docs",
+        help="Markdown file or directory to export from (default: docs)",
+    )
+    export_qti_parser.add_argument(
+        "-o",
+        "--output",
+        help="Output ZIP file path (default: quizzes.zip)",
+    )
+    export_qti_parser.add_argument(
+        "-q",
+        "--qti-version",
+        default="1.2",
+        choices=["1.2", "2.1"],
+        dest="qti_version",
+        help="QTI version to export (default: 1.2 for widest compatibility)",
+    )
+    export_qti_parser.add_argument(
+        "-t",
+        "--title",
+        help="Title for the quiz package",
+    )
+    export_qti_parser.add_argument(
+        "--no-recursive",
+        action="store_true",
+        help="Don't search directories recursively",
+    )
+
     # Translations subcommand group
     translations_parser = subparsers.add_parser(
         "translations",
@@ -677,6 +821,18 @@ def main() -> None:
 
     if args.command == "migrate":
         migrate(args.directory, dry_run=args.dry_run)
+    elif args.command == "export":
+        if args.export_command == "qti":
+            export_qti(
+                path=args.path,
+                output=args.output,
+                qti_version=args.qti_version,
+                title=args.title,
+                recursive=not args.no_recursive,
+            )
+        else:
+            export_parser.print_help()
+            sys.exit(1)
     elif args.command == "translations":
         if args.translations_command == "init":
             init_translation(language=args.language, output=args.output)
