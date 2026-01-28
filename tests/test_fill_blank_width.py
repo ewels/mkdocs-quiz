@@ -1,11 +1,21 @@
-"""Playwright tests for fill-in-the-blank input width behavior."""
+"""Playwright tests for fill-in-the-blank input width behavior.
+
+These tests require a local mkdocs server running.
+
+To run locally:
+    pip install -e ".[dev,docs]"
+    playwright install chromium
+    mkdocs serve --dev-addr 127.0.0.1:8765 &
+    pytest tests/test_fill_blank_width.py -v
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
-from playwright.sync_api import Page
+if TYPE_CHECKING:
+    from playwright.sync_api import Page
 
 BASE_URL = "http://127.0.0.1:8765/mkdocs-quiz"
 SCREENSHOT_DIR = Path(__file__).parent / "screenshots"

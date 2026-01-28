@@ -24,7 +24,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -e ".[dev,docs]"
+
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps chromium
 
       - name: Lint and check formatting with ruff
         run: |
@@ -40,6 +43,11 @@ jobs:
         run: |
           mypy mkdocs_quiz
 
+      - name: Start MkDocs server
+        run: |
+          mkdocs serve --dev-addr 127.0.0.1:8765 &
+          sleep 5
+
       - name: Test with pytest
         run: |
           pytest tests/ -v --cov=mkdocs_quiz --cov-report=xml --cov-report=term
@@ -50,3 +58,11 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
+
+      - name: Upload screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-screenshots-${{ matrix.python-version }}
+          path: tests/screenshots/
+          retention-days: 7
