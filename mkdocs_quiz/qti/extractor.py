@@ -6,18 +6,109 @@ extract quiz data into the model format for QTI export.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
-from ..parsing import ANSWER_PATTERN, find_quizzes, mask_code_blocks, parse_answer
-from .models import Answer, Quiz, QuizCollection
+from ..parsing import ANSWER_PATTERN, FILL_BLANK_REGEX, find_quizzes, mask_code_blocks, parse_answer
+from .models import Answer, Blank, Quiz, QuizCollection
 
 
-def _parse_quiz_content(
+def _is_fill_in_blank_quiz(content: str) -> bool:
+    """Check if quiz content contains fill-in-the-blank patterns.
+
+    Args:
+        content: The raw quiz content.
+
+    Returns:
+        True if [[...]] patterns are found, False otherwise.
+    """
+    return bool(re.search(FILL_BLANK_REGEX, content))
+
+
+def _parse_fill_in_blank_quiz(
     content: str,
     source_file: Path | None = None,
     source_line: int | None = None,
 ) -> Quiz | None:
-    """Parse the content inside a <quiz> tag into a Quiz object.
+    """Parse a fill-in-the-blank quiz.
+
+    Args:
+        content: The raw content between <quiz> and </quiz> tags.
+        source_file: Optional source file path for error reporting.
+        source_line: Optional line number for error reporting.
+
+    Returns:
+        A Quiz object with blanks populated, or None if parsing fails.
+    """
+    lines = content.strip().splitlines()
+
+    # Remove empty lines at start and end
+    while lines and not lines[0].strip():
+        lines = lines[1:]
+    while lines and not lines[-1].strip():
+        lines = lines[:-1]
+
+    if not lines:
+        return None
+
+    # Split content into question and content sections
+    # Look for a horizontal rule (---) to separate question from content
+    question_lines = []
+    content_start_idx = len(lines)
+
+    for i, line in enumerate(lines):
+        if line.strip() == "---":
+            question_lines = lines[:i]
+            content_start_idx = i + 1
+            break
+
+    # If no horizontal rule found, everything is the question
+    if not question_lines:
+        question_lines = lines
+        content_start_idx = len(lines)
+
+    question_text = "\n".join(question_lines)
+
+    # Extract blanks from the question
+    blanks: list[Blank] = []
+    for match in re.finditer(FILL_BLANK_REGEX, question_text):
+        answer = match.group(1).strip()
+        blanks.append(Blank(correct_answer=answer))
+
+    if not blanks:
+        return None
+
+    # Replace [[answer]] with placeholder markers for the question text
+    # This preserves the position information for QTI export
+    blank_counter = 0
+
+    def replace_blank(match: re.Match[str]) -> str:
+        nonlocal blank_counter
+        placeholder = f"{{{{BLANK_{blank_counter}}}}}"
+        blank_counter += 1
+        return placeholder
+
+    question_with_placeholders = re.sub(FILL_BLANK_REGEX, replace_blank, question_text)
+
+    # Get content section
+    content_lines = lines[content_start_idx:]
+    content_text = "\n".join(content_lines).strip() if content_lines else None
+
+    return Quiz(
+        question=question_with_placeholders,
+        blanks=blanks,
+        content=content_text,
+        source_file=source_file,
+        source_line=source_line,
+    )
+
+
+def _parse_multiple_choice_quiz(
+    content: str,
+    source_file: Path | None = None,
+    source_line: int | None = None,
+) -> Quiz | None:
+    """Parse a multiple-choice quiz.
 
     Args:
         content: The raw content between <quiz> and </quiz> tags.
@@ -83,6 +174,30 @@ def _parse_quiz_content(
         source_file=source_file,
         source_line=source_line,
     )
+
+
+def _parse_quiz_content(
+    content: str,
+    source_file: Path | None = None,
+    source_line: int | None = None,
+) -> Quiz | None:
+    """Parse the content inside a <quiz> tag into a Quiz object.
+
+    Automatically detects whether the quiz is fill-in-the-blank or multiple-choice
+    based on the presence of [[answer]] patterns.
+
+    Args:
+        content: The raw content between <quiz> and </quiz> tags.
+        source_file: Optional source file path for error reporting.
+        source_line: Optional line number for error reporting.
+
+    Returns:
+        A Quiz object, or None if parsing fails.
+    """
+    if _is_fill_in_blank_quiz(content):
+        return _parse_fill_in_blank_quiz(content, source_file, source_line)
+    else:
+        return _parse_multiple_choice_quiz(content, source_file, source_line)
 
 
 def extract_quizzes_from_file(file_path: Path) -> list[Quiz]:

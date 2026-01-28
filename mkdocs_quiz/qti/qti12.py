@@ -8,6 +8,7 @@ Reference: IMS Question & Test Interoperability Specification v1.2.1
 
 from __future__ import annotations
 
+import re
 from xml.sax.saxutils import escape as xml_escape
 
 from .base import QTIExporter, QTIVersion
@@ -199,13 +200,99 @@ class QTI12Exporter(QTIExporter):
 </questestinterop>
 """
 
+    def _build_fill_in_blank_presentation(self, quiz: Quiz) -> str:
+        """Build QTI 1.2 presentation with text entry interactions for fill-in-blank.
+
+        Args:
+            quiz: The fill-in-the-blank quiz.
+
+        Returns:
+            XML string for the presentation section.
+        """
+        # Replace {{BLANK_N}} placeholders with response_str elements
+        # Split the question by the placeholder pattern
+        question_text = quiz.question
+        parts = re.split(r"\{\{BLANK_(\d+)\}\}", question_text)
+
+        presentation_parts = []
+        blank_idx = 0
+
+        for i, part in enumerate(parts):
+            if i % 2 == 0:
+                # Text part - escape for XML
+                if part.strip():
+                    presentation_parts.append(
+                        f"      <material>\n"
+                        f'        <mattext texttype="text/html">{to_html_content(part)}</mattext>\n'
+                        f"      </material>"
+                    )
+            else:
+                # Blank placeholder - create response_str
+                blank = quiz.blanks[blank_idx]
+                presentation_parts.append(
+                    f'      <response_str ident="{blank.identifier}" rcardinality="Single">\n'
+                    f"        <render_fib>\n"
+                    f"          <response_label/>\n"
+                    f"        </render_fib>\n"
+                    f"      </response_str>"
+                )
+                blank_idx += 1
+
+        return "\n".join(presentation_parts)
+
+    def _generate_fill_in_blank_item(self, quiz: Quiz) -> str:
+        """Generate QTI 1.2 XML for a fill-in-the-blank question.
+
+        Uses response_str with render_fib (fill-in-blank) for text entry.
+        """
+        # Build scoring conditions for each blank
+        points_per_blank = 100.0 / len(quiz.blanks)
+        score_conditions = []
+
+        for blank in quiz.blanks:
+            score_conditions.append(
+                f'      <respcondition continue="Yes">\n'
+                f"        <conditionvar>\n"
+                f'          <varequal respident="{blank.identifier}" case="No">'
+                f"{xml_escape(blank.correct_answer)}</varequal>\n"
+                f"        </conditionvar>\n"
+                f'        <setvar action="Add" varname="SCORE">{points_per_blank:.2f}</setvar>\n'
+                f"      </respcondition>"
+            )
+
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2">
+  <item ident="{quiz.identifier}" title="{make_title(quiz.question)}">
+    <itemmetadata>
+      <qtimetadata>
+        <qtimetadatafield>
+          <fieldlabel>question_type</fieldlabel>
+          <fieldentry>fill_in_multiple_blanks_question</fieldentry>
+        </qtimetadatafield>
+      </qtimetadata>
+    </itemmetadata>
+    <presentation>
+{self._build_fill_in_blank_presentation(quiz)}
+    </presentation>
+    <resprocessing>
+      <outcomes>
+        <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+      </outcomes>
+{chr(10).join(score_conditions)}
+    </resprocessing>
+{self._build_feedback(quiz)}  </item>
+</questestinterop>
+"""
+
     def generate_items(self) -> dict[str, str]:
         """Generate individual item XML files."""
-        return {
-            f"items/{q.identifier}.xml": (
-                self._generate_multiple_choice_item(q)
-                if q.is_multiple_choice
-                else self._generate_single_choice_item(q)
-            )
-            for q in self.collection.quizzes
-        }
+        items = {}
+        for q in self.collection.quizzes:
+            if q.is_fill_in_blank:
+                xml = self._generate_fill_in_blank_item(q)
+            elif q.is_multiple_choice:
+                xml = self._generate_multiple_choice_item(q)
+            else:
+                xml = self._generate_single_choice_item(q)
+            items[f"items/{q.identifier}.xml"] = xml
+        return items

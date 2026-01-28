@@ -12,10 +12,11 @@ from __future__ import annotations
 
 from .base import QTIExporter, QTIVersion
 from .extractor import extract_quizzes_from_directory, extract_quizzes_from_file
-from .models import Answer, Quiz, QuizCollection
+from .models import Answer, Blank, Quiz, QuizCollection
 
 __all__ = [
     "Answer",
+    "Blank",
     "QTIExporter",
     "QTIVersion",
     "Quiz",

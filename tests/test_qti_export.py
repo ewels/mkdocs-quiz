@@ -10,12 +10,36 @@ from xml.etree import ElementTree as ET
 import pytest
 
 from mkdocs_quiz.qti import (
+    Blank,
     QTIExporter,
     QTIVersion,
     extract_quizzes_from_directory,
     extract_quizzes_from_file,
 )
 from mkdocs_quiz.qti.models import Answer, Quiz, QuizCollection
+
+
+def parse_xml(xml_string: str) -> ET.Element:
+    """Parse XML string and return root element, with helpful error messages.
+
+    Args:
+        xml_string: The XML content to parse.
+
+    Returns:
+        The root Element.
+
+    Raises:
+        AssertionError: If XML parsing fails, with context about the error.
+    """
+    try:
+        return ET.fromstring(xml_string)
+    except ET.ParseError as e:
+        # Show first few lines of XML for context
+        lines = xml_string.split("\n")
+        preview = "\n".join(lines[:20])
+        if len(lines) > 20:
+            preview += f"\n... ({len(lines) - 20} more lines)"
+        raise AssertionError(f"Failed to parse XML: {e}\n\nXML content:\n{preview}") from e
 
 
 class TestModels:
@@ -93,10 +117,10 @@ class TestModels:
         errors = no_question.validate()
         assert "Quiz must have a question" in errors
 
-        # Quiz without answers
+        # Quiz without answers or blanks
         no_answers = Quiz(question="Test?", answers=[])
         errors = no_answers.validate()
-        assert "Quiz must have at least one answer" in errors
+        assert "Quiz must have either answers or blanks" in errors
 
         # Quiz without correct answer
         no_correct = Quiz(
@@ -335,7 +359,7 @@ class TestQTI12Export:
         manifest_xml = exporter.generate_manifest()
 
         # Parse and verify structure
-        root = ET.fromstring(manifest_xml)
+        root = parse_xml(manifest_xml)
         assert root.tag == "{http://www.imsglobal.org/xsd/imscp_v1p1}manifest"
 
         # Check for resources
@@ -349,7 +373,7 @@ class TestQTI12Export:
         assessment_xml = exporter.generate_assessment()
 
         # Parse and verify
-        root = ET.fromstring(assessment_xml)
+        root = parse_xml(assessment_xml)
         assert "questestinterop" in root.tag
 
     def test_single_choice_item(self, sample_collection: QuizCollection) -> None:
@@ -361,7 +385,7 @@ class TestQTI12Export:
         for _filename, content in items.items():
             if "multiple_choice_question" in content:
                 # Verify structure
-                root = ET.fromstring(content)
+                root = parse_xml(content)
                 assert "questestinterop" in root.tag
                 # Check for Single cardinality
                 assert "Single" in content or "rcardinality" in content
@@ -375,7 +399,7 @@ class TestQTI12Export:
         # Find a multiple choice item
         for _filename, content in items.items():
             if "multiple_answers_question" in content:
-                root = ET.fromstring(content)
+                root = parse_xml(content)
                 assert "questestinterop" in root.tag
                 assert "Multiple" in content
                 break
@@ -424,7 +448,7 @@ class TestQTI21Export:
         exporter = QTIExporter.create(sample_collection, QTIVersion.V2_1)
         assessment_xml = exporter.generate_assessment()
 
-        root = ET.fromstring(assessment_xml)
+        root = parse_xml(assessment_xml)
         assert "assessmentTest" in root.tag
 
     def test_qti21_item_structure(self, sample_collection: QuizCollection) -> None:
@@ -434,7 +458,7 @@ class TestQTI21Export:
 
         assert len(items) == 1
         for _filename, content in items.items():
-            root = ET.fromstring(content)
+            root = parse_xml(content)
             assert "assessmentItem" in root.tag
 
 
@@ -452,3 +476,310 @@ class TestExporterFactory:
         collection = QuizCollection(title="Test")
         exporter = QTIExporter.create(collection, QTIVersion.V2_1)
         assert exporter.version == QTIVersion.V2_1
+
+
+class TestFillInBlankModels:
+    """Tests for fill-in-the-blank quiz models."""
+
+    def test_blank_creation(self) -> None:
+        """Test creating a Blank object."""
+        blank = Blank(correct_answer="Paris")
+        assert blank.correct_answer == "Paris"
+        assert blank.identifier.startswith("blank_")
+
+    def test_blank_strips_whitespace(self) -> None:
+        """Test that Blank strips whitespace from answer."""
+        blank = Blank(correct_answer="  London  ")
+        assert blank.correct_answer == "London"
+
+    def test_fill_in_blank_quiz_creation(self) -> None:
+        """Test creating a fill-in-the-blank quiz."""
+        blanks = [
+            Blank(correct_answer="Paris"),
+            Blank(correct_answer="France"),
+        ]
+        quiz = Quiz(
+            question="The capital of {{BLANK_0}} is {{BLANK_1}}.",
+            blanks=blanks,
+        )
+        assert quiz.is_fill_in_blank is True
+        assert quiz.is_multiple_choice is False
+        assert len(quiz.blanks) == 2
+
+    def test_fill_in_blank_quiz_validation(self) -> None:
+        """Test fill-in-blank quiz validation."""
+        # Valid fill-in-blank quiz
+        valid = Quiz(
+            question="2 + 2 = {{BLANK_0}}",
+            blanks=[Blank(correct_answer="4")],
+        )
+        assert valid.validate() == []
+
+        # Quiz without question
+        no_question = Quiz(question="", blanks=[Blank(correct_answer="4")])
+        errors = no_question.validate()
+        assert "Quiz must have a question" in errors
+
+    def test_quiz_collection_fill_in_blank_count(self) -> None:
+        """Test that QuizCollection correctly counts fill-in-blank quizzes."""
+        collection = QuizCollection(title="Test")
+
+        # Add multiple choice quiz
+        collection.add_quiz(
+            Quiz(
+                question="What?",
+                answers=[Answer(text="A", is_correct=True)],
+            )
+        )
+
+        # Add fill-in-blank quiz
+        collection.add_quiz(
+            Quiz(
+                question="Answer: {{BLANK_0}}",
+                blanks=[Blank(correct_answer="test")],
+            )
+        )
+
+        assert collection.total_questions == 2
+        assert collection.single_choice_count == 1
+        assert collection.fill_in_blank_count == 1
+
+
+class TestFillInBlankExtractor:
+    """Tests for fill-in-the-blank quiz extraction."""
+
+    def test_extract_single_blank(self, tmp_path: Path) -> None:
+        """Test extracting a quiz with a single blank."""
+        md_file = tmp_path / "test.md"
+        md_file.write_text(
+            """
+<quiz>
+2 + 2 = [[4]]
+
+---
+Basic math!
+</quiz>
+"""
+        )
+
+        quizzes = extract_quizzes_from_file(md_file)
+        assert len(quizzes) == 1
+
+        quiz = quizzes[0]
+        assert quiz.is_fill_in_blank is True
+        assert len(quiz.blanks) == 1
+        assert quiz.blanks[0].correct_answer == "4"
+        assert "{{BLANK_0}}" in quiz.question
+        assert quiz.content is not None
+        assert "math" in quiz.content
+
+    def test_extract_multiple_blanks(self, tmp_path: Path) -> None:
+        """Test extracting a quiz with multiple blanks."""
+        md_file = tmp_path / "test.md"
+        md_file.write_text(
+            """
+<quiz>
+The [[cat]] sat on the [[mat]].
+</quiz>
+"""
+        )
+
+        quizzes = extract_quizzes_from_file(md_file)
+        assert len(quizzes) == 1
+
+        quiz = quizzes[0]
+        assert quiz.is_fill_in_blank is True
+        assert len(quiz.blanks) == 2
+        assert quiz.blanks[0].correct_answer == "cat"
+        assert quiz.blanks[1].correct_answer == "mat"
+        assert "{{BLANK_0}}" in quiz.question
+        assert "{{BLANK_1}}" in quiz.question
+
+    def test_extract_mixed_quiz_types(self, tmp_path: Path) -> None:
+        """Test extracting both multiple-choice and fill-in-blank quizzes."""
+        md_file = tmp_path / "test.md"
+        md_file.write_text(
+            """
+<quiz>
+What is 2+2?
+- [x] 4
+- [ ] 3
+</quiz>
+
+<quiz>
+The answer is [[4]].
+</quiz>
+"""
+        )
+
+        quizzes = extract_quizzes_from_file(md_file)
+        assert len(quizzes) == 2
+
+        # First is multiple choice
+        assert quizzes[0].is_fill_in_blank is False
+        assert len(quizzes[0].answers) == 2
+
+        # Second is fill-in-blank
+        assert quizzes[1].is_fill_in_blank is True
+        assert len(quizzes[1].blanks) == 1
+
+
+class TestFillInBlankQTI12:
+    """Tests for QTI 1.2 fill-in-the-blank export."""
+
+    @pytest.fixture
+    def fill_in_blank_collection(self) -> QuizCollection:
+        """Create a collection with fill-in-blank quizzes."""
+        collection = QuizCollection(title="Fill-in-Blank Test")
+
+        # Single blank
+        collection.add_quiz(
+            Quiz(
+                question="2 + 2 = {{BLANK_0}}",
+                blanks=[Blank(correct_answer="4")],
+                content="Basic arithmetic.",
+            )
+        )
+
+        # Multiple blanks
+        collection.add_quiz(
+            Quiz(
+                question="The {{BLANK_0}} sat on the {{BLANK_1}}.",
+                blanks=[
+                    Blank(correct_answer="cat"),
+                    Blank(correct_answer="mat"),
+                ],
+            )
+        )
+
+        return collection
+
+    def test_fill_in_blank_item_structure(self, fill_in_blank_collection: QuizCollection) -> None:
+        """Test that fill-in-blank items have correct QTI 1.2 structure."""
+        exporter = QTIExporter.create(fill_in_blank_collection, QTIVersion.V1_2)
+        items = exporter.generate_items()
+
+        assert len(items) == 2
+
+        for _filename, content in items.items():
+            # Verify it's valid XML
+            root = parse_xml(content)
+            assert "questestinterop" in root.tag
+
+            # Check for fill-in-blank question type
+            assert "fill_in_multiple_blanks_question" in content
+            # Check for response_str (text entry)
+            assert "response_str" in content
+            assert "render_fib" in content
+
+    def test_fill_in_blank_scoring(self, fill_in_blank_collection: QuizCollection) -> None:
+        """Test that fill-in-blank items have correct scoring."""
+        exporter = QTIExporter.create(fill_in_blank_collection, QTIVersion.V1_2)
+        items = exporter.generate_items()
+
+        for _filename, content in items.items():
+            # Should have resprocessing for scoring
+            assert "resprocessing" in content
+            assert "varequal" in content
+
+
+class TestFillInBlankQTI21:
+    """Tests for QTI 2.1 fill-in-the-blank export."""
+
+    @pytest.fixture
+    def fill_in_blank_collection(self) -> QuizCollection:
+        """Create a collection with fill-in-blank quizzes."""
+        collection = QuizCollection(title="Fill-in-Blank Test 2.1")
+
+        collection.add_quiz(
+            Quiz(
+                question="The capital of France is {{BLANK_0}}.",
+                blanks=[Blank(correct_answer="Paris")],
+            )
+        )
+
+        return collection
+
+    def test_fill_in_blank_item_structure(self, fill_in_blank_collection: QuizCollection) -> None:
+        """Test that fill-in-blank items have correct QTI 2.1 structure."""
+        exporter = QTIExporter.create(fill_in_blank_collection, QTIVersion.V2_1)
+        items = exporter.generate_items()
+
+        assert len(items) == 1
+
+        for _filename, content in items.items():
+            # Verify it's valid XML
+            root = parse_xml(content)
+            assert "assessmentItem" in root.tag
+
+            # Check for text entry interaction
+            assert "textEntryInteraction" in content
+            # Check for response declaration
+            assert "responseDeclaration" in content
+            assert 'baseType="string"' in content
+
+    def test_fill_in_blank_response_processing(
+        self, fill_in_blank_collection: QuizCollection
+    ) -> None:
+        """Test that fill-in-blank items have correct response processing."""
+        exporter = QTIExporter.create(fill_in_blank_collection, QTIVersion.V2_1)
+        items = exporter.generate_items()
+
+        for _filename, content in items.items():
+            # Should have string matching for text comparison
+            assert "stringMatch" in content
+            assert 'caseSensitive="false"' in content
+
+
+class TestCDATAEscaping:
+    """Tests for CDATA escaping in QTI export."""
+
+    def test_cdata_end_sequence_escaped(self) -> None:
+        """Test that ]]> in content is properly escaped."""
+        from mkdocs_quiz.qti.utils import to_html_content
+
+        # Content with CDATA end sequence
+        text = "<p>Some code: array[i]]]> more text</p>"
+        result = to_html_content(text)
+
+        # Should be valid XML - the ]]> should be escaped
+        assert "]]]]><![CDATA[>" in result
+
+        # Verify the full CDATA is parseable as XML
+        xml_test = f"<root>{result}</root>"
+        root = parse_xml(xml_test)
+        assert root is not None
+
+    def test_html_without_cdata_sequence(self) -> None:
+        """Test that normal HTML content is wrapped in CDATA."""
+        from mkdocs_quiz.qti.utils import to_html_content
+
+        text = "<p>Normal <b>HTML</b> content</p>"
+        result = to_html_content(text)
+
+        assert result.startswith("<![CDATA[")
+        assert result.endswith("]]>")
+        assert text in result
+
+    def test_plain_text_escaped(self) -> None:
+        """Test that plain text is XML-escaped, not CDATA-wrapped."""
+        from mkdocs_quiz.qti.utils import to_html_content
+
+        # Text without angle brackets should be XML-escaped
+        text = "Simple text with special & characters"
+        result = to_html_content(text)
+
+        # Should be escaped, not CDATA
+        assert "<![CDATA[" not in result
+        assert "&amp;" in result
+
+    def test_text_with_angle_brackets_uses_cdata(self) -> None:
+        """Test that text with angle brackets (looks like HTML) uses CDATA."""
+        from mkdocs_quiz.qti.utils import to_html_content
+
+        # Text with angle brackets is treated as HTML and wrapped in CDATA
+        text = "Code example: if (a < b && b > c)"
+        result = to_html_content(text)
+
+        # Contains < so uses CDATA
+        assert "<![CDATA[" in result

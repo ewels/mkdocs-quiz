@@ -25,6 +25,19 @@ OLD_SYNTAX_PATTERNS = [
     r"<\?/quiz\?>",  # Old quiz closing tag
 ]
 
+__all__ = [
+    "ANSWER_PATTERN",
+    "FILL_BLANK_REGEX",
+    "OLD_SYNTAX_PATTERNS",
+    "QUIZ_END_TAG",
+    "QUIZ_REGEX",
+    "QUIZ_START_TAG",
+    "find_quizzes",
+    "mask_code_blocks",
+    "parse_answer",
+    "unmask_code_blocks",
+]
+
 
 def mask_code_blocks(markdown: str) -> tuple[str, dict[str, str]]:
     """Temporarily mask fenced code blocks to prevent processing quiz tags inside them.

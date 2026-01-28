@@ -33,7 +33,11 @@ def to_html_content(text: str) -> str:
         Safe HTML/XML content.
     """
     if re.search(r"<[^>]+>", text):
-        return f"<![CDATA[{text}]]>"
+        # CDATA sections cannot contain the sequence "]]>" as it would end the CDATA.
+        # The standard workaround is to split the CDATA section at each occurrence:
+        # "]]>" becomes "]]]]><![CDATA[>"
+        safe_text = text.replace("]]>", "]]]]><![CDATA[>")
+        return f"<![CDATA[{safe_text}]]>"
     else:
         return xml_escape(text)
 

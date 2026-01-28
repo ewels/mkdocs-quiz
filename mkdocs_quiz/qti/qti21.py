@@ -8,6 +8,7 @@ Reference: IMS Question & Test Interoperability Specification v2.1
 
 from __future__ import annotations
 
+import re
 from xml.sax.saxutils import escape as xml_escape
 
 from .base import QTIExporter, QTIVersion
@@ -210,13 +211,132 @@ class QTI21Exporter(QTIExporter):
 {modal_feedback}</assessmentItem>
 """
 
+    def _build_fill_in_blank_response_declarations(self, quiz: Quiz) -> str:
+        """Build response declarations for fill-in-the-blank quiz.
+
+        Args:
+            quiz: The fill-in-the-blank quiz.
+
+        Returns:
+            XML string for all response declarations.
+        """
+        declarations = []
+        for blank in quiz.blanks:
+            declarations.append(
+                f'  <responseDeclaration identifier="{blank.identifier}" '
+                f'cardinality="single" baseType="string">\n'
+                f"    <correctResponse>\n"
+                f"      <value>{xml_escape(blank.correct_answer)}</value>\n"
+                f"    </correctResponse>\n"
+                f"  </responseDeclaration>"
+            )
+        return "\n".join(declarations)
+
+    def _build_fill_in_blank_body(self, quiz: Quiz) -> str:
+        """Build the item body with inline text entry interactions.
+
+        Args:
+            quiz: The fill-in-the-blank quiz.
+
+        Returns:
+            XML string for the item body content.
+        """
+        # Replace {{BLANK_N}} placeholders with textEntryInteraction elements
+        question_text = quiz.question
+        parts = re.split(r"\{\{BLANK_(\d+)\}\}", question_text)
+
+        body_parts = []
+        blank_idx = 0
+
+        for i, part in enumerate(parts):
+            if i % 2 == 0:
+                # Text part
+                if part.strip():
+                    body_parts.append(to_html_content(part))
+            else:
+                # Blank placeholder - create textEntryInteraction
+                blank = quiz.blanks[blank_idx]
+                body_parts.append(
+                    f'<textEntryInteraction responseIdentifier="{blank.identifier}" '
+                    f'expectedLength="{max(10, len(blank.correct_answer) + 5)}"/>'
+                )
+                blank_idx += 1
+
+        return " ".join(body_parts)
+
+    def _build_fill_in_blank_response_processing(self, quiz: Quiz) -> str:
+        """Build response processing for fill-in-the-blank quiz.
+
+        Args:
+            quiz: The fill-in-the-blank quiz.
+
+        Returns:
+            XML string for response processing.
+        """
+        # Each blank contributes equal points
+        points_per_blank = 1.0 / len(quiz.blanks)
+
+        conditions = []
+        for blank in quiz.blanks:
+            conditions.append(
+                f"    <responseCondition>\n"
+                f"      <responseIf>\n"
+                f'        <stringMatch caseSensitive="false">\n'
+                f'          <variable identifier="{blank.identifier}"/>\n'
+                f'          <correct identifier="{blank.identifier}"/>\n'
+                f"        </stringMatch>\n"
+                f'        <setOutcomeValue identifier="SCORE">\n'
+                f"          <sum>\n"
+                f'            <variable identifier="SCORE"/>\n'
+                f'            <baseValue baseType="float">{points_per_blank:.4f}</baseValue>\n'
+                f"          </sum>\n"
+                f"        </setOutcomeValue>\n"
+                f"      </responseIf>\n"
+                f"    </responseCondition>"
+            )
+        return "\n".join(conditions)
+
+    def _generate_fill_in_blank_item(self, quiz: Quiz) -> str:
+        """Generate QTI 2.1 XML for a fill-in-the-blank question.
+
+        Uses textEntryInteraction for inline text entry.
+        """
+        feedback_decl, modal_feedback = self._build_feedback(quiz)
+
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1 http://www.imsglobal.org/xsd/imsqti_v2p1.xsd"
+               identifier="{quiz.identifier}"
+               title="{make_title(quiz.question)}"
+               adaptive="false"
+               timeDependent="false">
+{self._build_fill_in_blank_response_declarations(quiz)}
+  <outcomeDeclaration identifier="SCORE" cardinality="single" baseType="float">
+    <defaultValue>
+      <value>0</value>
+    </defaultValue>
+  </outcomeDeclaration>
+{feedback_decl}  <itemBody>
+    <div class="question">
+      {self._build_fill_in_blank_body(quiz)}
+    </div>
+  </itemBody>
+  <responseProcessing>
+{self._build_fill_in_blank_response_processing(quiz)}
+  </responseProcessing>
+{modal_feedback}</assessmentItem>
+"""
+
     def generate_items(self) -> dict[str, str]:
         """Generate individual item XML files."""
-        return {
-            f"items/{q.identifier}.xml": (
-                self._generate_multiple_choice_item(q)
-                if q.is_multiple_choice
-                else self._generate_single_choice_item(q)
-            )
-            for q in self.collection.quizzes
-        }
+        items = {}
+        for q in self.collection.quizzes:
+            if q.is_fill_in_blank:
+                xml = self._generate_fill_in_blank_item(q)
+            elif q.is_multiple_choice:
+                xml = self._generate_multiple_choice_item(q)
+            else:
+                xml = self._generate_single_choice_item(q)
+            items[f"items/{q.identifier}.xml"] = xml
+        return items

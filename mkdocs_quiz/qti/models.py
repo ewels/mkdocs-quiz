@@ -31,12 +31,30 @@ class Answer:
 
 
 @dataclass
+class Blank:
+    """Represents a single fill-in-the-blank placeholder.
+
+    Attributes:
+        correct_answer: The correct answer for this blank.
+        identifier: Unique identifier for this blank (auto-generated if not provided).
+    """
+
+    correct_answer: str
+    identifier: str = field(default_factory=lambda: f"blank_{uuid.uuid4().hex[:8]}")
+
+    def __post_init__(self) -> None:
+        """Strip whitespace from answer."""
+        self.correct_answer = self.correct_answer.strip()
+
+
+@dataclass
 class Quiz:
     """Represents a single quiz question.
 
     Attributes:
         question: The question text (may contain HTML/markdown).
-        answers: List of possible answers.
+        answers: List of possible answers (for multiple-choice quizzes).
+        blanks: List of blanks (for fill-in-the-blank quizzes).
         content: Optional explanation/content shown after answering.
         identifier: Unique identifier for this quiz (auto-generated if not provided).
         source_file: The source file this quiz was extracted from.
@@ -44,7 +62,8 @@ class Quiz:
     """
 
     question: str
-    answers: list[Answer]
+    answers: list[Answer] = field(default_factory=list)
+    blanks: list[Blank] = field(default_factory=list)
     content: str | None = None
     identifier: str = field(default_factory=lambda: f"quiz_{uuid.uuid4().hex[:8]}")
     source_file: Path | None = None
@@ -57,18 +76,23 @@ class Quiz:
             self.content = self.content.strip()
 
     @property
+    def is_fill_in_blank(self) -> bool:
+        """Check if this is a fill-in-the-blank quiz."""
+        return len(self.blanks) > 0
+
+    @property
     def is_multiple_choice(self) -> bool:
-        """Check if this quiz has multiple correct answers."""
+        """Check if this quiz has multiple correct answers (for multiple-choice quizzes)."""
         return sum(1 for a in self.answers if a.is_correct) > 1
 
     @property
     def correct_answers(self) -> list[Answer]:
-        """Get list of correct answers."""
+        """Get list of correct answers (for multiple-choice quizzes)."""
         return [a for a in self.answers if a.is_correct]
 
     @property
     def incorrect_answers(self) -> list[Answer]:
-        """Get list of incorrect answers."""
+        """Get list of incorrect answers (for multiple-choice quizzes)."""
         return [a for a in self.answers if not a.is_correct]
 
     def validate(self) -> list[str]:
@@ -80,10 +104,18 @@ class Quiz:
         errors = []
         if not self.question:
             errors.append("Quiz must have a question")
-        if not self.answers:
-            errors.append("Quiz must have at least one answer")
-        if not any(a.is_correct for a in self.answers):
-            errors.append("Quiz must have at least one correct answer")
+
+        # Fill-in-blank validation
+        if self.blanks:
+            if not self.blanks:
+                errors.append("Fill-in-blank quiz must have at least one blank")
+        # Multiple-choice validation
+        elif self.answers:
+            if not any(a.is_correct for a in self.answers):
+                errors.append("Quiz must have at least one correct answer")
+        else:
+            errors.append("Quiz must have either answers or blanks")
+
         return errors
 
 
@@ -128,9 +160,14 @@ class QuizCollection:
     @property
     def single_choice_count(self) -> int:
         """Get count of single-choice questions."""
-        return sum(1 for q in self.quizzes if not q.is_multiple_choice)
+        return sum(1 for q in self.quizzes if not q.is_fill_in_blank and not q.is_multiple_choice)
 
     @property
     def multiple_choice_count(self) -> int:
         """Get count of multiple-choice questions."""
-        return sum(1 for q in self.quizzes if q.is_multiple_choice)
+        return sum(1 for q in self.quizzes if not q.is_fill_in_blank and q.is_multiple_choice)
+
+    @property
+    def fill_in_blank_count(self) -> int:
+        """Get count of fill-in-the-blank questions."""
+        return sum(1 for q in self.quizzes if q.is_fill_in_blank)
