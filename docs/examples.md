@@ -94,6 +94,9 @@ The content section is an optional block of markdown that comes after the answer
 
 Fill-in-the-blank quizzes allow users to type answers into text fields. These are perfect for recall-based questions where users need to remember specific terms, values, or concepts.
 
+!!! note
+Answers are case-insensitive and whitespace is trimmed. So "Paris", "paris", and " PARIS " are all accepted.
+
 ### Single Blank
 
 Use double square brackets `[[answer]]` to create a blank:
@@ -161,36 +164,46 @@ Fill-in-the-blank quizzes support markdown formatting around the blanks and rich
 === "Example"
 
     <quiz>
-    Some markdown:
+    In Python, use the [[print]] function to output text:
 
-    The answer is [[foo]].
+    ```python
+    print("Hello, world!")
+    ```
 
-    Another answer is [[bar]].
+    The function was named **after** the [[printing press]].
 
     ---
-    This *content* is only shown after answering.
+    !!! tip
+        You can also use `print()` with f-strings for formatting!
 
-    It can have **bold**, `code`, and other markdown formatting.
+    ```python
+    name = "World"
+    print(f"Hello, {name}!")
+    ```
     </quiz>
 
 === "Syntax"
 
-    ```markdown
+    ~~~markdown
     <quiz>
-    Some markdown:
+    In Python, use the [[print]] function to output text:
 
-    The answer is [[foo]].
-
-    Another answer is [[bar]].
-
-    ---
-    This *content* is only shown after answering.
-
-    It can have **bold**, `code`, and other markdown formatting.
-    </quiz>
+    ```python
+    print("Hello, world!")
     ```
 
-**Note:** Answers are case-insensitive and whitespace is trimmed. So "Paris", "paris", and " PARIS " are all accepted.
+    The function was named **after** the [[printing press]].
+
+    ---
+    !!! tip
+        You can also use `print()` with f-strings for formatting!
+
+    ```python
+    name = "World"
+    print(f"Hello, {name}!")
+    ```
+    </quiz>
+    ~~~
 
 ## Answer Syntax Variations
 
