@@ -35,7 +35,8 @@ mkdocs-quiz export qti docs/chapter1.md
 | QTI 2.1 | `-q 2.1`           | Canvas New Quizzes, Moodle 4+, modern LMS     |
 
 !!! tip "Which version should I use?"
-If you're unsure, start with **QTI 1.2** (the default) as it has the widest compatibility. If your LMS doesn't accept it, try QTI 2.1.
+
+    If you're unsure, start with **QTI 1.2** (the default) as it has the widest compatibility. If your LMS doesn't accept it, try QTI 2.1.
 
 ## Question Type Mapping
 
@@ -69,7 +70,8 @@ Quiz explanations (content after the answers) are exported as feedback, shown af
 3. For QTI support, you may need an additional plugin
 
 !!! note
-Import steps may vary depending on your LMS version. Consult your LMS documentation for specific instructions.
+
+    Import steps may vary depending on your LMS version. Consult your LMS documentation for specific instructions.
 
 ## Limitations
 
