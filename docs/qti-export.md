@@ -32,10 +32,10 @@ mkdocs-quiz export qti docs/chapter1.md
 
 The plugin supports two QTI versions:
 
-| Version | Flag | Best For |
-|---------|------|----------|
+| Version | Flag               | Best For                                      |
+| ------- | ------------------ | --------------------------------------------- |
 | QTI 1.2 | `-q 1.2` (default) | Canvas Classic Quizzes, Blackboard, older LMS |
-| QTI 2.1 | `-q 2.1` | Canvas New Quizzes, Moodle 4+, modern LMS |
+| QTI 2.1 | `-q 2.1`           | Canvas New Quizzes, Moodle 4+, modern LMS     |
 
 ```bash
 # Export as QTI 1.2 (default)
@@ -46,17 +46,17 @@ mkdocs-quiz export qti docs/ -q 2.1
 ```
 
 !!! tip "Which version should I use?"
-    If you're unsure which version to use, start with **QTI 1.2** (the default). It has the widest compatibility across LMS platforms. If your LMS doesn't accept it, try QTI 2.1.
+If you're unsure which version to use, start with **QTI 1.2** (the default). It has the widest compatibility across LMS platforms. If your LMS doesn't accept it, try QTI 2.1.
 
 ## Command Options
 
-| Option | Description |
-|--------|-------------|
-| `path` | Source markdown file or directory (required) |
-| `-o`, `--output` | Output ZIP file path (default: `quizzes.zip`) |
-| `-q`, `--qti-version` | QTI version: `1.2` or `2.1` (default: `1.2`) |
-| `-t`, `--title` | Title for the quiz package |
-| `--no-recursive` | Don't search directories recursively |
+| Option                | Description                                   |
+| --------------------- | --------------------------------------------- |
+| `path`                | Source markdown file or directory (required)  |
+| `-o`, `--output`      | Output ZIP file path (default: `quizzes.zip`) |
+| `-q`, `--qti-version` | QTI version: `1.2` or `2.1` (default: `1.2`)  |
+| `-t`, `--title`       | Title for the quiz package                    |
+| `--no-recursive`      | Don't search directories recursively          |
 
 ## Examples
 
@@ -112,14 +112,15 @@ mkdocs-quiz export qti docs/chapter-5-review.md -t "Chapter 5 Review Quiz"
 4. Upload your exported file
 
 !!! note
-    Import steps may vary depending on your LMS version. Consult your LMS documentation for specific instructions.
+Import steps may vary depending on your LMS version. Consult your LMS documentation for specific instructions.
 
 ## Question Type Mapping
 
-| MkDocs Quiz Type | QTI Type |
-|------------------|----------|
-| Single correct answer (radio buttons) | Multiple Choice |
+| MkDocs Quiz Type                      | QTI Type          |
+| ------------------------------------- | ----------------- |
+| Single correct answer (radio buttons) | Multiple Choice   |
 | Multiple correct answers (checkboxes) | Multiple Response |
+| Fill-in-the-blank (`[[answer]]`)      | Text Entry        |
 
 ### Single Choice Example
 
@@ -151,6 +152,24 @@ Which are prime numbers?
 ```
 
 Exports as a "Multiple Response" question where the student must select all correct answers.
+
+### Fill-in-the-Blank Example
+
+This quiz syntax:
+
+```markdown
+<quiz>
+The capital of France is [[Paris]].
+</quiz>
+```
+
+Exports as a "Text Entry" question where the student types their answer. Multiple blanks in a single question are supported:
+
+```markdown
+<quiz>
+The [[cat]] sat on the [[mat]].
+</quiz>
+```
 
 ## Export Package Structure
 
@@ -184,7 +203,7 @@ The explanation text will appear as feedback after the student answers the quest
 
 ## Limitations
 
-- **Question types**: Only multiple choice and multiple response questions are supported (matching the mkdocs-quiz format)
 - **Rich content**: HTML formatting in questions and answers is preserved, but complex elements may not render in all LMS platforms
 - **Images**: Images referenced in quizzes are not bundled in the export; use absolute URLs for images
 - **Scoring**: Default scoring is used (full points for correct answers)
+- **Fill-in-the-blank matching**: Text entry answers are matched case-insensitively, but some LMS platforms may handle matching differently
