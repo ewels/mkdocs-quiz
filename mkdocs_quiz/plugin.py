@@ -500,12 +500,12 @@ class MkDocsQuizPlugin(BasePlugin):
             input_id = f"quiz-{quiz_id}-blank-{input_counter}"
             # Store the correct answer as a data attribute, HTML-escaped
             escaped_answer = html.escape(answer)
-            # Calculate width based on answer length (min 50px, max 200px, ~10px per char)
-            width = max(50, min(200, len(answer) * 10))
+            # Calculate input size based on answer length (min 5 chars, add padding for typing)
+            input_size = max(5, len(answer) + 2)
             input_html = (
                 f'<input type="text" class="quiz-blank-input" '
                 f'id="{input_id}" data-answer="{escaped_answer}" autocomplete="off" '
-                f'style="min-width: {width}px">'
+                f'size="{input_size}">'
             )
             input_counter += 1
             return input_html

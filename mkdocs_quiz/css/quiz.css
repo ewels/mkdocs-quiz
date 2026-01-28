@@ -370,7 +370,7 @@ input[type="radio"].wrong {
   transition:
     border-color 0.2s,
     background-color 0.2s;
-  min-width: 100px;
+  /* min-width is set via inline style based on answer length */
   outline: none;
 }
 
