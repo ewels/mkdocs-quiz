@@ -674,7 +674,7 @@
                   if (!input.classList.contains("correct")) {
                     const userAnswer = input.value.trim();
                     const correctAnswer = input.getAttribute("data-answer");
-                    feedbackHTML += `<li><del>${userAnswer || "(empty)"}</del> → ${correctAnswer}</li>`;
+                    feedbackHTML += `<li><del>${userAnswer || t("(empty)")}</del> → ${correctAnswer}</li>`;
                     // Also show in placeholder
                     input.placeholder = correctAnswer;
                   }
