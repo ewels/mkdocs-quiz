@@ -1,5 +1,24 @@
 # Changelog
 
+## **Version 1.4.0** (2026-01-28)
+
+### New Features
+
+- **Fill-in-the-blank quiz type** - New question format using `[[answer]]` syntax for text input blanks - [#15](https://github.com/ewels/mkdocs-quiz/pull/15)
+  - Supports single or multiple blanks per question
+  - Case-insensitive answer validation
+  - Input width automatically adjusts based on answer length
+  - Full markdown support within questions
+- **QTI export for LMS import** - Export quizzes to QTI format for Canvas, Blackboard, Moodle - [#32](https://github.com/ewels/mkdocs-quiz/pull/32)
+  - Supports QTI 1.2 (widest compatibility) and QTI 2.1 (modern standard)
+  - Exports both multiple-choice and fill-in-the-blank question types
+  - CLI command: `mkdocs-quiz export qti docs/`
+
+### Improvements
+
+- Add Playwright browser tests to CI for end-to-end testing
+- Update pre-commit hook versions
+
 ## **Version 1.3.0** (2025-12-18)
 
 - Add `shuffle_answers` option to randomize quiz answer order on page load
