@@ -1,5 +1,10 @@
 # Changelog
 
+## **Version 1.3.0** (2025-12-18)
+
+- Add `shuffle_answers` option to randomize quiz answer order on page load
+- Revised French translations by @maxulysse - [#29](https://github.com/ewels/mkdocs-quiz/pull/29)
+
 ## **Version 1.2.2** (2025-12-02)
 
 - Support markdown extensions within quiz markdown - [#24](https://github.com/ewels/mkdocs-quiz/issues/24)

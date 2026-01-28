@@ -1,18 +1,6 @@
-# Examples
+# Writing quiz questions
 
-This page demonstrates all the different types of quizzes and options available in mkdocs-quiz. Each example shows a working quiz in the "Example" tab and the markdown source code in the "Syntax" tab.
-
-=== "Example"
-
-    !!! info "Quiz Progress"
-        <!-- mkdocs-quiz intro -->
-
-=== "Syntax"
-
-    ```markdown
-    !!! info "Quiz Progress"
-        <!-- mkdocs-quiz intro -->
-    ```
+This page demonstrates the different ways that you can build questions with mkdocs-quiz. Each example shows a working quiz in the "Example" tab and the markdown source code in the "Syntax" tab.
 
 ## Basic Examples
 
@@ -30,12 +18,6 @@ A quiz with one correct answer displays as radio buttons:
     - [ ] 3
     - [x] 4 _(not `four`)_
     - [ ] 5
-
-    Full markdown is supported, even things like code blocks:
-    ```python
-    def checksum(a):
-        assert 2 + 2 == 4
-    ```
     </quiz>
 
 === "Syntax"
@@ -49,12 +31,6 @@ A quiz with one correct answer displays as radio buttons:
     - [ ] 3
     - [x] 4 _(not `four`)_
     - [ ] 5
-
-    Full markdown is supported, even things like code blocks:
-    ```python
-    def checksum(a):
-        assert 2 + 2 == 4
-    ```
     </quiz>
     ~~~
 
@@ -70,8 +46,6 @@ A quiz with multiple correct answers displays as checkboxes:
     - [ ] 3
     - [x] 4
     - [ ] 5
-
-    Great! 2 and 4 are both even numbers.
     </quiz>
 
 === "Syntax"
@@ -83,16 +57,14 @@ A quiz with multiple correct answers displays as checkboxes:
     - [ ] 3
     - [x] 4
     - [ ] 5
-
-    Great! 2 and 4 are both even numbers.
     </quiz>
     ```
 
     **Key difference:** When there are multiple `- [x]` correct answers, checkboxes are displayed instead of radio buttons, and users must select all correct answers.
 
-### Quiz Without Content
+### Content after answering
 
-The content section is optional:
+The content section is an optional block of markdown that comes after the answers. It shows after the question has been submitted:
 
 === "Example"
 
@@ -100,6 +72,9 @@ The content section is optional:
     Is Python a programming language?
     - [x] Yes
     - [ ] No
+
+    Did you know that Python was named after
+    [Monty Python](https://en.wikipedia.org/wiki/Monty_Python)?
     </quiz>
 
 === "Syntax"
@@ -109,6 +84,9 @@ The content section is optional:
     Is Python a programming language?
     - [x] Yes
     - [ ] No
+
+    Did you know that Python was named after
+    [Monty Python](https://en.wikipedia.org/wiki/Monty_Python)?
     </quiz>
     ```
 
@@ -450,11 +428,6 @@ You can include code examples in the content section:
     The equation reveals that mass and energy are interchangeable!
     </quiz>
     ```
-
-You made it to the end of the quiz!
-See the [Results Screen](results-screen.md) page to read how to add one of these:
-
-<!-- mkdocs-quiz results -->
 
 ## Markdown Extensions Support
 

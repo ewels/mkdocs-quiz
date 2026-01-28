@@ -175,6 +175,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("show_correct", config_options.Type(bool, default=True)),
         ("auto_submit", config_options.Type(bool, default=True)),
         ("disable_after_submit", config_options.Type(bool, default=True)),
+        ("shuffle_answers", config_options.Type(bool, default=False)),
         ("show_progress", config_options.Type(bool, default=True)),
         ("confetti", config_options.Type(bool, default=True)),
         ("progress_sidebar_position", config_options.Type(str, default="top")),
@@ -248,7 +249,8 @@ class MkDocsQuizPlugin(BasePlugin):
             page: The current page object.
 
         Returns:
-            Dictionary with show_correct, auto_submit, disable_after_submit, auto_number, and show_progress options.
+            Dictionary with show_correct, auto_submit, disable_after_submit, auto_number,
+            shuffle_answers, and show_progress options.
         """
         # Start with plugin defaults
         options = {
@@ -256,6 +258,7 @@ class MkDocsQuizPlugin(BasePlugin):
             "auto_submit": self.config.get("auto_submit", True),
             "disable_after_submit": self.config.get("disable_after_submit", True),
             "auto_number": self.config.get("auto_number", False),
+            "shuffle_answers": self.config.get("shuffle_answers", False),
             "show_progress": self.config.get("show_progress", True),
         }
 
@@ -579,7 +582,10 @@ class MkDocsQuizPlugin(BasePlugin):
         return quiz_html
 
     def _generate_answer_html(
-        self, all_answers: list[str], correct_answers: list[str], quiz_id: int
+        self,
+        all_answers: list[str],
+        correct_answers: list[str],
+        quiz_id: int,
     ) -> tuple[list[str], bool]:
         """Generate HTML for quiz answers.
 
@@ -901,6 +907,8 @@ class MkDocsQuizPlugin(BasePlugin):
             data_attrs.append('data-auto-submit="true"')
         if options["disable_after_submit"]:
             data_attrs.append('data-disable-after-submit="true"')
+        if options["shuffle_answers"]:
+            data_attrs.append('data-shuffle-answers="true"')
         attrs = " ".join(data_attrs)
 
         # Hide submit button only if auto-submit is enabled AND it's a single-choice quiz
