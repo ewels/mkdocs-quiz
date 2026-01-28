@@ -1156,6 +1156,321 @@ Real question?
     assert "<?quiz?>" in html_result
 
 
+def test_fill_in_blank_single(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test processing a fill-in-the-blank quiz with a single blank."""
+    markdown = """
+<quiz>
+2 + 2 = [[4]]
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should contain fill-blank quiz marker
+    assert 'data-quiz-type="fill-blank"' in result
+    # Should contain text input
+    assert 'type="text"' in result
+    assert 'class="quiz-blank-input"' in result
+    # Should contain the correct answer in data attribute
+    assert 'data-answer="4"' in result
+    # Should have the question text
+    assert "2 + 2 =" in result
+
+
+def test_fill_in_blank_multiple(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test processing a fill-in-the-blank quiz with multiple blanks."""
+    markdown = """
+<quiz>
+The capital of France is [[Paris]] and the capital of Spain is [[Madrid]].
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should contain fill-blank quiz marker
+    assert 'data-quiz-type="fill-blank"' in result
+    # Should contain two text inputs
+    assert result.count('type="text"') == 2
+    assert result.count('class="quiz-blank-input"') == 2
+    # Should contain both correct answers
+    assert 'data-answer="Paris"' in result
+    assert 'data-answer="Madrid"' in result
+    # Should have the question text
+    assert "The capital of France is" in result
+    assert "and the capital of Spain is" in result
+
+
+def test_fill_in_blank_with_markdown(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test fill-in-the-blank with markdown formatting around blanks."""
+    markdown = """
+<quiz>
+The **bold** answer is [[correct]] and the *italic* one is [[also correct]].
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should process markdown
+    assert "<strong>bold</strong>" in result
+    assert "<em>italic</em>" in result
+    # Should contain correct answers
+    assert 'data-answer="correct"' in result
+    assert 'data-answer="also correct"' in result
+
+
+def test_fill_in_blank_with_content(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test fill-in-the-blank with content section separated by horizontal rule."""
+    markdown = """
+<quiz>
+2 + 2 = [[4]]
+
+---
+That's correct! Basic arithmetic.
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should contain fill-blank quiz marker
+    assert 'data-quiz-type="fill-blank"' in result
+    # Should have content section with the explanation
+    assert "Basic arithmetic" in result
+    assert '<section class="content hidden">' in result
+
+
+def test_fill_in_blank_with_content_and_markdown(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test fill-in-the-blank with content section containing markdown."""
+    markdown = """
+<quiz>
+Some markdown:
+
+The answer is [[foo]].
+
+Another answer is [[bar]].
+
+---
+This *content* is only shown after answering.
+
+It can have **bold** and `code`.
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should contain fill-blank quiz marker
+    assert 'data-quiz-type="fill-blank"' in result
+    # Should have both blanks
+    assert 'data-answer="foo"' in result
+    assert 'data-answer="bar"' in result
+    # Should have content section with markdown converted to HTML
+    assert "<em>content</em>" in result
+    assert "<strong>bold</strong>" in result
+    assert "<code>code</code>" in result
+    assert '<section class="content hidden">' in result
+
+
+def test_fill_in_blank_html_escaping(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that fill-in-the-blank answers are properly HTML escaped."""
+    markdown = """
+<quiz>
+The HTML tag for bold is [[<strong>]].
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Answer should be HTML escaped in the data attribute
+    assert 'data-answer="&lt;strong&gt;"' in result
+    # Should not contain unescaped HTML tag
+    assert 'data-answer="<strong>"' not in result
+
+
+def test_fill_in_blank_no_blanks_error(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that quiz without blanks or checkboxes raises ValueError."""
+    markdown = """
+<quiz>
+This has no blanks in it.
+</quiz>
+"""
+    # Should raise ValueError (no answers found - treated as multiple-choice quiz)
+    with pytest.raises(ValueError, match=r"Quiz must have at least one answer"):
+        plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+
+def test_fill_in_blank_autocomplete_off(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that fill-in-the-blank inputs have autocomplete disabled."""
+    markdown = """
+<quiz>
+Answer: [[test]]
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should have autocomplete="off" attribute
+    assert 'autocomplete="off"' in result
+
+
+def test_fill_in_blank_with_special_characters(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test fill-in-the-blank with special characters in answers."""
+    markdown = """
+<quiz>
+The answer with quotes is [["hello"]] and with ampersand is [[a & b]].
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Answers should be properly escaped
+    assert 'data-answer="&quot;hello&quot;"' in result
+    assert 'data-answer="a &amp; b"' in result
+
+
+def test_fill_in_blank_unique_ids(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that multiple fill-in-the-blank inputs get unique IDs."""
+    markdown = """
+<quiz>
+First [[answer]] and second [[answer]].
+</quiz>
+
+<quiz>
+Third [[answer]].
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should have unique IDs for each input
+    assert 'id="quiz-0-blank-0"' in result
+    assert 'id="quiz-0-blank-1"' in result
+    assert 'id="quiz-1-blank-0"' in result
+
+
+def test_fill_in_blank_show_correct_option(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that fill-in-the-blank respects show_correct option."""
+    mock_page.meta["quiz"] = {"show_correct": False}
+    markdown = """
+<quiz>
+Answer: [[test]]
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should NOT have show-correct data attribute when disabled
+    assert 'data-show-correct="true"' not in result
+    # Should still be a fill-blank quiz
+    assert 'data-quiz-type="fill-blank"' in result
+
+
+def test_fill_in_blank_auto_number(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that fill-in-the-blank supports auto_number option."""
+    mock_page.meta["quiz"] = {"auto_number": True}
+    markdown = """
+<quiz>
+First: [[answer]]
+</quiz>
+
+<quiz>
+Second: [[answer]]
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should have question numbers
+    assert "Question 1" in result
+    assert "Question 2" in result
+
+
+def test_fill_in_blank_markdown_extensions(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+) -> None:
+    """Test that fill-in-the-blank quizzes use markdown extensions from config."""
+    # Configure markdown extensions
+    mock_config["markdown_extensions"] = ["extra"]
+
+    markdown = """
+<quiz>
+The answer is **bold** and the blank is [[answer]].
+
+---
+This *content* has `code` and uses extensions.
+</quiz>
+"""
+    # Process markdown phase
+    markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    # Process content phase (convert placeholders to actual HTML)
+    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    assert result is not None
+
+    # Should convert markdown in question text
+    assert "<strong>bold</strong>" in result
+    # Should convert markdown in content section
+    assert "<em>content</em>" in result
+    assert "<code>code</code>" in result
+    # Should still have fill-blank quiz functionality
+    assert 'data-quiz-type="fill-blank"' in result
+    assert 'data-answer="answer"' in result
+
+
 def test_markdown_extensions_from_config(
     plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
 ) -> None:
