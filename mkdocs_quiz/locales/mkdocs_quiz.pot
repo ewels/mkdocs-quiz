@@ -1,95 +1,99 @@
 # Translations template for mkdocs-quiz.
-# Copyright (C) 2025 ORGANIZATION
+# Copyright (C) 2026 ORGANIZATION
 # This file is distributed under the same license as the mkdocs-quiz project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: mkdocs-quiz 1.2.0\n"
+"Project-Id-Version: mkdocs-quiz 1.3.0\n"
 "Report-Msgid-Bugs-To: Phil Ewels <phil.ewels@seqera.io>\n"
-"POT-Creation-Date: 2025-11-30 07:45+0000\n"
-"PO-Revision-Date: 2025-11-30 07:45+0000\n"
+"POT-Creation-Date: 2026-01-28 10:27+0100\n"
+"PO-Revision-Date: 2026-01-28 09:27+0000\n"
 "Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: plugin.py:663
-msgid "Submit"
-msgstr ""
-
-#: plugin.py:678
+#: plugin.py:564 plugin.py:934
 #, python-brace-format
 msgid "Question {n}"
 msgstr ""
 
-#: overrides/main.html:12 plugin.py:708
+#: plugin.py:568
+msgid "Submit"
+msgstr ""
+
+#: overrides/main.html:12 plugin.py:964
 msgid "Quiz Progress"
 msgstr ""
 
-#: plugin.py:709
+#: plugin.py:965
 msgid "questions answered"
 msgstr ""
 
-#: plugin.py:710
+#: plugin.py:966
 msgid "correct"
 msgstr ""
 
-#: plugin.py:711
+#: plugin.py:967
 msgid "Quiz Complete!"
 msgstr ""
 
-#: plugin.py:712 plugin.py:752
+#: plugin.py:968 plugin.py:1008
 msgid "Reset quiz"
 msgstr ""
 
-#: plugin.py:749
+#: plugin.py:1005
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
 msgstr ""
 
-#: js/quiz.js:334
+#: js/quiz.js:335
 msgid "Outstanding! You aced it!"
 msgstr ""
 
-#: js/quiz.js:337
+#: js/quiz.js:338
 msgid "Great job! You really know your stuff!"
 msgstr ""
 
-#: js/quiz.js:340
+#: js/quiz.js:341
 msgid "Good effort! Keep learning!"
 msgstr ""
 
-#: js/quiz.js:343
+#: js/quiz.js:344
 msgid "Not bad, but there's room for improvement!"
 msgstr ""
 
-#: js/quiz.js:346
+#: js/quiz.js:347
 msgid "Better luck next time! Keep trying!"
 msgstr ""
 
-#: js/quiz.js:462
+#: js/quiz.js:463
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr ""
 
-#: js/quiz.js:579
+#: js/quiz.js:586
 msgid "Try Again"
 msgstr ""
 
-#: js/quiz.js:617 js/quiz.js:755
+#: js/quiz.js:624 js/quiz.js:734 js/quiz.js:901 js/quiz.js:973
 msgid "Correct answer!"
 msgstr ""
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:668 js/quiz.js:783 js/quiz.js:909 js/quiz.js:995
 msgid "Incorrect answer. Please try again."
 msgstr ""
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:668 js/quiz.js:783 js/quiz.js:909 js/quiz.js:995
 msgid "Incorrect answer."
+msgstr ""
+
+#: js/quiz.js:677
+msgid "(empty)"
 msgstr ""
 
 #: overrides/main.html:18 overrides/main.html:55
