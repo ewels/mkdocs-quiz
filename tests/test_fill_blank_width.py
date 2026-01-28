@@ -109,9 +109,9 @@ def test_fill_blank_input_has_size_attribute(page: Page) -> None:
     print(f"  Expected size: {expected_size}")
     print(f"  Actual size: {actual_size}")
 
-    assert (
-        actual_size == expected_size
-    ), f"Expected size={expected_size} for answer '{answer}' ({len(answer)} chars), got size={actual_size}"
+    assert actual_size == expected_size, (
+        f"Expected size={expected_size} for answer '{answer}' ({len(answer)} chars), got size={actual_size}"
+    )
 
 
 def test_fill_blank_visual_width_comparison(page: Page) -> None:
