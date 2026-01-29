@@ -264,7 +264,7 @@ def history(clear: bool, output_format: str | None) -> None:
     """
     import json
 
-    import yaml
+    import yaml  # type: ignore[import-untyped]
     from rich.table import Table
 
     from .history import get_history_file, load_history
@@ -903,8 +903,9 @@ def run(path: str | None, shuffle: bool, shuffle_answers: bool) -> None:
         path = interactive_quiz_selection()
         if path is None:
             # User cancelled or no quizzes found - show help
-            ctx = click.get_current_context()
-            click.echo(ctx.get_help())
+            ctx = click.get_current_context(silent=True)
+            if ctx:
+                click.echo(ctx.get_help())
             sys.exit(0)
         used_interactive_selection = True
 

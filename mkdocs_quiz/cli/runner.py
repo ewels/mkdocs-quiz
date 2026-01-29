@@ -238,7 +238,7 @@ ADMONITION_STYLES: dict[str, tuple[str, str]] = {
 }
 
 
-def render_admonitions(text: str) -> list:
+def render_admonitions(text: str) -> list[Markdown | Panel]:
     """Parse and render Material admonitions as Rich panels.
 
     Handles both regular (!!!) and collapsible (??? and ???+) admonitions.
@@ -252,7 +252,7 @@ def render_admonitions(text: str) -> list:
     # Pattern for admonitions: !!! type "optional title" followed by indented content
     pattern = r'^(!{3}|\?{3}\+?) (\w+)(?: "([^"]*)")?\n((?:    .+(?:\n|$))+)'
 
-    renderables = []
+    renderables: list[Markdown | Panel] = []
     last_end = 0
 
     for match in re.finditer(pattern, text, re.MULTILINE):
@@ -289,7 +289,8 @@ def render_admonitions(text: str) -> list:
 
     # If no admonitions found, just return the text as markdown
     if not renderables:
-        return [Markdown(text)]
+        result: list[Markdown | Panel] = [Markdown(text)]
+        return result
 
     return renderables
 

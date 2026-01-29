@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 
 import questionary
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from .runner import console
 
