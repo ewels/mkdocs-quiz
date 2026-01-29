@@ -107,7 +107,7 @@ Take quizzes directly in your terminal:
 quiz
 
 # Run from a website URL
-mkdocs-quiz run https://ewels.github.io/mkdocs-quiz/multiple-choice/
+quiz run https://ewels.github.io/mkdocs-quiz/multiple-choice/
 
 # Run a specific file
 mkdocs-quiz run docs/quiz.md
