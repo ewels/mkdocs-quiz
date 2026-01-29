@@ -14,6 +14,8 @@ from rich.console import Console
 
 from mkdocs_quiz import __version__
 
+from .runner import shorten_path
+
 # Configure rich-click
 click.rich_click.USE_RICH_MARKUP = True
 click.rich_click.USE_MARKDOWN = True
@@ -134,11 +136,50 @@ def migrate_file(file_path: Path, dry_run: bool = False) -> tuple[int, bool]:
     return quiz_count, True
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.version_option(version=__version__, prog_name="mkdocs-quiz")
-def cli() -> None:
-    """MkDocs Quiz CLI - Tools for managing quizzes and translations."""
-    pass
+@click.pass_context
+def cli(ctx: click.Context) -> None:
+    """MkDocs Quiz CLI - Tools for managing quizzes and translations.
+
+    Run without arguments to interactively select and run a quiz.
+    """
+    # If no subcommand provided, run interactive quiz selection
+    if ctx.invoked_subcommand is None:
+        from .discovery import interactive_quiz_selection
+        from .runner import console, display_final_results, run_quiz_session
+
+        path = interactive_quiz_selection()
+        if path is None:
+            # User cancelled or no quizzes found - show help
+            click.echo(ctx.get_help())
+            sys.exit(0)
+
+        from .fetcher import fetch_quizzes
+
+        try:
+            quizzes = fetch_quizzes(path)
+        except FileNotFoundError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            sys.exit(1)
+        except ValueError as e:
+            console.print(f"[red]Error: {e}[/red]")
+            sys.exit(1)
+        except Exception as e:
+            console.print(f"[red]Error fetching quizzes: {e}[/red]")
+            sys.exit(1)
+
+        if not quizzes:
+            console.print("[yellow]No quizzes found.[/yellow]")
+            sys.exit(0)
+
+        try:
+            # show_header=False because header was already shown during interactive selection
+            correct, total = run_quiz_session(quizzes, quiz_path=path, show_header=False)
+            display_final_results(correct, total, quiz_path=path)
+        except KeyboardInterrupt:
+            console.print("\n")
+            sys.exit(0)
 
 
 @cli.command()
@@ -206,6 +247,115 @@ def migrate(directory: str, dry_run: bool) -> None:
         if dry_run:
             console.print()
             console.print("Run without --dry-run to apply changes")
+
+
+@cli.command()
+@click.option(
+    "-c",
+    "--clear",
+    is_flag=True,
+    help="Clear all quiz history.",
+)
+@click.option(
+    "--json",
+    "output_format",
+    flag_value="json",
+    help="Output history as JSON.",
+)
+@click.option(
+    "--yaml",
+    "output_format",
+    flag_value="yaml",
+    help="Output history as YAML.",
+)
+def history(clear: bool, output_format: str | None) -> None:
+    """Show quiz results history.
+
+    Displays a table of previously completed quizzes with their scores and dates.
+    """
+    import json
+
+    import yaml
+    from rich.table import Table
+
+    from .history import get_history_file, load_history
+
+    if clear:
+        history_file = get_history_file()
+        if history_file.exists():
+            history_file.unlink()
+            console.print("[green]Quiz history cleared.[/green]")
+        else:
+            console.print("[yellow]No history to clear.[/yellow]")
+        return
+
+    quiz_history = load_history()
+
+    if not quiz_history:
+        if output_format:
+            # Output empty data structure for machine-readable formats
+            click.echo("[]")
+        else:
+            console.print("[yellow]No quiz history found.[/yellow]")
+            console.print("[dim]Run some quizzes first![/dim]")
+        return
+
+    # Sort by timestamp (most recent first)
+    sorted_results = sorted(
+        quiz_history.values(),
+        key=lambda r: r.timestamp,
+        reverse=True,
+    )
+
+    # Handle machine-readable output formats
+    if output_format:
+        data = [
+            {
+                "quiz_path": r.quiz_path,
+                "correct": r.correct,
+                "total": r.total,
+                "percentage": r.percentage,
+                "timestamp": r.timestamp,
+            }
+            for r in sorted_results
+        ]
+        if output_format == "json":
+            click.echo(json.dumps(data, indent=2))
+        elif output_format == "yaml":
+            click.echo(yaml.dump(data, default_flow_style=False))
+        return
+
+    # Create table
+    table = Table(title="Quiz History")
+    table.add_column("Quiz", style="cyan", no_wrap=False)
+    table.add_column("Date", style="dim")
+    table.add_column("Score", justify="right")
+
+    for result in sorted_results:
+        # Format the date nicely
+        dt = result.datetime
+        date_str = dt.strftime("%Y-%m-%d %H:%M")
+
+        # Shorten path relative to home directory
+        quiz_path = shorten_path(result.quiz_path)
+
+        # Color the score based on percentage
+        if result.percentage >= 80:
+            score_style = "green"
+        elif result.percentage >= 60:
+            score_style = "yellow"
+        else:
+            score_style = "red"
+
+        table.add_row(
+            quiz_path,
+            date_str,
+            f"[{score_style}]{result.correct}/{result.total}[/{score_style}]",
+        )
+
+    console.print()
+    console.print(table)
+    console.print()
 
 
 # Export command group
@@ -762,7 +912,7 @@ def check_translations() -> None:
 
 
 @cli.command()
-@click.argument("path")
+@click.argument("path", required=False, default=None)
 @click.option(
     "-s",
     "--shuffle",
@@ -775,13 +925,18 @@ def check_translations() -> None:
     is_flag=True,
     help="Shuffle the order of answers within each question.",
 )
-def run(path: str, shuffle: bool, shuffle_answers: bool) -> None:
+def run(path: str | None, shuffle: bool, shuffle_answers: bool) -> None:
     """Run quizzes interactively in the terminal.
 
     PATH can be a local markdown file, a directory containing markdown files,
     or a URL to a page built with mkdocs-quiz (with embed_source enabled).
 
+    If no PATH is provided and you're in a git repository, an interactive
+    file picker will be shown to select a quiz file.
+
     Examples:
+
+        mkdocs-quiz run
 
         mkdocs-quiz run docs/quiz.md
 
@@ -789,8 +944,20 @@ def run(path: str, shuffle: bool, shuffle_answers: bool) -> None:
 
         mkdocs-quiz run https://example.com/docs/quiz/
     """
+    from .discovery import interactive_quiz_selection
     from .fetcher import fetch_quizzes
     from .runner import console, display_final_results, run_quiz_session
+
+    # If no path provided, try interactive selection
+    used_interactive_selection = False
+    if path is None:
+        path = interactive_quiz_selection()
+        if path is None:
+            # User cancelled or no quizzes found - show help
+            ctx = click.get_current_context()
+            click.echo(ctx.get_help())
+            sys.exit(0)
+        used_interactive_selection = True
 
     try:
         quizzes = fetch_quizzes(path)
@@ -813,10 +980,12 @@ def run(path: str, shuffle: bool, shuffle_answers: bool) -> None:
             quizzes,
             shuffle_questions=shuffle,
             shuffle_answers=shuffle_answers,
+            quiz_path=path,
+            show_header=not used_interactive_selection,
         )
 
         # Display final results
-        display_final_results(correct, total)
+        display_final_results(correct, total, quiz_path=path)
 
     except KeyboardInterrupt:
         console.print("\n")

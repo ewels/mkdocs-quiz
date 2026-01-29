@@ -141,6 +141,45 @@ def expand_anchor_links(text: str, source_file: str | None) -> str:
     return re.sub(r"\[([^\]]+)\]\((#[^)]+)\)", replace_anchor, text)
 
 
+def shorten_path(path: str) -> str:
+    """Shorten a file path by making it relative to home directory.
+
+    Args:
+        path: The file path to shorten.
+
+    Returns:
+        Shortened path with ~/ prefix if under home directory.
+    """
+    from pathlib import Path
+
+    try:
+        path_obj = Path(path)
+        if path_obj.is_relative_to(Path.home()):
+            return "~/" + str(path_obj.relative_to(Path.home()))
+    except (ValueError, TypeError):
+        pass
+    return path
+
+
+def strip_wrapping_backticks(text: str) -> str:
+    """Strip backticks if the entire text is wrapped in them.
+
+    Only removes backticks when the whole string is a single inline code span.
+    Does not affect text with backticks in the middle.
+
+    Args:
+        text: Text potentially wrapped in backticks.
+
+    Returns:
+        Text with wrapping backticks removed, or original text.
+    """
+    stripped = text.strip()
+    # Check if entire text is wrapped in backticks (single inline code span)
+    if stripped.startswith("`") and stripped.endswith("`") and stripped.count("`") == 2:
+        return stripped[1:-1]
+    return text
+
+
 def clean_markdown(text: str, source_file: str | None = None) -> str:
     """Clean markdown text for terminal rendering.
 
@@ -156,6 +195,7 @@ def clean_markdown(text: str, source_file: str | None = None) -> str:
     clean_text = strip_html_tags(text)
     clean_text = strip_inline_highlight_syntax(clean_text)
     clean_text = expand_anchor_links(clean_text, source_file)
+    clean_text = strip_wrapping_backticks(clean_text)
     return clean_text
 
 
@@ -320,6 +360,8 @@ def display_feedback(
                 )
             else:
                 answer_text = correct_answer
+            # Clean the answer text (strip HTML, highlight syntax, etc.)
+            answer_text = clean_markdown(answer_text, source_file)
             _print_with_border(
                 f"[red]✗ Incorrect[/red] — [italic]Correct answer:[/italic] {answer_text}", "red"
             )
@@ -379,13 +421,12 @@ def run_multiple_choice_quiz(quiz: Quiz, shuffle: bool = False) -> tuple[bool, l
     if shuffle:
         random.shuffle(answers)
 
-    # Create choice labels with letters only (no numbers)
-    # Note: questionary can't render markdown, so we use plain text for choices
+    # Create choice labels (questionary adds its own numbering)
+    # Note: questionary can't render markdown, so we clean the text for plain display
     choices = []
-    for i, answer in enumerate(answers):
-        letter = chr(ord("a") + i)
-        answer_text = strip_html_tags(answer.text)
-        choices.append(questionary.Choice(title=f"{letter}) {answer_text}", value=answer))
+    for answer in answers:
+        answer_text = clean_markdown(answer.text, source_file)
+        choices.append(questionary.Choice(title=answer_text, value=answer))
 
     # Determine if single or multiple choice
     correct_answers = quiz.correct_answers
@@ -408,7 +449,7 @@ def run_multiple_choice_quiz(quiz: Quiz, shuffle: bool = False) -> tuple[bool, l
         selected = questionary.select(
             "Select your answer:",
             choices=choices,
-            instruction="(Enter to select)",
+            instruction="(Number/arrows to select, Enter to submit)",
             use_shortcuts=True,
         ).unsafe_ask()
 
@@ -512,10 +553,64 @@ def run_single_quiz(quiz: Quiz, shuffle: bool = False) -> bool:
     return is_correct
 
 
+def display_quiz_header(quiz_path: str | None = None) -> None:
+    """Display the quiz header with branding and previous results.
+
+    Args:
+        quiz_path: Optional path to the quiz file for history lookup.
+    """
+    from rich.text import Text
+
+    from .history import format_time_ago, get_previous_result
+
+    # Header with branding
+    header = Text()
+    header.append("mkdocs-quiz", style="bold blue")
+    header.append(" • ", style="dim")
+    header.append(
+        "https://github.com/ewels/mkdocs-quiz",
+        style="dim link https://github.com/ewels/mkdocs-quiz",
+    )
+
+    console.print()
+    console.print(header)
+
+    # Show previous result if available
+    if quiz_path:
+        previous = get_previous_result(quiz_path)
+        if previous:
+            time_ago = format_time_ago(previous.datetime)
+            console.print(
+                f"[dim]You last did this quiz [bold]{time_ago}[/bold] "
+                f"and got [bold]{previous.correct}/{previous.total}[/bold] "
+                f"([bold]{previous.percentage:.0f}%[/bold])[/dim]"
+            )
+
+    console.print()
+    console.print(Rule(style="dim"))
+    console.print()
+
+
+def display_running_quiz(quiz_path: str) -> None:
+    """Display the 'Running quiz' message before starting.
+
+    Args:
+        quiz_path: Path to the quiz file being run.
+    """
+    display_path = shorten_path(quiz_path)
+    console.print(f"[bold]Running quiz:[/bold] [cyan]{display_path}[/cyan]")
+    console.print()
+    console.print(Rule(style="dim"))
+    console.print()
+    console.print()
+
+
 def run_quiz_session(
     quizzes: list[Quiz],
     shuffle_questions: bool = False,
     shuffle_answers: bool = False,
+    quiz_path: str | None = None,
+    show_header: bool = True,
 ) -> tuple[int, int]:
     """Run an interactive quiz session.
 
@@ -523,6 +618,8 @@ def run_quiz_session(
         quizzes: List of Quiz objects to run.
         shuffle_questions: Whether to randomize question order.
         shuffle_answers: Whether to randomize answer order.
+        quiz_path: Optional path to the quiz file for history tracking.
+        show_header: Whether to show the quiz header (set False if already shown).
 
     Returns:
         Tuple of (correct_count, total_count).
@@ -540,9 +637,13 @@ def run_quiz_session(
     correct = 0
     answered = 0
 
-    console.print()
-    console.print(Rule(style="dim"))
-    console.print()
+    # Display header with branding and previous results (unless already shown)
+    if show_header:
+        display_quiz_header(quiz_path)
+
+    # Show which quiz is being run
+    if quiz_path:
+        display_running_quiz(quiz_path)
 
     for i, quiz in enumerate(quizzes):
         # Display header
@@ -557,15 +658,22 @@ def run_quiz_session(
     return correct, total
 
 
-def display_final_results(correct: int, total: int) -> None:
-    """Display the final quiz results.
+def display_final_results(correct: int, total: int, quiz_path: str | None = None) -> None:
+    """Display the final quiz results and save to history.
 
     Args:
         correct: Number of correct answers.
         total: Total number of questions.
+        quiz_path: Optional path to the quiz file for history saving.
     """
     if total == 0:
         return
+
+    # Save result to history
+    if quiz_path:
+        from .history import save_result
+
+        save_result(quiz_path, correct, total)
 
     incorrect = total - correct
     percentage = (correct / total) * 100
@@ -598,6 +706,11 @@ def display_final_results(correct: int, total: int) -> None:
     info.append(f"✓ Correct:   {correct}\n", style="green")
     info.append(f"✗ Incorrect: {incorrect}\n\n", style="red")
     info.append(message)
+    info.append("\n\n")
+    info.append("Tip: Run ", style="dim")
+    info.append("mkdocs-quiz history", style="dim bold")
+    info.append(" to see all your past results", style="dim")
+    info.append("\n")
 
     content = Group(
         Align.center(score_label),
@@ -605,6 +718,18 @@ def display_final_results(correct: int, total: int) -> None:
         Align.center(info),
     )
 
+    # Build panel with quiz path in footer if available
+    subtitle = f"[cyan]{shorten_path(quiz_path)}[/cyan]" if quiz_path else None
+
     console.print()
-    console.print(Panel(content, title="Quiz Complete!", title_align="left", border_style="blue"))
+    console.print(
+        Panel(
+            content,
+            title="Quiz Complete!",
+            title_align="left",
+            subtitle=subtitle,
+            subtitle_align="right",
+            border_style="blue",
+        )
+    )
     console.print()
