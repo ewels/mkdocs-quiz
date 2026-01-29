@@ -11,7 +11,7 @@ Did you know: The Eiffel Tower grows by about 6 inches in the summer heat.
 </quiz>
 
 <quiz>
-```
+```python
 def myfunc(input):
    print(input)
 
