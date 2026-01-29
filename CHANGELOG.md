@@ -1,5 +1,17 @@
 # Changelog
 
+## **Version 1.5.2** (2026-01-29)
+
+### Bug Fixes
+
+- Fix `ModuleNotFoundError: No module named 'mkdocs_quiz.cli'` when installing from PyPI - [#37](https://github.com/ewels/mkdocs-quiz/pull/37)
+  - The `cli` and `qti` subpackages were not included in the wheel distribution
+  - Changed from explicit package list to automatic subpackage discovery in `pyproject.toml`
+
+### CI/CD
+
+- Add `test-wheel-install` job to test wheel installation and entry points in CI
+
 ## **Version 1.5.1** (2026-01-29)
 
 ### Bug Fixes
