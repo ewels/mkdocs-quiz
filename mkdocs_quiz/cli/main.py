@@ -321,7 +321,10 @@ def history(clear: bool, output_format: str | None) -> None:
         return
 
     # Create table
-    table = Table(title="Quiz History")
+    table = Table(
+        title="Quiz History",
+        caption="[dim link=https://ewels.github.io/mkdocs-quiz/]https://ewels.github.io/mkdocs-quiz/[/dim link]",
+    )
     table.add_column("Quiz", style="cyan", no_wrap=False)
     table.add_column("Date", style="dim")
     table.add_column("Score", justify="right")

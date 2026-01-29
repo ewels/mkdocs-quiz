@@ -75,21 +75,28 @@ class TestStripHtmlTags:
 class TestShortenPath:
     """Tests for shorten_path function."""
 
-    def test_shorten_home_path(self) -> None:
-        """Test shortening path under home directory."""
-        home = str(Path.home())
-        path = f"{home}/Documents/quiz.md"
+    def test_absolute_path_becomes_relative(self) -> None:
+        """Test that absolute paths become relative to cwd."""
+        import os
+
+        cwd = os.getcwd()
+        path = f"{cwd}/subdir/quiz.md"
         shortened = shorten_path(path)
-        assert shortened.startswith("~/")
-        assert "Documents/quiz.md" in shortened
+        assert shortened == "./subdir/quiz.md"
 
-    def test_non_home_path(self) -> None:
-        """Test path not under home directory."""
-        path = "/usr/local/share/quiz.md"
-        assert shorten_path(path) == path
+    def test_sibling_path_uses_dotdot(self) -> None:
+        """Test that sibling directory paths use ../"""
+        import os
 
-    def test_relative_path(self) -> None:
-        """Test relative path stays relative."""
+        # Parent dir + different subdir
+        parent = os.path.dirname(os.getcwd())
+        path = f"{parent}/other/quiz.md"
+        shortened = shorten_path(path)
+        assert shortened.startswith("../")
+        assert "other/quiz.md" in shortened
+
+    def test_relative_path_unchanged(self) -> None:
+        """Test relative path stays unchanged."""
         path = "relative/path/quiz.md"
         assert shorten_path(path) == path
 
