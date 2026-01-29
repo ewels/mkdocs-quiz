@@ -480,49 +480,60 @@ def run_fill_in_blank_quiz(quiz: Quiz) -> tuple[bool, list[str]]:
     Returns:
         Tuple of (is_correct, correct_answers).
     """
+    from io import StringIO
+
+    from rich.text import Text
+
     # Get source file path as string for link expansion
     source_file = str(quiz.source_file) if quiz.source_file else None
 
-    # Display question (blanks shown with styled placeholders)
+    # Display question with blanks shown as styled placeholders
     question_text = clean_markdown(quiz.question, source_file)
     num_blanks = len(quiz.blanks)
 
-    # Replace blank markers with styled text for display
-    # Handle both [[answer]] format (from URL fetch) and {{BLANK_N}} format (from local files)
-    display_question = question_text
+    # Use unique placeholder that survives markdown rendering
+    PLACEHOLDER = "XBLANKPLACEHOLDERX{}X"
 
     def make_blank_label(index: int) -> str:
-        """Create styled blank label."""
-        label = "[BLANK]" if num_blanks == 1 else f"[BLANK {index + 1}]"
-        return f"[magenta on black] {label} [/magenta on black]"
+        return "[BLANK]" if num_blanks == 1 else f"[BLANK {index + 1}]"
 
-    # Replace [[answer]] format
+    # Replace [[answer]] and {{BLANK_N}} formats with placeholders
+    display_text = question_text
     blank_index = 0
-    while re.search(r"\[\[[^\]]+\]\]", display_question):
-        display_question = re.sub(
-            r"\[\[[^\]]+\]\]",
-            make_blank_label(blank_index),
-            display_question,
-            count=1,
+    while re.search(r"\[\[[^\]]+\]\]", display_text):
+        display_text = re.sub(
+            r"\[\[[^\]]+\]\]", PLACEHOLDER.format(blank_index), display_text, count=1
         )
         blank_index += 1
-
-    # Replace {{BLANK_N}} format (from QTI extractor)
     for i in range(num_blanks):
-        display_question = display_question.replace(
-            f"{{{{BLANK_{i}}}}}",
-            make_blank_label(i),
-        )
+        display_text = display_text.replace(f"{{{{BLANK_{i}}}}}", PLACEHOLDER.format(i))
+
+    # Render markdown to capture string (preserves code blocks, formatting)
+    string_io = StringIO()
+    temp_console = Console(file=string_io, force_terminal=True, width=console.width)
+    if re.search(r"^(!{3}|\?{3}\+?) \w+", display_text, re.MULTILINE):
+        for item in render_admonitions(display_text):
+            temp_console.print(item)
+    else:
+        temp_console.print(Markdown(display_text))
+
+    # Replace placeholders with styled blank labels
+    result = Text.from_ansi(string_io.getvalue())
+    for i in range(num_blanks):
+        placeholder = PLACEHOLDER.format(i)
+        label = f" {make_blank_label(i)} "
+        while placeholder in result.plain:
+            start = result.plain.find(placeholder)
+            styled_blank = Text(label, style="magenta on black")
+            before, after = result[:start], result[start + len(placeholder) :]
+            result = Text()
+            result.append_text(before)
+            result.append_text(styled_blank)
+            result.append_text(after)
 
     console.print()
-    # For fill-in-blank, we use Text rendering to preserve Rich markup for blanks
-    # Check if there are admonitions first
-    if re.search(r"^(!{3}|\?{3}\+?) \w+", display_question, re.MULTILINE):
-        # Has admonitions - render with admonition support but blanks won't be styled
-        render_markdown_with_admonitions(display_question)
-    else:
-        # No admonitions - use console.print to render Rich markup for styled blanks
-        console.print(display_question)
+    result.rstrip()  # Modifies in-place
+    console.print(result)
     console.print()
 
     # Prompt for each blank
