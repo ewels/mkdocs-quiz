@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mkdocs_quiz"
-version = "1.5.1"
+version = "1.5.2"
 description = "A MkDocs plugin to create interactive quizzes in your markdown."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -69,8 +69,9 @@ mkdocs_quiz = "mkdocs_quiz.plugin:MkDocsQuizPlugin"
 mkdocs-quiz = "mkdocs_quiz.cli:main"
 quiz = "mkdocs_quiz.cli:main"
 
-[tool.setuptools]
-packages = ["mkdocs_quiz"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mkdocs_quiz", "mkdocs_quiz.*"]
 
 [tool.setuptools.package-data]
 mkdocs_quiz = ["css/*", "js/*", "js/vendor/*", "overrides/*", "locales/*.po", "locales/*.pot"]

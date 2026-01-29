@@ -66,3 +66,48 @@ jobs:
           name: playwright-screenshots-${{ matrix.python-version }}
           path: tests/screenshots/
           retention-days: 7
+
+  # Test that the built wheel installs correctly and entry points work
+  # This catches issues where subpackages aren't included in the distribution
+  test-wheel-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Install from wheel (not editable)
+        run: |
+          # Create a fresh virtual environment to test the wheel
+          python -m venv test-env
+          source test-env/bin/activate
+          # Install the built wheel (not editable mode)
+          pip install dist/*.whl
+
+      - name: Test CLI entry points
+        run: |
+          source test-env/bin/activate
+          # Test that the entry points work
+          mkdocs-quiz --version
+          quiz --version
+          mkdocs-quiz --help
+          quiz run --help
+          quiz translations --help
+          quiz export --help
+
+      - name: Test Python imports
+        run: |
+          source test-env/bin/activate
+          # Test that all subpackages are importable
+          python -c "from mkdocs_quiz.cli import main; print('CLI import OK')"
+          python -c "from mkdocs_quiz.qti import QTIExporter; print('QTI import OK')"
+          python -c "from mkdocs_quiz.plugin import MkDocsQuizPlugin; print('Plugin import OK')"
+          python -c "from mkdocs_quiz.translations import TranslationManager; print('Translations import OK')"
