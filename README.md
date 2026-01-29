@@ -112,6 +112,8 @@ mkdocs-quiz run https://ewels.github.io/mkdocs-quiz/examples/
 mkdocs-quiz run docs/quiz.md
 ```
 
+![CLI Demo](https://raw.githubusercontent.com/ewels/mkdocs-quiz/main/docs/assets/cli-demo.gif)
+
 See the [CLI Runner documentation](https://ewels.github.io/mkdocs-quiz/cli-runner/) for more details.
 
 ## Contributing
