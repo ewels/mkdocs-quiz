@@ -1,5 +1,14 @@
 # Changelog
 
+## **Version 1.5.3** (2026-01-29)
+
+### Improvements
+
+- Tweaked some behaviour in CLI history tracking - [#38](https://github.com/ewels/mkdocs-quiz/pull/38)
+  - History table now shows all attempts, not just the most recent
+  - Final results panel shows comparison with previous attempt (e.g., "↑ +2 vs last attempt")
+  - Quiz paths are now stored as absolute paths, so history works regardless of working directory
+
 ## **Version 1.5.2** (2026-01-29)
 
 ### Bug Fixes
