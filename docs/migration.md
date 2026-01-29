@@ -1,5 +1,5 @@
 ---
-title: Updating
+title: Migration Guide
 ---
 
 # Migration from Old Syntax

@@ -115,31 +115,31 @@ MkDocs is a **fast**, **simple** static site generator built with Python.
 
 </quiz>
 
-## Intro Text
+## Fill-in-the-Blank
 
-Add this comment to display an info message that explains that quiz results are saved to the browser's local storage and provides a "Reset quiz" button to clear all progress on the page.
-
-```markdown
-<!-- mkdocs-quiz intro -->
-```
-
-!!! info
-
-    <!-- mkdocs-quiz intro -->
-
-## Results Screen
-
-Add this comment to display a results box (complete with confetti :tada:):
+For questions where users type the answer, use double square brackets:
 
 ```markdown
-<!-- mkdocs-quiz results -->
+<quiz>
+The capital of France is [[Paris]].
+</quiz>
 ```
 
-<!-- mkdocs-quiz results -->
+<quiz>
+The capital of France is [[Paris]].
+</quiz>
 
-## Next steps
+!!! tip "Case Insensitive"
+Answers are case-insensitive, so "Paris", "paris", and "PARIS" are all accepted.
 
-- Check out [the examples](examples.md) to see more quiz variations
-- Read more about the [intro text](intro-text.md) and [results screen](results-screen.md)
-- Read about [auto numbering](auto-numbering.md)
-- Learn about [configuration options](configuration.md)
+See [Fill-in-the-Blank](fill-in-blank.md) for multiple blanks, content sections, and more.
+
+## Next Steps
+
+Now that you know the basics, explore further:
+
+- **[Multiple Choice](multiple-choice.md)** - Radio buttons, checkboxes, and answer syntax
+- **[Fill-in-the-Blank](fill-in-blank.md)** - Text input questions
+- **[Advanced Formatting](advanced-formatting.md)** - Code blocks, tables, and images in quizzes
+- **[Progress Tracking](progress-tracking.md)** - How quiz progress is saved
+- **[Configuration](configuration.md)** - All available options

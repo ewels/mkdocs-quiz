@@ -24,7 +24,7 @@ theme:
     - navigation.instant
     - navigation.top
     - navigation.tracking
-    - navigation.sections
+    - navigation.path
     - navigation.footer
     - search.share
     - toc.follow
@@ -53,20 +53,26 @@ markdown_extensions:
 
 nav:
   - Overview: index.md
-  - installation.md
-  - quick-start.md
-  - configuration.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: quick-start.md
+      - Configuration: configuration.md
+  - Writing Quizzes:
+      - Multiple Choice: multiple-choice.md
+      - Fill in the Blank: fill-in-blank.md
+      - Advanced Formatting: advanced-formatting.md
   - Features:
-      - examples.md
-      - intro-text.md
-      - results-screen.md
-      - auto-numbering.md
-      - shuffle-answers.md
-      - translations.md
-      - qti-export.md
-      - cli-runner.md
+      - Progress Tracking: progress-tracking.md
+      - Results Screen: results-screen.md
+      - Intro Text: intro-text.md
+      - Auto-Numbering: auto-numbering.md
+      - Answer Shuffling: shuffle-answers.md
+      - Translations: translations.md
+  - CLI & Tools:
+      - CLI Runner: cli-runner.md
+      - QTI Export: qti-export.md
+      - Migration Guide: migration.md
   - Contributing:
-      - Contributing guidelines: contributing.md
-      - contributing-translations.md
-  - updating.md
-  - changelog.md
+      - Development Guide: contributing.md
+      - Adding Translations: contributing-translations.md
+  - Changelog: changelog.md

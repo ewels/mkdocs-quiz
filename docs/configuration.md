@@ -29,9 +29,11 @@ plugins:
       show_progress: true             # Show progress tracker sidebar and mobile bar
       progress_sidebar_position: top  # Position of progress tracker: "top" or "bottom"
       confetti: true                  # Show confetti animation when all quizzes completed
+      embed_source: true              # Embed quiz source in HTML for CLI URL fetching
       language: en                    # Default language for quiz UI
       language_patterns: []           # Auto-detect language based on file paths
       custom_translations: {}         # Custom translation files
+      cli_run: {}                     # CLI runner menu configuration
 ```
 <!-- prettier-ignore-end -->
 
@@ -128,6 +130,41 @@ Useful for pages with substantial content where quizzes appear at the end. Only 
 **Type:** `bool` | **Default:** `true`
 
 Enables the confetti animation when all quizzes are completed with a score of 10% or higher. See [Results Screen](results-screen.md) for more details.
+
+### `embed_source`
+
+**Type:** `bool` | **Default:** `true`
+
+When enabled, embeds the original quiz markdown as HTML comments in the built site. This allows the [CLI Runner](cli-runner.md) to fetch and run quizzes from deployed MkDocs sites:
+
+```bash
+mkdocs-quiz run https://example.com/docs/quiz-page/
+```
+
+Set to `false` if you don't want quiz source code visible in your HTML output. Note that disabling this will prevent the CLI from running quizzes via URL.
+
+### `cli_run`
+
+**Type:** `dict` | **Default:** `{}`
+
+Defines a menu structure for the [CLI Runner](cli-runner.md) interactive mode. When set, running `mkdocs-quiz` without arguments displays a hierarchical menu to select quizzes.
+
+```yaml
+plugins:
+  - mkdocs_quiz:
+      cli_run:
+        "Module 1":
+          "Introduction": docs/module1/intro.md
+          "Quiz": docs/module1/quiz.md
+        "Module 2": docs/module2/quiz.md
+```
+
+You can nest categories to any depth. See [CLI Runner - Configuration](cli-runner.md#configuration) for complete documentation.
+
+!!! tip "Standalone Configuration"
+
+    You can also define `cli_run` in a separate `.mkdocs-quiz.yml` file at your project root.
+    This keeps your `mkdocs.yml` clean and works even without MkDocs installed.
 
 ### `language`
 

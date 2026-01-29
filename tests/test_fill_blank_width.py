@@ -40,7 +40,7 @@ def test_fill_blank_input_size_varies_by_answer_length(page: Page) -> None:
     The input for "Paris" (5 chars) should have a smaller size than
     the input for "Guido van Rossum" (16 chars).
     """
-    page.goto(f"{BASE_URL}/examples/")
+    page.goto(f"{BASE_URL}/fill-in-blank/")
     page.wait_for_selector(".quiz-blank-input")
 
     # Get all fill-in-the-blank inputs on the page
@@ -97,7 +97,7 @@ def test_fill_blank_input_size_varies_by_answer_length(page: Page) -> None:
 
 def test_fill_blank_input_has_size_attribute(page: Page) -> None:
     """Test that fill-in-the-blank inputs have a size attribute based on answer length."""
-    page.goto(f"{BASE_URL}/examples/")
+    page.goto(f"{BASE_URL}/fill-in-blank/")
     page.wait_for_selector(".quiz-blank-input")
 
     # Get the first fill-blank input
@@ -126,7 +126,7 @@ def test_fill_blank_input_has_size_attribute(page: Page) -> None:
 
 def test_fill_blank_visual_width_comparison(page: Page) -> None:
     """Visual test comparing actual rendered widths of inputs with different answer lengths."""
-    page.goto(f"{BASE_URL}/examples/")
+    page.goto(f"{BASE_URL}/fill-in-blank/")
     page.wait_for_selector(".quiz-blank-input")
 
     # Create screenshot directory if needed

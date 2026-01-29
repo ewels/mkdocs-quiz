@@ -36,12 +36,12 @@ If you entered mkdocs, you've come to the right place! <!-- (4)! -->
 4.  Additional content at the bottom that shows after the question has been answered (supports arbitrary markdown and HTML).
 
 <quiz>
-What's the best static site generator? <!-- (1)! -->
-- [x] mkdocs <!-- (2)! -->
-- [ ] Jekyll <!-- (3)! -->
+What's the best static site generator?
+- [x] mkdocs
+- [ ] Jekyll
 - [ ] Sphinx
 
-If you entered mkdocs, you've come to the right place! <!-- (4)! -->
+If you entered mkdocs, you've come to the right place!
 
 ![Random cat gif](https://cataas.com/cat/gif){ width="200" }
 </quiz>
@@ -49,6 +49,12 @@ If you entered mkdocs, you've come to the right place! <!-- (4)! -->
 !!! info
 
     <!-- mkdocs-quiz intro -->
+
+## Changelog
+
+See the [Changelog](changelog.md) for release history and updates.
+
+Migrating from pre-v1? The CLI can automatically update your quizzes to the new syntax. See the [Migration Guide](migration.md) for details.
 
 ## License
 

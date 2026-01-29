@@ -25,10 +25,9 @@ pip install -e ".[dev]"
 pre-commit install
 ```
 
-4. Test with the example site:
+4. Test with the documentation site:
 
 ```bash
-cd example
 mkdocs serve
 # Open http://127.0.0.1:8000 in your browser
 ```
@@ -102,12 +101,11 @@ pytest tests/test_plugin.py::test_single_choice_quiz
 - Use descriptive test function names starting with `test_`
 - Include docstrings explaining what each test validates
 
-### Testing with the Example Site
+### Testing with the Documentation Site
 
-Test your changes with the included example site:
+Test your changes with the documentation site:
 
 ```bash
-cd example
 mkdocs serve
 # Open http://127.0.0.1:8000 in your browser
 ```

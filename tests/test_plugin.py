@@ -1104,7 +1104,7 @@ answer-correct: Yes
         # Check that error message contains key information
         assert "mkdocs-quiz migrate docs/" in error_msg
         assert "v1 release" in error_msg
-        assert "ewels.github.io/mkdocs-quiz/updating" in error_msg
+        assert "ewels.github.io/mkdocs-quiz/migration" in error_msg
 
 
 def test_new_syntax_not_detected_as_old(
