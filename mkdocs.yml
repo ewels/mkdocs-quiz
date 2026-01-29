@@ -64,6 +64,7 @@ nav:
       - shuffle-answers.md
       - translations.md
       - qti-export.md
+      - cli-runner.md
   - Contributing:
       - Contributing guidelines: contributing.md
       - contributing-translations.md

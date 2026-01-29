@@ -18,6 +18,7 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - 💾 **Results saved** - Answers are saved to the browser's local storage
 - 🌐 **Internationalization** - Quiz elements support multi-lingual sites
 - 📤 **LMS Export** - Export quizzes to QTI format for Canvas, Blackboard, Moodle
+- 🖥️ **CLI Quiz Runner** - Take quizzes in your terminal, from local files or website URLs
 
 > [!TIP]
 > Check out the [examples page](https://ewels.github.io/mkdocs-quiz/examples/) to see the plugin in action.
@@ -95,6 +96,23 @@ Insert these placeholder comments for some intro text with a reset button and a 
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/ewels/mkdocs-quiz/main/docs/images/results_confetti.gif">
   <img src="https://raw.githubusercontent.com/ewels/mkdocs-quiz/main/docs/images/results_confetti.gif" alt="mkdocs-quiz">
 </picture>
+
+## CLI Quiz Runner
+
+Take quizzes directly in your terminal:
+
+```bash
+# Interactive mode - select from discovered quizzes in the current repository
+mkdocs-quiz
+
+# Run from a website URL
+mkdocs-quiz run https://ewels.github.io/mkdocs-quiz/examples/
+
+# Run a specific file
+mkdocs-quiz run docs/quiz.md
+```
+
+See the [CLI Runner documentation](https://ewels.github.io/mkdocs-quiz/cli-runner/) for more details.
 
 ## Contributing
 
