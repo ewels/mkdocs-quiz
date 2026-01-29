@@ -5,12 +5,13 @@
 ### New Features
 
 - **Interactive CLI quiz runner** - Take quizzes directly in your terminal - [#33](https://github.com/ewels/mkdocs-quiz/pull/33)
-  - Run `mkdocs-quiz` for interactive quiz selection from your repository
-  - Run `mkdocs-quiz run <path>` to run a specific quiz file
-  - Run `mkdocs-quiz run <url>` to take quizzes from any deployed MkDocs Quiz site
-  - Quiz history tracked locally with `mkdocs-quiz history`
+  - Run `quiz` (or `mkdocs-quiz`) for interactive quiz selection from your repository
+  - Run `quiz run <path>` to run a specific quiz file
+  - Run `quiz run <url>` to take quizzes from any deployed MkDocs Quiz site
+  - Quiz history tracked locally with `quiz history`
   - Configure quiz menus with `cli_run` in `mkdocs.yml` or `.mkdocs-quiz.yml`
   - Answer shuffling with `--shuffle` and `--shuffle-answers` options
+- **CLI alias** - `quiz` is now available as a shorter alias for `mkdocs-quiz` - [#34](https://github.com/ewels/mkdocs-quiz/pull/34)
 
 ### New Dependencies
 

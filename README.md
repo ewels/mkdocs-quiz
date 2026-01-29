@@ -103,10 +103,11 @@ Take quizzes directly in your terminal:
 
 ```bash
 # Interactive mode - select from discovered quizzes in the current repository
-mkdocs-quiz
+# (you can also use `mkdocs-quiz` instead of `quiz`)
+quiz
 
 # Run from a website URL
-mkdocs-quiz run https://ewels.github.io/mkdocs-quiz/examples/
+quiz run https://ewels.github.io/mkdocs-quiz/examples/
 
 # Run a specific file
 mkdocs-quiz run docs/quiz.md
