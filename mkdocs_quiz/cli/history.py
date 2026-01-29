@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import os
@@ -12,16 +11,11 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Length of hash prefix used for quiz keys. 16 hex chars = 64 bits,
-# giving ~4 billion possible keys before 50% collision probability.
-QUIZ_KEY_LENGTH = 16
-
 
 @dataclass
 class QuizResult:
     """A single quiz result."""
 
-    quiz_path: str
     correct: int
     total: int
     percentage: float
@@ -59,22 +53,6 @@ def get_history_dir() -> Path:
 def get_history_file() -> Path:
     """Get the path to the history JSON file."""
     return get_history_dir() / "history.json"
-
-
-def _get_quiz_key(quiz_path: str) -> str:
-    """Generate a unique key for a quiz path.
-
-    Uses a hash to handle long paths and special characters.
-
-    Args:
-        quiz_path: The path to the quiz file.
-
-    Returns:
-        A unique key string.
-    """
-    # Normalize the path and create a hash
-    normalized = os.path.normpath(quiz_path)
-    return hashlib.sha256(normalized.encode()).hexdigest()[:QUIZ_KEY_LENGTH]
 
 
 def load_history() -> dict[str, list[QuizResult]]:
@@ -124,7 +102,7 @@ def get_previous_result(quiz_path: str) -> QuizResult | None:
         Most recent QuizResult if found, None otherwise.
     """
     history = load_history()
-    key = _get_quiz_key(quiz_path)
+    key = os.path.abspath(quiz_path)
     results = history.get(key)
     if results:
         # Return the most recent result (last in list)
@@ -142,7 +120,7 @@ def get_all_results(quiz_path: str) -> list[QuizResult]:
         List of QuizResult objects, oldest first.
     """
     history = load_history()
-    key = _get_quiz_key(quiz_path)
+    key = os.path.abspath(quiz_path)
     return history.get(key, [])
 
 
@@ -155,11 +133,10 @@ def save_result(quiz_path: str, correct: int, total: int) -> None:
         total: Total number of questions.
     """
     history = load_history()
-    key = _get_quiz_key(quiz_path)
+    key = os.path.abspath(quiz_path)
 
     percentage = (correct / total * 100) if total > 0 else 0.0
     result = QuizResult(
-        quiz_path=quiz_path,
         correct=correct,
         total=total,
         percentage=percentage,

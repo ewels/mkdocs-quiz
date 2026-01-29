@@ -267,7 +267,7 @@ def history(clear: bool, output_format: str | None) -> None:
     import yaml  # type: ignore[import-untyped]
     from rich.table import Table
 
-    from .history import get_history_file, load_history
+    from .history import QuizResult, get_history_file, load_history
 
     if clear:
         history_file = get_history_file()
@@ -289,15 +289,16 @@ def history(clear: bool, output_format: str | None) -> None:
             console.print("[dim]Run some quizzes first![/dim]")
         return
 
-    # Flatten all results into a single list with their results
-    all_results = []
-    for results in quiz_history.values():
-        all_results.extend(results)
+    # Flatten all results into a list of (path, result) tuples
+    all_results: list[tuple[str, QuizResult]] = []
+    for quiz_path, results in quiz_history.items():
+        for result in results:
+            all_results.append((quiz_path, result))
 
     # Sort by timestamp (most recent first)
     sorted_results = sorted(
         all_results,
-        key=lambda r: r.timestamp,
+        key=lambda r: r[1].timestamp,
         reverse=True,
     )
 
@@ -305,13 +306,13 @@ def history(clear: bool, output_format: str | None) -> None:
     if output_format:
         data = [
             {
-                "quiz_path": r.quiz_path,
+                "quiz_path": path,
                 "correct": r.correct,
                 "total": r.total,
                 "percentage": r.percentage,
                 "timestamp": r.timestamp,
             }
-            for r in sorted_results
+            for path, r in sorted_results
         ]
         if output_format == "json":
             click.echo(json.dumps(data, indent=2))
@@ -325,18 +326,18 @@ def history(clear: bool, output_format: str | None) -> None:
     table.add_column("Date", style="dim")
     table.add_column("Score", justify="right")
 
-    for result in sorted_results:
+    for quiz_path, result in sorted_results:
         # Format the date nicely
         dt = result.datetime
         date_str = dt.strftime("%Y-%m-%d %H:%M")
 
-        # Shorten path relative to home directory
-        quiz_path = shorten_path(result.quiz_path)
+        # Shorten path relative to cwd or home directory
+        display_path = shorten_path(quiz_path)
 
         score_style = get_score_color(result.percentage)
 
         table.add_row(
-            quiz_path,
+            display_path,
             date_str,
             f"[{score_style}]{result.correct}/{result.total}[/{score_style}]",
         )
