@@ -18,6 +18,10 @@
 - `rich-click` - Beautiful CLI help formatting
 - `requests` - URL fetching for remote quizzes
 
+### Breaking Changes
+
+- **Minimum Python version raised to 3.9** (Python 3.8 reached end-of-life in October 2024)
+
 ## **Version 1.4.0** (2026-01-28)
 
 ### New Features
