@@ -153,35 +153,22 @@ def expand_anchor_links(text: str, source_file: str | None) -> str:
 
 
 def shorten_path(path: str) -> str:
-    """Shorten a file path for display.
-
-    Tries to make paths relative to cwd first, then falls back to ~/prefix.
+    """Shorten a file path for display as relative to cwd.
 
     Args:
         path: The file path to shorten.
 
     Returns:
-        Shortened path - relative to cwd, or with ~/ prefix if under home.
+        Shortened path relative to cwd, with ./ prefix if not starting with ../
     """
+    import os
     from pathlib import Path
 
-    path_obj = Path(path)
-    cwd = Path.cwd()
-    home = Path.home()
+    if not Path(path).is_absolute():
+        return path
 
-    # Try relative to current directory first
-    if path_obj.is_absolute():
-        try:
-            relative = path_obj.relative_to(cwd)
-            return "./" + str(relative)
-        except ValueError:
-            pass  # Not relative to cwd
-
-        # Fall back to ~/ if under home directory
-        if path_obj.is_relative_to(home):
-            return "~/" + str(path_obj.relative_to(home))
-
-    return path
+    relative = os.path.relpath(path)
+    return relative if relative.startswith("..") else "./" + relative
 
 
 def strip_wrapping_backticks(text: str) -> str:
