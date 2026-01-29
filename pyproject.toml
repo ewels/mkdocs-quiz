@@ -35,6 +35,9 @@ dependencies = [
     "mkdocs>=1.0.0",
     "importlib-resources>=5.0; python_version < '3.9'",
     "polib>=1.1.0",
+    "questionary>=2.0.0",
+    "requests>=2.25.0",
+    "rich-click>=1.7.0",
 ]
 
 [project.optional-dependencies]

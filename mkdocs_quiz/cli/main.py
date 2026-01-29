@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import argparse
 import re
 import sys
 from datetime import datetime, timezone
@@ -10,8 +9,18 @@ from pathlib import Path
 from typing import Any
 
 import polib
+import rich_click as click
+from rich.console import Console
 
 from mkdocs_quiz import __version__
+
+# Configure rich-click
+click.rich_click.USE_RICH_MARKUP = True
+click.rich_click.USE_MARKDOWN = True
+click.rich_click.SHOW_ARGUMENTS = True
+click.rich_click.GROUP_ARGUMENTS_OPTIONS = True
+
+console = Console()
 
 
 def convert_quiz_block(quiz_content: str) -> str:
@@ -97,7 +106,7 @@ def migrate_file(file_path: Path, dry_run: bool = False) -> tuple[int, bool]:
     try:
         content = file_path.read_text(encoding="utf-8")
     except Exception as e:
-        print(f"  Error reading {file_path}: {e}")
+        console.print(f"  [red]Error reading {file_path}: {e}[/red]")
         return 0, False
 
     # Pattern to match quiz blocks
@@ -125,38 +134,44 @@ def migrate_file(file_path: Path, dry_run: bool = False) -> tuple[int, bool]:
     return quiz_count, True
 
 
-def migrate(directory: str, dry_run: bool = False) -> None:
+@click.group()
+@click.version_option(version=__version__, prog_name="mkdocs-quiz")
+def cli() -> None:
+    """MkDocs Quiz CLI - Tools for managing quizzes and translations."""
+    pass
+
+
+@cli.command()
+@click.argument("directory", default="docs", type=click.Path(exists=True))
+@click.option(
+    "-n",
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be changed without modifying files.",
+)
+def migrate(directory: str, dry_run: bool) -> None:
     """Migrate quiz blocks from old syntax to new markdown-style syntax.
 
     Converts old question:/answer:/content: syntax to the new cleaner
     markdown checkbox syntax (- [x] / - [ ]).
-
-    Args:
-        directory: Directory to search for markdown files.
-        dry_run: Show what would be changed without modifying files.
     """
-    # Convert string to Path and validate
     dir_path = Path(directory)
 
-    if not dir_path.exists():
-        print(f"Error: Directory '{directory}' does not exist")
-        sys.exit(1)
-
     if not dir_path.is_dir():
-        print(f"Error: '{directory}' is not a directory")
+        console.print(f"[red]Error: '{directory}' is not a directory[/red]")
         sys.exit(1)
 
-    print("MkDocs Quiz Syntax Migration")
-    print(f"Searching for quiz blocks in: {dir_path}")
+    console.print("[bold]MkDocs Quiz Syntax Migration[/bold]")
+    console.print(f"Searching for quiz blocks in: {dir_path}")
     if dry_run:
-        print("DRY RUN MODE - No files will be modified")
-    print()
+        console.print("[yellow]DRY RUN MODE - No files will be modified[/yellow]")
+    console.print()
 
     # Find all markdown files
     md_files = list(dir_path.rglob("*.md"))
 
     if not md_files:
-        print("No markdown files found")
+        console.print("No markdown files found")
         sys.exit(0)
 
     total_files_modified = 0
@@ -170,38 +185,164 @@ def migrate(directory: str, dry_run: bool = False) -> None:
             total_quizzes += quiz_count
             quiz_text = "quiz" if quiz_count == 1 else "quizzes"
             if dry_run:
-                print(
-                    f"  Would convert {quiz_count} {quiz_text} in: {file_path.relative_to(dir_path)}"
+                console.print(
+                    f"  Would convert {quiz_count} {quiz_text} in: "
+                    f"{file_path.relative_to(dir_path)}"
                 )
             else:
-                print(f"  Converted {quiz_count} {quiz_text} in: {file_path.relative_to(dir_path)}")
+                console.print(
+                    f"  Converted {quiz_count} {quiz_text} in: {file_path.relative_to(dir_path)}"
+                )
 
-    print()
+    console.print()
     if total_files_modified == 0:
-        print("No quiz blocks found to migrate")
+        console.print("No quiz blocks found to migrate")
     else:
-        print("Migration complete!")
+        console.print("[green]Migration complete![/green]")
         action = "would be" if dry_run else "were"
-        print(f"  Files {action} modified: {total_files_modified}")
-        print(f"  Quizzes {action} converted: {total_quizzes}")
+        console.print(f"  Files {action} modified: {total_files_modified}")
+        console.print(f"  Quizzes {action} converted: {total_quizzes}")
 
         if dry_run:
-            print()
-            print("Run without --dry-run to apply changes")
+            console.print()
+            console.print("Run without --dry-run to apply changes")
 
 
-def init_translation(language: str, output: str | None = None) -> None:
-    """Initialize a new translation file from the template.
+# Export command group
+@cli.group()
+def export() -> None:
+    """Export quizzes to various formats."""
+    pass
 
-    Args:
-        language: Language code (e.g., 'fr', 'pt-BR').
-        output: Output path (defaults to {language}.po).
-    """
+
+@export.command("qti")
+@click.argument("path", default="docs", type=click.Path(exists=True))
+@click.option(
+    "-o",
+    "--output",
+    help="Output ZIP file path (default: quizzes.zip).",
+)
+@click.option(
+    "-q",
+    "--qti-version",
+    default="1.2",
+    type=click.Choice(["1.2", "2.1"]),
+    help="QTI version to export (default: 1.2 for widest compatibility).",
+)
+@click.option(
+    "-t",
+    "--title",
+    help="Title for the quiz package.",
+)
+@click.option(
+    "--no-recursive",
+    is_flag=True,
+    help="Don't search directories recursively.",
+)
+def export_qti(
+    path: str,
+    output: str | None,
+    qti_version: str,
+    title: str | None,
+    no_recursive: bool,
+) -> None:
+    """Export quizzes to QTI format for LMS import (Canvas, Blackboard, Moodle)."""
+    from .qti import (
+        QTIExporter,
+        QTIVersion,
+        extract_quizzes_from_directory,
+        extract_quizzes_from_file,
+    )
+    from .qti.models import QuizCollection
+
+    # Validate and parse QTI version
+    try:
+        qti_ver = QTIVersion.from_string(qti_version)
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+
+    # Convert path to Path object
+    source_path = Path(path)
+
+    console.print(f"[bold]MkDocs Quiz QTI Export (version {qti_ver})[/bold]")
+    console.print(f"Source: {source_path}")
+    console.print()
+
+    # Extract quizzes
+    if source_path.is_file():
+        if source_path.suffix.lower() != ".md":
+            console.print(f"[red]Error: File must be a markdown file (.md): {source_path}[/red]")
+            sys.exit(1)
+
+        quizzes = extract_quizzes_from_file(source_path)
+        collection = QuizCollection(
+            title=title or source_path.stem,
+            quizzes=quizzes,
+            description=f"Exported from {source_path.name}",
+        )
+    else:
+        collection = extract_quizzes_from_directory(
+            source_path,
+            recursive=not no_recursive,
+        )
+        if title:
+            collection.title = title
+
+    # Check if we found any quizzes
+    if not collection.quizzes:
+        console.print("No quizzes found in the specified path")
+        sys.exit(0)
+
+    # Validate quizzes
+    errors = collection.validate()
+    if errors:
+        console.print("[yellow]Warning: Some quizzes have validation errors:[/yellow]")
+        for quiz_id, quiz_errors in errors.items():
+            for error in quiz_errors:
+                console.print(f"  - {quiz_id}: {error}")
+        console.print()
+
+    # Determine output path
+    if output is None:
+        output = "quizzes.zip"
+    output_path = Path(output)
+
+    # Ensure .zip extension
+    if output_path.suffix.lower() != ".zip":
+        output_path = output_path.with_suffix(".zip")
+
+    # Export
+    console.print(f"Found {collection.total_questions} quiz question(s):")
+    console.print(f"  - Single choice: {collection.single_choice_count}")
+    console.print(f"  - Multiple choice: {collection.multiple_choice_count}")
+    console.print()
+
+    exporter = QTIExporter.create(collection, qti_ver)
+    result_path = exporter.export_to_zip(output_path)
+
+    console.print(f"[green]Exported to: {result_path}[/green]")
+    console.print()
+    console.print("Import this ZIP file into your LMS (Canvas, Blackboard, Moodle, etc.)")
+
+
+# Translations command group
+@cli.group()
+def translations() -> None:
+    """Manage translation files."""
+    pass
+
+
+@translations.command("init")
+@click.argument("language")
+@click.option("-o", "--output", help="Output file path (default: {language}.po).")
+def init_translation(language: str, output: str | None) -> None:
+    """Initialize a new translation file from the template."""
     # Don't create en translation files - English is the fallback
     if language.lower() == "en":
-        print("Error: 'en' translation file is not needed")
-        print("English strings in the source code are used as the fallback.")
-        print("No translation file is required for English.")
+        console.print("[red]Error: 'en' translation file is not needed[/red]")
+        console.print("English strings in the source code are used as the fallback.")
+        console.print("No translation file is required for English.")
         sys.exit(1)
 
     # Get path to built-in template
@@ -215,8 +356,8 @@ def init_translation(language: str, output: str | None = None) -> None:
 
     # Check if file already exists
     if output_path.exists():
-        print("Error: File {output_path} already exists.")
-        sys.exit(0)
+        console.print(f"[red]Error: File {output_path} already exists.[/red]")
+        sys.exit(1)
 
     # Load template
     pot = polib.pofile(str(template_path))
@@ -234,8 +375,8 @@ def init_translation(language: str, output: str | None = None) -> None:
     # Save as new .po file
     pot.save(str(output_path))
 
-    print(f"Created {output_path}")
-    print("Edit the file to add translations, then configure in mkdocs.yml")
+    console.print(f"[green]Created {output_path}[/green]")
+    console.print("Edit the file to add translations, then configure in mkdocs.yml")
 
 
 def _get_translator_info() -> str | None:
@@ -440,6 +581,7 @@ def _extract_html_strings(html_file: Path, catalog: Any) -> int:
     return count
 
 
+@translations.command("update")
 def update_translations() -> None:
     """Extract strings from source and update all translation files.
 
@@ -453,8 +595,8 @@ def update_translations() -> None:
         from babel.messages.catalog import Catalog
         from babel.messages.pofile import write_po
     except ImportError:
-        print("Error: babel is required for updating translations")
-        print("Install with: pip install babel")
+        console.print("[red]Error: babel is required for updating translations[/red]")
+        console.print("Install with: pip install babel")
         sys.exit(1)
 
     # Get paths
@@ -463,7 +605,7 @@ def update_translations() -> None:
     pot_file = locales_dir / "mkdocs_quiz.pot"
 
     # Step 1: Extract strings from Python source code
-    print("Extracting strings from source code...")
+    console.print("Extracting strings from source code...")
     catalog = Catalog(project="mkdocs-quiz", version=__version__)
 
     # Extract from Python files using custom pattern
@@ -472,25 +614,25 @@ def update_translations() -> None:
     for py_file in py_files:
         count += _extract_python_strings(py_file, catalog)
 
-    print(f"✓ Extracted {count} strings from Python files")
+    console.print(f"[green]Extracted {count} strings from Python files[/green]")
 
     # Step 2: Extract strings from JavaScript files
     js_count = 0
     js_files = list(module_dir.glob("js/**/*.js"))
     if js_files:
-        print("Extracting strings from JavaScript files...")
+        console.print("Extracting strings from JavaScript files...")
         for js_file in js_files:
             js_count += _extract_js_strings(js_file, catalog)
-        print(f"✓ Extracted {js_count} strings from JavaScript files")
+        console.print(f"[green]Extracted {js_count} strings from JavaScript files[/green]")
 
     # Step 3: Extract strings from HTML template files
     html_count = 0
     html_files = list(module_dir.glob("overrides/**/*.html"))
     if html_files:
-        print("Extracting strings from HTML template files...")
+        console.print("Extracting strings from HTML template files...")
         for html_file in html_files:
             html_count += _extract_html_strings(html_file, catalog)
-        print(f"✓ Extracted {html_count} strings from HTML template files")
+        console.print(f"[green]Extracted {html_count} strings from HTML template files[/green]")
 
     total_count = count + js_count + html_count
 
@@ -510,11 +652,11 @@ def update_translations() -> None:
         del pot.metadata["Language-Team"]
     pot.save(str(pot_file))
 
-    print(f"✓ Total: {total_count} strings extracted to template")
+    console.print(f"[green]Total: {total_count} strings extracted to template[/green]")
 
     # Step 4: Update all .po files
     po_files = list(locales_dir.glob("*.po"))
-    print(f"Updating {len(po_files)} translation file(s)...")
+    console.print(f"Updating {len(po_files)} translation file(s)...")
     for po_file in po_files:
         # Use polib directly instead of babel for updating
         po = polib.pofile(str(po_file))
@@ -543,109 +685,11 @@ def update_translations() -> None:
 
         po.save(str(po_file))
 
-    print(f"✓ Updated {len(po_files)} file(s)")
-    print("Translate new strings and run 'mkdocs-quiz translations check' to verify")
+    console.print(f"[green]Updated {len(po_files)} file(s)[/green]")
+    console.print("Translate new strings and run 'mkdocs-quiz translations check' to verify")
 
 
-def export_qti(
-    path: str,
-    output: str | None = None,
-    qti_version: str = "1.2",
-    title: str | None = None,
-    recursive: bool = True,
-) -> None:
-    """Export quizzes to QTI format for LMS import.
-
-    Args:
-        path: Path to a markdown file or directory containing markdown files.
-        output: Output ZIP file path (default: quizzes.zip).
-        qti_version: QTI version to export (1.2 or 2.1).
-        title: Title for the quiz package.
-        recursive: Whether to search directories recursively.
-    """
-    from .qti import (
-        QTIExporter,
-        QTIVersion,
-        extract_quizzes_from_directory,
-        extract_quizzes_from_file,
-    )
-    from .qti.models import QuizCollection
-
-    # Validate and parse QTI version
-    try:
-        qti_ver = QTIVersion.from_string(qti_version)
-    except ValueError as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
-    # Convert path to Path object
-    source_path = Path(path)
-
-    if not source_path.exists():
-        print(f"Error: Path '{path}' does not exist")
-        sys.exit(1)
-
-    print(f"MkDocs Quiz QTI Export (version {qti_ver})")
-    print(f"Source: {source_path}")
-    print()
-
-    # Extract quizzes
-    if source_path.is_file():
-        if source_path.suffix.lower() != ".md":
-            print(f"Error: File must be a markdown file (.md): {source_path}")
-            sys.exit(1)
-
-        quizzes = extract_quizzes_from_file(source_path)
-        collection = QuizCollection(
-            title=title or source_path.stem,
-            quizzes=quizzes,
-            description=f"Exported from {source_path.name}",
-        )
-    else:
-        collection = extract_quizzes_from_directory(
-            source_path,
-            recursive=recursive,
-        )
-        if title:
-            collection.title = title
-
-    # Check if we found any quizzes
-    if not collection.quizzes:
-        print("No quizzes found in the specified path")
-        sys.exit(0)
-
-    # Validate quizzes
-    errors = collection.validate()
-    if errors:
-        print("Warning: Some quizzes have validation errors:")
-        for quiz_id, quiz_errors in errors.items():
-            for error in quiz_errors:
-                print(f"  - {quiz_id}: {error}")
-        print()
-
-    # Determine output path
-    if output is None:
-        output = "quizzes.zip"
-    output_path = Path(output)
-
-    # Ensure .zip extension
-    if output_path.suffix.lower() != ".zip":
-        output_path = output_path.with_suffix(".zip")
-
-    # Export
-    print(f"Found {collection.total_questions} quiz question(s):")
-    print(f"  - Single choice: {collection.single_choice_count}")
-    print(f"  - Multiple choice: {collection.multiple_choice_count}")
-    print()
-
-    exporter = QTIExporter.create(collection, qti_ver)
-    result_path = exporter.export_to_zip(output_path)
-
-    print(f"✓ Exported to: {result_path}")
-    print()
-    print("Import this ZIP file into your LMS (Canvas, Blackboard, Moodle, etc.)")
-
-
+@translations.command("check")
 def check_translations() -> None:
     """Check translation completeness and validity."""
     module_dir = Path(__file__).parent
@@ -659,7 +703,7 @@ def check_translations() -> None:
     # Find all .po files (excluding en if it exists)
     po_files = [f for f in locales_dir.glob("*.po") if f.stem.lower() != "en"]
 
-    print("Checking translation files...\n")
+    console.print("[bold]Checking translation files...[/bold]\n")
 
     all_valid = True
     for po_file in po_files:
@@ -681,171 +725,107 @@ def check_translations() -> None:
 
         percentage = (translated / total * 100) if total > 0 else 0
 
-        print(f"Language: {language}")
-        print(f"  File: {po_file.name}")
-        print(f"  Total strings: {total}")
-        print(f"  Translated: {translated} ({percentage:.1f}%)")
-        print(f"  Untranslated: {untranslated}")
-        print(f"  Fuzzy: {fuzzy}")
-        print(f"  Obsolete: {obsolete}")
+        console.print(f"[bold]Language: {language}[/bold]")
+        console.print(f"  File: {po_file.name}")
+        console.print(f"  Total strings: {total}")
+        console.print(f"  Translated: {translated} ({percentage:.1f}%)")
+        console.print(f"  Untranslated: {untranslated}")
+        console.print(f"  Fuzzy: {fuzzy}")
+        console.print(f"  Obsolete: {obsolete}")
 
         if missing_strings:
-            print(f"  Missing: {len(missing_strings)} (not in .po file)")
+            console.print(f"  Missing: {len(missing_strings)} (not in .po file)")
             all_valid = False
 
         if untranslated > 0 or fuzzy > 0 or obsolete > 0 or missing_strings:
             all_valid = False
             if missing_strings:
-                print("  Status: ⚠️  Missing strings from source code")
-                print("  Fix: Run 'mkdocs-quiz translations update' to sync")
+                console.print("  Status: [yellow]Missing strings from source code[/yellow]")
+                console.print("  Fix: Run 'mkdocs-quiz translations update' to sync")
             elif obsolete > 0:
-                print("  Status: ⚠️  Has obsolete entries (orphaned translation keys)")
-                print("  Fix: Remove obsolete entries marked with #~ prefix")
+                console.print(
+                    "  Status: [yellow]Has obsolete entries (orphaned translation keys)[/yellow]"
+                )
+                console.print("  Fix: Remove obsolete entries marked with #~ prefix")
             else:
-                print("  Status: ⚠️  Incomplete")
+                console.print("  Status: [yellow]Incomplete[/yellow]")
         else:
-            print("  Status: ✓ Complete")
+            console.print("  Status: [green]Complete[/green]")
 
-        print()
+        console.print()
 
     if not all_valid:
-        print("Some translation files are incomplete or have errors")
+        console.print("[red]Some translation files are incomplete or have errors[/red]")
         sys.exit(1)
     else:
-        print("All translation files are complete!")
+        console.print("[green]All translation files are complete![/green]")
+
+
+@cli.command()
+@click.argument("path")
+@click.option(
+    "-s",
+    "--shuffle",
+    is_flag=True,
+    help="Shuffle the order of questions.",
+)
+@click.option(
+    "-a",
+    "--shuffle-answers",
+    is_flag=True,
+    help="Shuffle the order of answers within each question.",
+)
+def run(path: str, shuffle: bool, shuffle_answers: bool) -> None:
+    """Run quizzes interactively in the terminal.
+
+    PATH can be a local markdown file, a directory containing markdown files,
+    or a URL to a page built with mkdocs-quiz (with embed_source enabled).
+
+    Examples:
+
+        mkdocs-quiz run docs/quiz.md
+
+        mkdocs-quiz run docs/
+
+        mkdocs-quiz run https://example.com/docs/quiz/
+    """
+    from .fetcher import fetch_quizzes
+    from .runner import console, display_final_results, run_quiz_session
+
+    try:
+        quizzes = fetch_quizzes(path)
+    except FileNotFoundError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Error fetching quizzes: {e}[/red]")
+        sys.exit(1)
+
+    if not quizzes:
+        console.print("[yellow]No quizzes found.[/yellow]")
+        sys.exit(0)
+
+    try:
+        correct, total = run_quiz_session(
+            quizzes,
+            shuffle_questions=shuffle,
+            shuffle_answers=shuffle_answers,
+        )
+
+        # Display final results
+        display_final_results(correct, total)
+
+    except KeyboardInterrupt:
+        console.print("\n")
+        sys.exit(0)
 
 
 def main() -> None:
     """Main entry point for the CLI."""
-    parser = argparse.ArgumentParser(
-        prog="mkdocs-quiz",
-        description="MkDocs Quiz CLI - Tools for managing quizzes and translations",
-    )
-
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Migrate subcommand
-    migrate_parser = subparsers.add_parser(
-        "migrate",
-        help="Migrate quiz blocks from old syntax to new markdown-style syntax",
-    )
-    migrate_parser.add_argument(
-        "directory",
-        nargs="?",
-        default="docs",
-        help="Directory to search for markdown files (default: docs)",
-    )
-    migrate_parser.add_argument(
-        "-n",
-        "--dry-run",
-        action="store_true",
-        help="Show what would be changed without modifying files",
-    )
-
-    # Export subcommand group
-    export_parser = subparsers.add_parser(
-        "export",
-        help="Export quizzes to various formats",
-    )
-    export_subparsers = export_parser.add_subparsers(
-        dest="export_command",
-        help="Export format commands",
-    )
-
-    # export qti
-    export_qti_parser = export_subparsers.add_parser(
-        "qti",
-        help="Export quizzes to QTI format for LMS import (Canvas, Blackboard, Moodle)",
-    )
-    export_qti_parser.add_argument(
-        "path",
-        nargs="?",
-        default="docs",
-        help="Markdown file or directory to export from (default: docs)",
-    )
-    export_qti_parser.add_argument(
-        "-o",
-        "--output",
-        help="Output ZIP file path (default: quizzes.zip)",
-    )
-    export_qti_parser.add_argument(
-        "-q",
-        "--qti-version",
-        default="1.2",
-        choices=["1.2", "2.1"],
-        dest="qti_version",
-        help="QTI version to export (default: 1.2 for widest compatibility)",
-    )
-    export_qti_parser.add_argument(
-        "-t",
-        "--title",
-        help="Title for the quiz package",
-    )
-    export_qti_parser.add_argument(
-        "--no-recursive",
-        action="store_true",
-        help="Don't search directories recursively",
-    )
-
-    # Translations subcommand group
-    translations_parser = subparsers.add_parser(
-        "translations",
-        help="Manage translation files",
-    )
-    translations_subparsers = translations_parser.add_subparsers(
-        dest="translations_command",
-        help="Translation commands",
-    )
-
-    # translations init
-    init_parser = translations_subparsers.add_parser(
-        "init",
-        help="Initialize a new translation file",
-    )
-    init_parser.add_argument("language", help="Language code (e.g., fr, pt-BR)")
-    init_parser.add_argument("-o", "--output", help="Output file path (default: {language}.po)")
-
-    # translations update
-    translations_subparsers.add_parser(
-        "update",
-        help="Extract strings and update all translation files",
-    )
-
-    # translations check
-    translations_subparsers.add_parser(
-        "check",
-        help="Check translation completeness",
-    )
-
-    args = parser.parse_args()
-
-    if args.command == "migrate":
-        migrate(args.directory, dry_run=args.dry_run)
-    elif args.command == "export":
-        if args.export_command == "qti":
-            export_qti(
-                path=args.path,
-                output=args.output,
-                qti_version=args.qti_version,
-                title=args.title,
-                recursive=not args.no_recursive,
-            )
-        else:
-            export_parser.print_help()
-            sys.exit(1)
-    elif args.command == "translations":
-        if args.translations_command == "init":
-            init_translation(language=args.language, output=args.output)
-        elif args.translations_command == "update":
-            update_translations()
-        elif args.translations_command == "check":
-            check_translations()
-        else:
-            translations_parser.print_help()
-            sys.exit(1)
-    else:
-        parser.print_help()
-        sys.exit(1)
+    cli()
 
 
 if __name__ == "__main__":
