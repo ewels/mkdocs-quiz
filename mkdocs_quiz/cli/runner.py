@@ -153,20 +153,34 @@ def expand_anchor_links(text: str, source_file: str | None) -> str:
 
 
 def shorten_path(path: str) -> str:
-    """Shorten a file path by making it relative to home directory.
+    """Shorten a file path for display.
+
+    Tries to make paths relative to cwd first, then falls back to ~/prefix.
 
     Args:
         path: The file path to shorten.
 
     Returns:
-        Shortened path with ~/ prefix if under home directory.
+        Shortened path - relative to cwd, or with ~/ prefix if under home.
     """
     from pathlib import Path
 
     path_obj = Path(path)
+    cwd = Path.cwd()
     home = Path.home()
-    if path_obj.is_absolute() and path_obj.is_relative_to(home):
-        return "~/" + str(path_obj.relative_to(home))
+
+    # Try relative to current directory first
+    if path_obj.is_absolute():
+        try:
+            relative = path_obj.relative_to(cwd)
+            return "./" + str(relative)
+        except ValueError:
+            pass  # Not relative to cwd
+
+        # Fall back to ~/ if under home directory
+        if path_obj.is_relative_to(home):
+            return "~/" + str(path_obj.relative_to(home))
+
     return path
 
 
@@ -588,6 +602,28 @@ def run_single_quiz(quiz: Quiz, shuffle: bool = False) -> bool:
     return is_correct
 
 
+def _print_previous_result(quiz_path: str | None) -> None:
+    """Print previous result info if available.
+
+    Args:
+        quiz_path: Path to the quiz file for history lookup.
+    """
+    if not quiz_path:
+        return
+
+    from .history import format_time_ago, get_previous_result
+
+    previous = get_previous_result(quiz_path)
+    if previous:
+        time_ago = format_time_ago(previous.datetime)
+        console.print()
+        console.print(
+            f"You last did this quiz [bold]{time_ago}[/bold] "
+            f"and got [bold]{previous.correct}/{previous.total}[/bold] "
+            f"([bold]{previous.percentage:.0f}%[/bold])"
+        )
+
+
 def display_quiz_header(quiz_path: str | None = None) -> None:
     """Display the quiz header with branding and previous results.
 
@@ -595,8 +631,6 @@ def display_quiz_header(quiz_path: str | None = None) -> None:
         quiz_path: Optional path to the quiz file for history lookup.
     """
     from rich.text import Text
-
-    from .history import format_time_ago, get_previous_result
 
     # Header with branding
     header = Text()
@@ -609,17 +643,7 @@ def display_quiz_header(quiz_path: str | None = None) -> None:
 
     console.print()
     console.print(header)
-
-    # Show previous result if available
-    if quiz_path:
-        previous = get_previous_result(quiz_path)
-        if previous:
-            time_ago = format_time_ago(previous.datetime)
-            console.print(
-                f"[dim]You last did this quiz [bold]{time_ago}[/bold] "
-                f"and got [bold]{previous.correct}/{previous.total}[/bold] "
-                f"([bold]{previous.percentage:.0f}%[/bold])[/dim]"
-            )
+    _print_previous_result(quiz_path)
 
     console.print()
     console.print(Rule(style="dim"))
@@ -633,7 +657,10 @@ def display_running_quiz(quiz_path: str) -> None:
         quiz_path: Path to the quiz file being run.
     """
     display_path = shorten_path(quiz_path)
+    console.print()
     console.print(f"[bold]Running quiz:[/bold] [cyan]{display_path}[/cyan]")
+    _print_previous_result(quiz_path)
+
     console.print()
     console.print(Rule(style="dim"))
     console.print()
@@ -705,10 +732,12 @@ def display_final_results(correct: int, total: int, quiz_path: str | None = None
     if total == 0:
         return
 
-    # Save result to history
+    # Get previous result before saving new one (for comparison display)
+    previous_result = None
     if quiz_path:
-        from .history import save_result
+        from .history import get_previous_result, save_result
 
+        previous_result = get_previous_result(quiz_path)
         save_result(quiz_path, correct, total)
 
     incorrect = total - correct
@@ -741,6 +770,22 @@ def display_final_results(correct: int, total: int, quiz_path: str | None = None
     info.append(f"✗ Incorrect: {incorrect}\n\n", style="red")
     info.append(message)
     info.append("\n\n")
+
+    # Show comparison with previous result if available
+    if previous_result:
+        from .history import format_time_ago
+
+        diff = correct - previous_result.correct
+        time_ago = format_time_ago(previous_result.datetime)
+        if diff > 0:
+            info.append(f"↑ +{diff} vs last attempt", style="bold green")
+        elif diff < 0:
+            info.append(f"↓ {diff} vs last attempt", style="bold red")
+        else:
+            info.append("Same as last attempt")
+        info.append(f" ({previous_result.correct}/{previous_result.total}, {time_ago})")
+        info.append("\n")
+
     info.append("Tip: Run ", style="dim")
     info.append("mkdocs-quiz history", style="dim bold")
     info.append(" to see all your past results", style="dim")

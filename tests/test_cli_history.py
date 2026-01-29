@@ -7,10 +7,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 from mkdocs_quiz.cli.history import (
-    QUIZ_KEY_LENGTH,
     QuizResult,
-    _get_quiz_key,
     format_time_ago,
+    get_all_results,
     get_history_dir,
     get_history_file,
     get_previous_result,
@@ -26,13 +25,11 @@ class TestQuizResult:
     def test_create_result(self) -> None:
         """Test creating a QuizResult."""
         result = QuizResult(
-            quiz_path="/path/to/quiz.md",
             correct=8,
             total=10,
             percentage=80.0,
             timestamp="2024-01-15T10:30:00+00:00",
         )
-        assert result.quiz_path == "/path/to/quiz.md"
         assert result.correct == 8
         assert result.total == 10
         assert result.percentage == 80.0
@@ -42,47 +39,13 @@ class TestQuizResult:
         from dataclasses import asdict
 
         result = QuizResult(
-            quiz_path="/path/to/quiz.md",
             correct=5,
             total=5,
             percentage=100.0,
             timestamp="2024-01-15T10:30:00+00:00",
         )
         d = asdict(result)
-        assert d["quiz_path"] == "/path/to/quiz.md"
         assert d["correct"] == 5
-
-
-class TestGetQuizKey:
-    """Tests for _get_quiz_key function."""
-
-    def test_key_length(self) -> None:
-        """Test that key has correct length."""
-        key = _get_quiz_key("/some/path/to/quiz.md")
-        assert len(key) == QUIZ_KEY_LENGTH
-
-    def test_key_is_hex(self) -> None:
-        """Test that key is valid hex string."""
-        key = _get_quiz_key("/some/path.md")
-        assert all(c in "0123456789abcdef" for c in key)
-
-    def test_same_path_same_key(self) -> None:
-        """Test that same path produces same key."""
-        path = "/path/to/quiz.md"
-        assert _get_quiz_key(path) == _get_quiz_key(path)
-
-    def test_different_paths_different_keys(self) -> None:
-        """Test that different paths produce different keys."""
-        key1 = _get_quiz_key("/path/one.md")
-        key2 = _get_quiz_key("/path/two.md")
-        assert key1 != key2
-
-    def test_normalizes_path(self) -> None:
-        """Test that paths are normalized."""
-        # These should produce the same key
-        key1 = _get_quiz_key("/path/to/quiz.md")
-        key2 = _get_quiz_key("/path/to/../to/quiz.md")
-        assert key1 == key2
 
 
 class TestHistoryDir:
@@ -122,18 +85,18 @@ class TestLoadSaveHistory:
         """Test saving and loading history."""
         with patch.dict("os.environ", {"XDG_DATA_HOME": str(tmp_path)}):
             result = QuizResult(
-                quiz_path="/test.md",
                 correct=5,
                 total=10,
                 percentage=50.0,
                 timestamp="2024-01-15T10:30:00+00:00",
             )
-            history = {"test_key": result}
+            history = {"/test.md": [result]}
             save_history(history)
 
             loaded = load_history()
-            assert "test_key" in loaded
-            assert loaded["test_key"].correct == 5
+            assert "/test.md" in loaded
+            assert len(loaded["/test.md"]) == 1
+            assert loaded["/test.md"][0].correct == 5
 
     def test_load_corrupted_history(self, tmp_path: Path) -> None:
         """Test loading corrupted history file returns empty dict."""
@@ -161,15 +124,22 @@ class TestSaveResult:
             assert result.total == 10
             assert result.percentage == 70.0
 
-    def test_save_result_overwrites(self, tmp_path: Path) -> None:
-        """Test that saving overwrites previous result."""
+    def test_save_result_appends(self, tmp_path: Path) -> None:
+        """Test that saving appends to history (keeps all results)."""
         with patch.dict("os.environ", {"XDG_DATA_HOME": str(tmp_path)}):
             save_result("/path/to/quiz.md", correct=5, total=10)
             save_result("/path/to/quiz.md", correct=10, total=10)
 
+            # get_previous_result returns the most recent
             result = get_previous_result("/path/to/quiz.md")
             assert result is not None
             assert result.correct == 10
+
+            # get_all_results returns all results
+            all_results = get_all_results("/path/to/quiz.md")
+            assert len(all_results) == 2
+            assert all_results[0].correct == 5
+            assert all_results[1].correct == 10
 
 
 class TestGetPreviousResult:
