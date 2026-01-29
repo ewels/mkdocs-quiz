@@ -1,5 +1,11 @@
 # Changelog
 
+## **Version 1.5.1** (2026-01-29)
+
+### Bug Fixes
+
+- Fix CLI markdown rendering for fill-in-blank quizzes - code blocks now render properly instead of showing raw fence markers
+
 ## **Version 1.5.0** (2026-01-29)
 
 ### New Features
