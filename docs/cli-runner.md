@@ -78,7 +78,7 @@ quiz run docs/quizzes/
 Run quizzes from any deployed MkDocs Quiz site:
 
 ```bash
-quiz run https://ewels.github.io/mkdocs-quiz/examples/
+mkdocs-quiz run https://ewels.github.io/mkdocs-quiz/multiple-choice/
 ```
 
 The CLI extracts quiz content from the rendered HTML page using special source comments that MkDocs Quiz embeds during build.

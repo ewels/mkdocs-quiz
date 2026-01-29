@@ -21,7 +21,7 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - 🖥️ **CLI Quiz Runner** - Take quizzes in your terminal, from local files or website URLs
 
 > [!TIP]
-> Check out the [examples page](https://ewels.github.io/mkdocs-quiz/examples/) to see the plugin in action.
+> Check out the [documentation](https://ewels.github.io/mkdocs-quiz/) to see the plugin in action.
 
 ```markdown
 <quiz>
@@ -107,7 +107,7 @@ Take quizzes directly in your terminal:
 quiz
 
 # Run from a website URL
-quiz run https://ewels.github.io/mkdocs-quiz/examples/
+mkdocs-quiz run https://ewels.github.io/mkdocs-quiz/multiple-choice/
 
 # Run a specific file
 mkdocs-quiz run docs/quiz.md

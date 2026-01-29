@@ -644,7 +644,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
                         mkdocs-quiz migrate docs/
 
-                    Read more: https://ewels.github.io/mkdocs-quiz/updating/
+                    Read more: https://ewels.github.io/mkdocs-quiz/migration/
                     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                     """
                 ).strip()

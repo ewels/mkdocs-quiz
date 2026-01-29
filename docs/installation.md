@@ -28,7 +28,7 @@ It's designed to work with [mkdocs-material](https://squidfunk.github.io/mkdocs-
     Or to install globally:
 
     ```bash
-    uv pip install mkdocs-quiz
+    uv tool install mkdocs-quiz
     ```
 
 === "GitHub"
