@@ -302,6 +302,15 @@ When writing tests:
 The plugin includes a CLI tool for various tasks:
 
 ```bash
+# Interactive quiz runner (default command)
+mkdocs-quiz                                  # Interactive selection from config or git repo
+mkdocs-quiz run docs/quiz.md                 # Run specific file
+mkdocs-quiz run https://example.com/quiz/    # Run from deployed site
+
+# View quiz history
+mkdocs-quiz history                          # Show past quiz results
+mkdocs-quiz history --clear                  # Clear history
+
 # Migrate quizzes from old question:/answer: syntax to new markdown checkbox syntax
 mkdocs-quiz migrate docs/
 
@@ -317,7 +326,31 @@ mkdocs-quiz export qti docs/ -o my-quiz.zip  # Custom output filename
 mkdocs-quiz export qti docs/ -t "My Quiz"    # Set quiz title
 ```
 
-The CLI tool ([mkdocs_quiz/cli.py](mkdocs_quiz/cli.py)) provides utilities for quiz migration, translation management, QTI export, and validation.
+The CLI is implemented across multiple modules in `mkdocs_quiz/cli/`:
+
+- **main.py**: Click command definitions and entry points
+- **runner.py**: Interactive quiz execution with Rich/questionary UI
+- **fetcher.py**: Quiz loading from local files and remote URLs
+- **discovery.py**: Git repo scanning and config file parsing
+- **history.py**: Quiz result persistence (XDG data directory)
+
+### CLI Runner Configuration
+
+The `cli_run` config option defines a menu structure for interactive quiz selection:
+
+```yaml title=".mkdocs-quiz.yml or mkdocs.yml"
+cli_run:
+  "Module 1":
+    "Intro Quiz": docs/module1/intro.md
+    "Advanced": docs/module1/advanced.md
+  "Module 2": docs/module2/quiz.md
+```
+
+Config lookup order: `.mkdocs-quiz.yml` → `mkdocs.yml` (under `plugins.mkdocs_quiz.cli_run`)
+
+### URL Fetching
+
+When running quizzes from URLs, the CLI looks for `<!-- mkdocs-quiz-source ... -->` HTML comments that the plugin embeds during build. These contain the original quiz markdown for parsing.
 
 ## QTI Export
 

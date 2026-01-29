@@ -14,6 +14,7 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 - 📊 **Progress tracking** - Automatic progress sidebar and results panel, with confetti :tada:
 - 💾 **Results saved** - Answers are saved to the browser's local storage
 - 🌐 **Internationalization** - Quiz elements support multi-lingual sites
+- 🖥️ **CLI Quiz Runner** - Take quizzes in your terminal, from local files or deployed sites
 
 <!-- prettier-ignore-start -->
 ```html

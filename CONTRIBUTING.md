@@ -112,6 +112,52 @@ mkdocs serve
 # Open http://127.0.0.1:8000 in your browser
 ```
 
+## Generating the CLI Demo GIF
+
+The CLI demo GIF in the documentation is generated using [vhs](https://github.com/charmbracelet/vhs), a tool that renders terminal recordings from script files.
+
+### Prerequisites
+
+Install vhs following the [installation instructions](https://github.com/charmbracelet/vhs#installation):
+
+```bash
+# macOS
+brew install vhs
+
+# Arch Linux
+yay -S vhs
+
+# Nix
+nix-env -iA nixpkgs.vhs
+
+# Go
+go install github.com/charmbracelet/vhs@latest
+```
+
+You'll also need [ffmpeg](https://ffmpeg.org/) and [ttyd](https://github.com/tsl0922/ttyd) installed (vhs will prompt you if they're missing).
+
+### Regenerating the GIF
+
+To regenerate the CLI demo GIF:
+
+```bash
+vhs docs/assets/cli-demo.tape
+```
+
+If you get a connection refused error, try specifying an alternative port:
+
+```bash
+VHS_PORT=7683 vhs docs/assets/cli-demo.tape
+```
+
+This will create `docs/assets/cli-demo.gif` using the demo quiz at `docs/assets/demo-quiz.md`.
+
+### Modifying the Demo
+
+- **Quiz content**: Edit `docs/assets/demo-quiz.md` (keep it to 3 questions max for a concise demo)
+- **Recording script**: Edit `docs/assets/cli-demo.tape` to change timing, keystrokes, or appearance
+- **VHS settings**: See the [vhs documentation](https://github.com/charmbracelet/vhs#vhs) for available options
+
 ## Building the Package
 
 To build the package locally:

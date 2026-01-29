@@ -175,6 +175,7 @@ class MkDocsQuizPlugin(BasePlugin):
         ("show_progress", config_options.Type(bool, default=True)),
         ("confetti", config_options.Type(bool, default=True)),
         ("progress_sidebar_position", config_options.Type(str, default="top")),
+        ("embed_source", config_options.Type(bool, default=True)),
         # Translation options
         ("language", config_options.Type((str, type(None)), default=None)),
         ("custom_translations", config_options.Type(dict, default={})),
@@ -185,7 +186,7 @@ class MkDocsQuizPlugin(BasePlugin):
         """Initialize the plugin."""
         super().__init__()
         # Store quiz HTML for each page to be injected later
-        self._quiz_storage: dict[str, dict[str, str]] = {}
+        self._quiz_storage: dict[str, dict[str, dict[str, str]]] = {}
         # Track if results div is present on each page
         self._has_results_div: dict[str, bool] = {}
         # Track if intro is present on each page
@@ -702,6 +703,9 @@ class MkDocsQuizPlugin(BasePlugin):
 
         for quiz_id, match in enumerate(matches):
             try:
+                # Get the original quiz content (for embed_source)
+                original_quiz_content = match.group(0)  # Full <quiz>...</quiz> tag
+
                 # Generate quiz HTML
                 quiz_html = self._process_quiz(
                     match.group(1), quiz_id, options, translation_manager, config
@@ -710,8 +714,11 @@ class MkDocsQuizPlugin(BasePlugin):
                 # Create a markdown-safe placeholder
                 placeholder = f"<!-- MKDOCS_QUIZ_PLACEHOLDER_{quiz_id} -->"
 
-                # Store the quiz HTML for later injection
-                self._quiz_storage[page_key][placeholder] = quiz_html
+                # Store the quiz HTML and original content for later injection
+                self._quiz_storage[page_key][placeholder] = {
+                    "html": quiz_html,
+                    "source": original_quiz_content,
+                }
 
                 # Add the text before this match and the placeholder
                 segments.append(masked_markdown[last_end : match.start()])
@@ -971,8 +978,18 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Replace placeholders with actual quiz HTML
         page_key = page.file.src_path
+        embed_source = self.config.get("embed_source", True)
+
         if page_key in self._quiz_storage:
-            for placeholder, quiz_html in self._quiz_storage[page_key].items():
+            for placeholder, quiz_data in self._quiz_storage[page_key].items():
+                quiz_html = quiz_data["html"]
+
+                # Optionally embed the original quiz source as an HTML comment
+                # This allows CLI tools to extract quiz content from rendered pages
+                if embed_source:
+                    source_comment = f"<!-- mkdocs-quiz-source\n{quiz_data['source']}\n-->\n"
+                    quiz_html = source_comment + quiz_html
+
                 html = html.replace(placeholder, quiz_html)
 
             # Clean up storage for this page

@@ -1,5 +1,27 @@
 # Changelog
 
+## **Version 1.5.0** (2026-01-29)
+
+### New Features
+
+- **Interactive CLI quiz runner** - Take quizzes directly in your terminal - [#33](https://github.com/ewels/mkdocs-quiz/pull/33)
+  - Run `mkdocs-quiz` for interactive quiz selection from your repository
+  - Run `mkdocs-quiz run <path>` to run a specific quiz file
+  - Run `mkdocs-quiz run <url>` to take quizzes from any deployed MkDocs Quiz site
+  - Quiz history tracked locally with `mkdocs-quiz history`
+  - Configure quiz menus with `cli_run` in `mkdocs.yml` or `.mkdocs-quiz.yml`
+  - Answer shuffling with `--shuffle` and `--shuffle-answers` options
+
+### New Dependencies
+
+- `questionary` - Interactive terminal prompts
+- `rich-click` - Beautiful CLI help formatting
+- `requests` - URL fetching for remote quizzes
+
+### Breaking Changes
+
+- **Minimum Python version raised to 3.9** (Python 3.8 reached end-of-life in October 2024)
+
 ## **Version 1.4.0** (2026-01-28)
 
 ### New Features
