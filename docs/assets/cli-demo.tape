@@ -14,7 +14,7 @@ Set Theme "Catppuccin Mocha"
 Set TypingSpeed 10ms
 
 # Start the quiz
-Type "mkdocs-quiz run docs/assets/demo-quiz.md"
+Type "quiz run docs/assets/demo-quiz.md"
 Set TypingSpeed 50ms # Back to default
 Sleep 500ms
 Enter

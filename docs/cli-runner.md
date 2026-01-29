@@ -1,6 +1,6 @@
 # CLI Quiz Runner
 
-MkDocs Quiz includes an interactive command-line quiz runner that lets you take quizzes directly in your terminal.
+MkDocs Quiz includes an interactive command-line quiz runner that lets you take quizzes directly in your terminal. The CLI is available as both `mkdocs-quiz` and the shorter alias `quiz`.
 
 ![CLI Demo](assets/cli-demo.gif)
 
@@ -18,35 +18,39 @@ This is useful for:
 
 ## Quick Start
 
-Run quizzes interactively by selecting from discovered files:
+If you're in a git repo with quizzes, you can run interactively by selecting from discovered files:
 
 ```bash
-mkdocs-quiz
+quiz
 ```
 
-Or specify a path directly:
+Alternatively, specify a path directly:
 
 ```bash
-mkdocs-quiz run path/to/quiz.md
+quiz run path/to/quiz.md
 ```
 
 Or run quizzes from a deployed MkDocs site:
 
 ```bash
-mkdocs-quiz run https://example.com/docs/quiz-page/
+quiz run https://example.com/docs/quiz-page/
 ```
+
+!!! info "Command aliases"
+
+    All examples in this documentation use `quiz`, but `mkdocs-quiz` works identically.
 
 ## Usage
 
 ### Interactive Mode
 
-If your current working directory is within a git repository, running `mkdocs-quiz` without arguments will attempt to enter an interactive mode:
+If your current working directory is within a git repository, running `quiz` without arguments will attempt to enter an interactive mode:
 
 1. **Config-based selection**: If a `cli_run` config is found (see [Configuration](#configuration)), you'll see a hierarchical menu to select quizzes
 2. **File scanning**: Otherwise, the CLI scans for markdown files containing `<quiz>` tags in your git repository
 
 ```
-$ mkdocs-quiz
+$ quiz
 
 mkdocs-quiz • https://github.com/ewels/mkdocs-quiz
 ───────────────────────────────────────────────────
@@ -63,10 +67,10 @@ Specify a file or directory:
 
 ```bash
 # Single file
-mkdocs-quiz run docs/chapter1/quiz.md
+quiz run docs/chapter1/quiz.md
 
 # Directory (runs all quizzes found)
-mkdocs-quiz run docs/quizzes/
+quiz run docs/quizzes/
 ```
 
 ### From URL
@@ -74,7 +78,7 @@ mkdocs-quiz run docs/quizzes/
 Run quizzes from any deployed MkDocs Quiz site:
 
 ```bash
-mkdocs-quiz run https://ewels.github.io/mkdocs-quiz/examples/
+quiz run https://ewels.github.io/mkdocs-quiz/examples/
 ```
 
 The CLI extracts quiz content from the rendered HTML page using special source comments that MkDocs Quiz embeds during build.
@@ -139,13 +143,13 @@ History is stored in `~/.local/share/mkdocs-quiz/history.json` (Linux/macOS) or 
 Randomize answer order to prevent memorization:
 
 ```bash
-mkdocs-quiz run docs/quiz.md --shuffle
+quiz run docs/quiz.md --shuffle
 ```
 
 Or shuffle answers within questions only:
 
 ```bash
-mkdocs-quiz run docs/quiz.md --shuffle-answers
+quiz run docs/quiz.md --shuffle-answers
 ```
 
 ## Quiz History
@@ -153,19 +157,19 @@ mkdocs-quiz run docs/quiz.md --shuffle-answers
 View your quiz history:
 
 ```bash
-mkdocs-quiz history
+quiz history
 ```
 
 Output formats:
 
 ```bash
-mkdocs-quiz history --format table  # Default, rich table
-mkdocs-quiz history --format json   # JSON output
-mkdocs-quiz history --format csv    # CSV output
+quiz history --format table  # Default, rich table
+quiz history --format json   # JSON output
+quiz history --format csv    # CSV output
 ```
 
 Clear history:
 
 ```bash
-mkdocs-quiz history --clear
+quiz history --clear
 ```

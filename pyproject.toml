@@ -50,6 +50,7 @@ dev = [
     "babel>=2.9.0",
     "types-polib>=1.0.0",
     "types-Markdown",
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
 docs = [
     "mkdocs-material"
@@ -66,6 +67,7 @@ mkdocs_quiz = "mkdocs_quiz.plugin:MkDocsQuizPlugin"
 
 [project.scripts]
 mkdocs-quiz = "mkdocs_quiz.cli:main"
+quiz = "mkdocs_quiz.cli:main"
 
 [tool.setuptools]
 packages = ["mkdocs_quiz"]
