@@ -289,9 +289,14 @@ def history(clear: bool, output_format: str | None) -> None:
             console.print("[dim]Run some quizzes first![/dim]")
         return
 
+    # Flatten all results into a single list with their results
+    all_results = []
+    for results in quiz_history.values():
+        all_results.extend(results)
+
     # Sort by timestamp (most recent first)
     sorted_results = sorted(
-        quiz_history.values(),
+        all_results,
         key=lambda r: r.timestamp,
         reverse=True,
     )

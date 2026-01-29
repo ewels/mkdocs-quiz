@@ -11,6 +11,7 @@ from mkdocs_quiz.cli.history import (
     QuizResult,
     _get_quiz_key,
     format_time_ago,
+    get_all_results,
     get_history_dir,
     get_history_file,
     get_previous_result,
@@ -128,12 +129,13 @@ class TestLoadSaveHistory:
                 percentage=50.0,
                 timestamp="2024-01-15T10:30:00+00:00",
             )
-            history = {"test_key": result}
+            history = {"test_key": [result]}
             save_history(history)
 
             loaded = load_history()
             assert "test_key" in loaded
-            assert loaded["test_key"].correct == 5
+            assert len(loaded["test_key"]) == 1
+            assert loaded["test_key"][0].correct == 5
 
     def test_load_corrupted_history(self, tmp_path: Path) -> None:
         """Test loading corrupted history file returns empty dict."""
@@ -161,15 +163,22 @@ class TestSaveResult:
             assert result.total == 10
             assert result.percentage == 70.0
 
-    def test_save_result_overwrites(self, tmp_path: Path) -> None:
-        """Test that saving overwrites previous result."""
+    def test_save_result_appends(self, tmp_path: Path) -> None:
+        """Test that saving appends to history (keeps all results)."""
         with patch.dict("os.environ", {"XDG_DATA_HOME": str(tmp_path)}):
             save_result("/path/to/quiz.md", correct=5, total=10)
             save_result("/path/to/quiz.md", correct=10, total=10)
 
+            # get_previous_result returns the most recent
             result = get_previous_result("/path/to/quiz.md")
             assert result is not None
             assert result.correct == 10
+
+            # get_all_results returns all results
+            all_results = get_all_results("/path/to/quiz.md")
+            assert len(all_results) == 2
+            assert all_results[0].correct == 5
+            assert all_results[1].correct == 10
 
 
 class TestGetPreviousResult:

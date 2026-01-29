@@ -632,8 +632,21 @@ def display_running_quiz(quiz_path: str) -> None:
     Args:
         quiz_path: Path to the quiz file being run.
     """
+    from .history import format_time_ago, get_previous_result
+
     display_path = shorten_path(quiz_path)
     console.print(f"[bold]Running quiz:[/bold] [cyan]{display_path}[/cyan]")
+
+    # Show previous result if available
+    previous = get_previous_result(quiz_path)
+    if previous:
+        time_ago = format_time_ago(previous.datetime)
+        console.print(
+            f"[dim]You last did this quiz [bold]{time_ago}[/bold] "
+            f"and got [bold]{previous.correct}/{previous.total}[/bold] "
+            f"([bold]{previous.percentage:.0f}%[/bold])[/dim]"
+        )
+
     console.print()
     console.print(Rule(style="dim"))
     console.print()

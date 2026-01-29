@@ -77,11 +77,11 @@ def _get_quiz_key(quiz_path: str) -> str:
     return hashlib.sha256(normalized.encode()).hexdigest()[:QUIZ_KEY_LENGTH]
 
 
-def load_history() -> dict[str, QuizResult]:
+def load_history() -> dict[str, list[QuizResult]]:
     """Load quiz history from disk.
 
     Returns:
-        Dictionary mapping quiz keys to QuizResult objects.
+        Dictionary mapping quiz keys to lists of QuizResult objects.
     """
     history_file = get_history_file()
     if not history_file.exists():
@@ -90,40 +90,60 @@ def load_history() -> dict[str, QuizResult]:
     try:
         data = json.loads(history_file.read_text(encoding="utf-8"))
         return {
-            key: QuizResult(**result) for key, result in data.items() if isinstance(result, dict)
+            key: [QuizResult(**r) for r in results]
+            for key, results in data.items()
+            if isinstance(results, list)
         }
     except (json.JSONDecodeError, OSError, TypeError) as e:
         logger.warning("Failed to load quiz history from %s: %s", history_file, e)
         return {}
 
 
-def save_history(history: dict[str, QuizResult]) -> None:
+def save_history(history: dict[str, list[QuizResult]]) -> None:
     """Save quiz history to disk.
 
     Args:
-        history: Dictionary mapping quiz keys to QuizResult objects.
+        history: Dictionary mapping quiz keys to lists of QuizResult objects.
     """
     history_dir = get_history_dir()
     history_dir.mkdir(parents=True, exist_ok=True)
 
     history_file = get_history_file()
-    data = {key: asdict(result) for key, result in history.items()}
+    data = {key: [asdict(r) for r in results] for key, results in history.items()}
 
     history_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
 def get_previous_result(quiz_path: str) -> QuizResult | None:
-    """Get the previous result for a quiz.
+    """Get the most recent result for a quiz.
 
     Args:
         quiz_path: The path to the quiz file.
 
     Returns:
-        QuizResult if found, None otherwise.
+        Most recent QuizResult if found, None otherwise.
     """
     history = load_history()
     key = _get_quiz_key(quiz_path)
-    return history.get(key)
+    results = history.get(key)
+    if results:
+        # Return the most recent result (last in list)
+        return results[-1]
+    return None
+
+
+def get_all_results(quiz_path: str) -> list[QuizResult]:
+    """Get all results for a quiz.
+
+    Args:
+        quiz_path: The path to the quiz file.
+
+    Returns:
+        List of QuizResult objects, oldest first.
+    """
+    history = load_history()
+    key = _get_quiz_key(quiz_path)
+    return history.get(key, [])
 
 
 def save_result(quiz_path: str, correct: int, total: int) -> None:
@@ -146,7 +166,9 @@ def save_result(quiz_path: str, correct: int, total: int) -> None:
         timestamp=datetime.now(timezone.utc).isoformat(),
     )
 
-    history[key] = result
+    if key not in history:
+        history[key] = []
+    history[key].append(result)
     save_history(history)
 
 
