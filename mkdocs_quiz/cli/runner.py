@@ -22,6 +22,22 @@ if TYPE_CHECKING:
 console = Console()
 
 
+def get_score_color(percentage: float) -> str:
+    """Get the Rich color style for a score percentage.
+
+    Args:
+        percentage: Score percentage (0-100).
+
+    Returns:
+        Color name: 'green' for >= 80%, 'yellow' for >= 60%, 'red' otherwise.
+    """
+    if percentage >= 80:
+        return "green"
+    if percentage >= 60:
+        return "yellow"
+    return "red"
+
+
 # =============================================================================
 # Digits renderable for big number display
 # Extracted from Textual (MIT License) and simplified.
@@ -86,16 +102,11 @@ def strip_html_tags(text: str) -> str:
     Returns:
         Text with HTML tags removed.
     """
-    # Remove HTML tags
+    import html
+
+    # Remove HTML tags, then decode entities
     clean = re.sub(r"<[^>]+>", "", text)
-    # Decode common HTML entities
-    clean = clean.replace("&lt;", "<")
-    clean = clean.replace("&gt;", ">")
-    clean = clean.replace("&amp;", "&")
-    clean = clean.replace("&quot;", '"')
-    clean = clean.replace("&#39;", "'")
-    clean = clean.replace("&nbsp;", " ")
-    return clean.strip()
+    return html.unescape(clean).strip()
 
 
 def strip_inline_highlight_syntax(text: str) -> str:
@@ -152,12 +163,10 @@ def shorten_path(path: str) -> str:
     """
     from pathlib import Path
 
-    try:
-        path_obj = Path(path)
-        if path_obj.is_relative_to(Path.home()):
-            return "~/" + str(path_obj.relative_to(Path.home()))
-    except (ValueError, TypeError):
-        pass
+    path_obj = Path(path)
+    home = Path.home()
+    if path_obj.is_absolute() and path_obj.is_relative_to(home):
+        return "~/" + str(path_obj.relative_to(home))
     return path
 
 
@@ -651,6 +660,7 @@ def run_quiz_session(
 
         # Run the quiz
         is_correct = run_single_quiz(quiz, shuffle=shuffle_answers)
+        # Track answered separately from enumerate index since we need it for display
         answered += 1  # noqa: SIM113
         if is_correct:
             correct += 1
@@ -677,16 +687,14 @@ def display_final_results(correct: int, total: int, quiz_path: str | None = None
 
     incorrect = total - correct
     percentage = (correct / total) * 100
+    color = get_score_color(percentage)
 
-    # Determine color and message based on score
+    # Determine message based on score
     if percentage >= 80:
-        color = "green"
         message = "Excellent work!"
     elif percentage >= 60:
-        color = "yellow"
         message = "Good job!"
     else:
-        color = "red"
         message = "Keep practicing!"
 
     # Build the panel content (centered)

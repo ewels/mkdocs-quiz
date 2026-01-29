@@ -4,10 +4,17 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+# Length of hash prefix used for quiz keys. 16 hex chars = 64 bits,
+# giving ~4 billion possible keys before 50% collision probability.
+QUIZ_KEY_LENGTH = 16
 
 
 @dataclass
@@ -67,7 +74,7 @@ def _get_quiz_key(quiz_path: str) -> str:
     """
     # Normalize the path and create a hash
     normalized = os.path.normpath(quiz_path)
-    return hashlib.sha256(normalized.encode()).hexdigest()[:16]
+    return hashlib.sha256(normalized.encode()).hexdigest()[:QUIZ_KEY_LENGTH]
 
 
 def load_history() -> dict[str, QuizResult]:
@@ -85,7 +92,8 @@ def load_history() -> dict[str, QuizResult]:
         return {
             key: QuizResult(**result) for key, result in data.items() if isinstance(result, dict)
         }
-    except (json.JSONDecodeError, OSError, TypeError):
+    except (json.JSONDecodeError, OSError, TypeError) as e:
+        logger.warning("Failed to load quiz history from %s: %s", history_file, e)
         return {}
 
 
@@ -157,23 +165,24 @@ def format_time_ago(dt: datetime) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
 
-    diff = now - dt
-    seconds = diff.total_seconds()
+    seconds = (now - dt).total_seconds()
 
     if seconds < 60:
         return "just now"
-    elif seconds < 3600:
-        minutes = int(seconds / 60)
-        return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
-    elif seconds < 86400:
-        hours = int(seconds / 3600)
-        return f"{hours} hour{'s' if hours != 1 else ''} ago"
-    elif seconds < 604800:
-        days = int(seconds / 86400)
-        return f"{days} day{'s' if days != 1 else ''} ago"
-    elif seconds < 2592000:
-        weeks = int(seconds / 604800)
-        return f"{weeks} week{'s' if weeks != 1 else ''} ago"
-    else:
-        months = int(seconds / 2592000)
-        return f"{months} month{'s' if months != 1 else ''} ago"
+
+    # (threshold_seconds, divisor, unit_name)
+    thresholds = [
+        (3600, 60, "minute"),
+        (86400, 3600, "hour"),
+        (604800, 86400, "day"),
+        (2592000, 604800, "week"),
+        (float("inf"), 2592000, "month"),
+    ]
+
+    for threshold, divisor, unit in thresholds:
+        if seconds < threshold:
+            value = int(seconds / divisor)
+            plural = "s" if value != 1 else ""
+            return f"{value} {unit}{plural} ago"
+
+    return "a long time ago"  # Unreachable but satisfies type checker

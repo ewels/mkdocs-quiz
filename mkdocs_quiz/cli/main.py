@@ -6,15 +6,17 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import polib
 import rich_click as click
-from rich.console import Console
 
 from mkdocs_quiz import __version__
 
-from .runner import shorten_path
+from .runner import console, get_score_color, shorten_path
+
+if TYPE_CHECKING:
+    from ..qti.models import Quiz
 
 # Configure rich-click
 click.rich_click.USE_RICH_MARKUP = True
@@ -22,7 +24,18 @@ click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = True
 click.rich_click.GROUP_ARGUMENTS_OPTIONS = True
 
-console = Console()
+
+def _fetch_quizzes_or_exit(path: str) -> list[Quiz]:
+    """Fetch quizzes from path, printing errors and exiting on failure."""
+    from requests import RequestException  # type: ignore[import-untyped]
+
+    from .fetcher import fetch_quizzes
+
+    try:
+        return fetch_quizzes(path)
+    except (FileNotFoundError, ValueError, RequestException) as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
 
 
 def convert_quiz_block(quiz_content: str) -> str:
@@ -34,62 +47,42 @@ def convert_quiz_block(quiz_content: str) -> str:
     Returns:
         The converted quiz content in new format.
     """
-    lines = quiz_content.strip().split("\n")
-
     question = None
-    answers: list[tuple[str, str]] = []  # (type, text)
+    answers: list[tuple[bool, str]] = []  # (is_correct, text)
     content_lines: list[str] = []
     options: list[str] = []
     in_content = False
 
-    for line in lines:
+    # Map of line prefixes to their handlers
+    preserved_options = ("show-correct:", "auto-submit:", "disable-after-submit:")
+
+    for line in quiz_content.strip().split("\n"):
         line = line.strip()
         if not line:
             continue
 
-        # Parse question
         if line.startswith("question:"):
-            question = line.split("question:", 1)[1].strip()
-        # Parse options that should be preserved
-        elif line.startswith(("show-correct:", "auto-submit:", "disable-after-submit:")):
+            question = line.split(":", 1)[1].strip()
+        elif line.startswith(preserved_options):
             options.append(line)
-        # Parse content separator
         elif line == "content:":
             in_content = True
-        # Parse answers
         elif line.startswith("answer-correct:"):
-            answer_text = line.split("answer-correct:", 1)[1].strip()
-            answers.append(("correct", answer_text))
+            answers.append((True, line.split(":", 1)[1].strip()))
         elif line.startswith("answer:"):
-            answer_text = line.split("answer:", 1)[1].strip()
-            answers.append(("incorrect", answer_text))
-        # Content section
+            answers.append((False, line.split(":", 1)[1].strip()))
         elif in_content:
             content_lines.append(line)
 
     # Build new quiz format
     result = ["<quiz>"]
-
-    # Add question
     if question:
         result.append(question)
-
-    # Add options
-    for opt in options:
-        result.append(opt)
-
-    # Add answers in new format
-    for answer_type, answer_text in answers:
-        if answer_type == "correct":
-            result.append(f"- [x] {answer_text}")
-        else:
-            result.append(f"- [ ] {answer_text}")
-
-    # Add content if present
+    result.extend(options)
+    result.extend(f"- [{'x' if is_correct else ' '}] {text}" for is_correct, text in answers)
     if content_lines:
-        result.append("")  # Empty line before content
+        result.append("")
         result.extend(content_lines)
-
     result.append("</quiz>")
 
     return "\n".join(result)
@@ -107,7 +100,7 @@ def migrate_file(file_path: Path, dry_run: bool = False) -> tuple[int, bool]:
     """
     try:
         content = file_path.read_text(encoding="utf-8")
-    except Exception as e:
+    except OSError as e:
         console.print(f"  [red]Error reading {file_path}: {e}[/red]")
         return 0, False
 
@@ -147,7 +140,7 @@ def cli(ctx: click.Context) -> None:
     # If no subcommand provided, run interactive quiz selection
     if ctx.invoked_subcommand is None:
         from .discovery import interactive_quiz_selection
-        from .runner import console, display_final_results, run_quiz_session
+        from .runner import display_final_results, run_quiz_session
 
         path = interactive_quiz_selection()
         if path is None:
@@ -155,19 +148,7 @@ def cli(ctx: click.Context) -> None:
             click.echo(ctx.get_help())
             sys.exit(0)
 
-        from .fetcher import fetch_quizzes
-
-        try:
-            quizzes = fetch_quizzes(path)
-        except FileNotFoundError as e:
-            console.print(f"[red]Error: {e}[/red]")
-            sys.exit(1)
-        except ValueError as e:
-            console.print(f"[red]Error: {e}[/red]")
-            sys.exit(1)
-        except Exception as e:
-            console.print(f"[red]Error fetching quizzes: {e}[/red]")
-            sys.exit(1)
+        quizzes = _fetch_quizzes_or_exit(path)
 
         if not quizzes:
             console.print("[yellow]No quizzes found.[/yellow]")
@@ -339,13 +320,7 @@ def history(clear: bool, output_format: str | None) -> None:
         # Shorten path relative to home directory
         quiz_path = shorten_path(result.quiz_path)
 
-        # Color the score based on percentage
-        if result.percentage >= 80:
-            score_style = "green"
-        elif result.percentage >= 60:
-            score_style = "yellow"
-        else:
-            score_style = "red"
+        score_style = get_score_color(result.percentage)
 
         table.add_row(
             quiz_path,
@@ -578,41 +553,32 @@ def _extract_python_strings(py_file: Path, catalog: Any) -> int:
     content = py_file.read_text(encoding="utf-8")
 
     # Remove triple-quoted docstrings to avoid extracting example code
-    # This is a simple regex-based approach
     content_no_docstrings = re.sub(r'""".*?"""', "", content, flags=re.DOTALL)
     content_no_docstrings = re.sub(r"'''.*?'''", "", content_no_docstrings, flags=re.DOTALL)
     # Remove line comments
     content_no_docstrings = re.sub(r"#.*?$", "", content_no_docstrings, flags=re.MULTILINE)
 
-    # Pattern to match t.get()
-    # Must be t.get() specifically, not any .get() call
-    # Allows whitespace/newlines between t.get( and the string
+    # Pattern to match t.get() - must be t.get() specifically
     pattern = r't\.get\(\s*(["\'])((?:[^\1\\]|\\.)*?)\1'
 
     count = 0
-    line_number = 1
-    position = 0
+    search_start = 0
 
-    # Find all matches and their line numbers
     for match in re.finditer(pattern, content_no_docstrings):
-        # Count newlines up to this match to get line number
-        # We need to use original content for accurate line numbers
-        # Find the match in the original content
         match_text = match.group(0)
-        start_pos = content.find(match_text, position)
-        if start_pos == -1:
-            continue  # Skip if not found in original (was in docstring)
+        # Find in original content starting from last found position
+        pos = content.find(match_text, search_start)
+        if pos == -1:
+            continue  # Was in a docstring/comment
 
-        line_number += content[position:start_pos].count("\n")
-        position = start_pos
+        # Calculate line number from start of file
+        line_number = content[:pos].count("\n") + 1
+        search_start = pos + len(match_text)
 
-        # Extract the string content (group 2 is the string between quotes)
+        # Extract and unescape the string content
         string_content = match.group(2)
-
-        # Unescape the string
         string_content = string_content.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
 
-        # Add to catalog
         relative_path = py_file.relative_to(Path(__file__).parent)
         catalog.add(string_content, locations=[(str(relative_path), line_number)])
         count += 1
@@ -623,7 +589,7 @@ def _extract_python_strings(py_file: Path, catalog: Any) -> int:
 def _extract_js_strings(js_file: Path, catalog: Any) -> int:
     """Extract translatable strings from JavaScript files.
 
-    Looks for t() patterns in JavaScript code (not comments/docstrings).
+    Looks for t() patterns in JavaScript code (not comments).
 
     Args:
         js_file: Path to JavaScript file.
@@ -634,48 +600,36 @@ def _extract_js_strings(js_file: Path, catalog: Any) -> int:
     """
     content = js_file.read_text(encoding="utf-8")
 
-    # Remove block comments /* */ and JSDoc comments /** */
+    # Remove comments
     content_no_comments = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
-    # Remove line comments //
     content_no_comments = re.sub(r"//.*?$", "", content_no_comments, flags=re.MULTILINE)
 
     # Pattern to match t("...") or t('...')
-    # Must be standalone t() function call, not part of another word
-    # Handles escaped quotes and multiline strings
     pattern = r'(?<![a-zA-Z_])t\((["\'])(?:(?=(\\?))\2.)*?\1\)'
 
     count = 0
-    line_number = 1
-    position = 0
+    search_start = 0
 
-    # Find all matches and their line numbers
     for match in re.finditer(pattern, content_no_comments):
-        # Count newlines up to this match to get line number
-        # We need to use original content for accurate line numbers
-        # Find the match in the original content
         matched_text = match.group(0)
-        start_pos = content.find(matched_text, position)
-        if start_pos == -1:
-            continue  # Skip if not found in original (was in comment)
+        pos = content.find(matched_text, search_start)
+        if pos == -1:
+            continue
 
-        line_number += content[position:start_pos].count("\n")
-        position = start_pos
+        line_number = content[:pos].count("\n") + 1
+        search_start = pos + len(matched_text)
 
-        # Extract the string content (without quotes)
-        quote_char = matched_text[2]  # Get quote character after 't('
-
-        # Find the string between quotes
+        # Extract string content (quote char is after 't(')
+        quote_char = matched_text[2]
         string_match = re.search(
-            rf"{quote_char}((?:[^{quote_char}\\]|\\.)*)" + quote_char, matched_text
+            rf"{quote_char}((?:[^{quote_char}\\]|\\.)*){quote_char}", matched_text
         )
         if string_match:
-            # Unescape the string
             string_content = string_match.group(1)
             string_content = (
-                string_content.replace(r"\"", '"').replace(r"\"", "'").replace(r"\\", "\\")
+                string_content.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
             )
 
-            # Add to catalog
             relative_path = js_file.relative_to(Path(__file__).parent)
             catalog.add(string_content, locations=[(str(relative_path), line_number)])
             count += 1
@@ -696,36 +650,24 @@ def _extract_html_strings(html_file: Path, catalog: Any) -> int:
         Number of strings extracted.
     """
     content = html_file.read_text(encoding="utf-8")
-
-    # Remove HTML comments to avoid extracting example code
     content_no_comments = re.sub(r"<!--.*?-->", "", content, flags=re.DOTALL)
 
-    # Pattern to match data-quiz-translate="..." attributes
-    # Captures the value inside the quotes
     pattern = r'data-quiz-translate="([^"]+)"'
 
     count = 0
-    line_number = 1
-    position = 0
+    search_start = 0
 
-    # Find all matches and their line numbers
     for match in re.finditer(pattern, content_no_comments):
-        # Count newlines up to this match to get line number
-        # Find the match in the original content
         match_text = match.group(0)
-        start_pos = content.find(match_text, position)
-        if start_pos == -1:
-            continue  # Skip if not found in original (was in comment)
+        pos = content.find(match_text, search_start)
+        if pos == -1:
+            continue
 
-        line_number += content[position:start_pos].count("\n")
-        position = start_pos
+        line_number = content[:pos].count("\n") + 1
+        search_start = pos + len(match_text)
 
-        # Extract the string content (group 1 is the value inside quotes)
-        string_content = match.group(1)
-
-        # Add to catalog
         relative_path = html_file.relative_to(Path(__file__).parent)
-        catalog.add(string_content, locations=[(str(relative_path), line_number)])
+        catalog.add(match.group(1), locations=[(str(relative_path), line_number)])
         count += 1
 
     return count
@@ -945,8 +887,7 @@ def run(path: str | None, shuffle: bool, shuffle_answers: bool) -> None:
         mkdocs-quiz run https://example.com/docs/quiz/
     """
     from .discovery import interactive_quiz_selection
-    from .fetcher import fetch_quizzes
-    from .runner import console, display_final_results, run_quiz_session
+    from .runner import display_final_results, run_quiz_session
 
     # If no path provided, try interactive selection
     used_interactive_selection = False
@@ -959,17 +900,7 @@ def run(path: str | None, shuffle: bool, shuffle_answers: bool) -> None:
             sys.exit(0)
         used_interactive_selection = True
 
-    try:
-        quizzes = fetch_quizzes(path)
-    except FileNotFoundError as e:
-        console.print(f"[red]Error: {e}[/red]")
-        sys.exit(1)
-    except ValueError as e:
-        console.print(f"[red]Error: {e}[/red]")
-        sys.exit(1)
-    except Exception as e:
-        console.print(f"[red]Error fetching quizzes: {e}[/red]")
-        sys.exit(1)
+    quizzes = _fetch_quizzes_or_exit(path)
 
     if not quizzes:
         console.print("[yellow]No quizzes found.[/yellow]")

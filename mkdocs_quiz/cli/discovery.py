@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 import subprocess
 from pathlib import Path
 
 import questionary
 import yaml
-from rich.console import Console
 
-console = Console()
+from .runner import console
+
+logger = logging.getLogger(__name__)
 
 BACK_OPTION = "← Back"
 
@@ -53,7 +55,7 @@ def find_cli_run_config(git_root: Path) -> dict | None:
             data = yaml.safe_load(quiz_config_path.read_text(encoding="utf-8"))
             if data and isinstance(data, dict) and "cli_run" in data:
                 cli_run = data["cli_run"]
-                return dict(cli_run) if isinstance(cli_run, dict) else None
+                return cli_run if isinstance(cli_run, dict) else None
         except (yaml.YAMLError, OSError) as e:
             console.print(f"[yellow]Warning: Failed to parse .mkdocs-quiz.yml: {e}[/yellow]")
 
@@ -82,7 +84,7 @@ def find_cli_run_config(git_root: Path) -> dict | None:
                         plugin_config = plugin["mkdocs_quiz"]
                         if isinstance(plugin_config, dict) and "cli_run" in plugin_config:
                             cli_run = plugin_config["cli_run"]
-                            return dict(cli_run) if isinstance(cli_run, dict) else None
+                            return cli_run if isinstance(cli_run, dict) else None
         except (yaml.YAMLError, OSError) as e:
             console.print(f"[yellow]Warning: Failed to parse mkdocs.yml: {e}[/yellow]")
 
@@ -169,7 +171,8 @@ def scan_for_quiz_files(git_root: Path) -> list[Path]:
             check=True,
             timeout=30,
         )
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as e:
+        logger.debug("git ls-files failed: %s", e)
         return []
 
     quiz_files = []
@@ -195,9 +198,8 @@ def interactive_config_selection(config: dict) -> str | None:
     Returns:
         Selected file path, or None if user backs out of root.
     """
-    history: list[tuple[dict, str | None]] = []  # Stack of (node, parent_key)
+    history: list[dict] = []  # Stack of parent nodes
     current = config
-    current_key: str | None = None
 
     while True:
         choices = list(current.keys())
@@ -215,9 +217,7 @@ def interactive_config_selection(config: dict) -> str | None:
             return None
 
         if selected == BACK_OPTION:
-            # Go back to previous level
-            if history:
-                current, current_key = history.pop()
+            current = history.pop()
             continue
 
         value = current[selected]
@@ -226,11 +226,9 @@ def interactive_config_selection(config: dict) -> str | None:
             # Leaf node - return the file path
             return value
 
-        if isinstance(value, dict):
-            # Branch node - go deeper
-            history.append((current, current_key))
-            current = value
-            current_key = selected
+        # Branch node - go deeper
+        history.append(current)
+        current = value
 
 
 def interactive_file_selection(quiz_files: list[Path]) -> str | None:
@@ -252,26 +250,17 @@ def interactive_file_selection(quiz_files: list[Path]) -> str | None:
             "Select a quiz file:",
             choices=choices,
         ).unsafe_ask()
-        return str(selected) if selected else None
+        return selected if selected else None
     except KeyboardInterrupt:
         return None
 
 
 def _print_header() -> None:
     """Print the mkdocs-quiz header with branding."""
-    from rich.rule import Rule
-    from rich.text import Text
+    from .runner import display_quiz_header
 
-    header = Text()
-    header.append("mkdocs-quiz", style="bold blue")
-    header.append(" • ", style="dim")
-    header.append(
-        "https://github.com/ewels/mkdocs-quiz",
-        style="dim link https://github.com/ewels/mkdocs-quiz",
-    )
-
-    console.print(header)
-    console.print(Rule(style="dim"))
+    # Use runner's header but without quiz_path (no previous result lookup)
+    display_quiz_header(quiz_path=None)
 
 
 def interactive_quiz_selection() -> str | None:

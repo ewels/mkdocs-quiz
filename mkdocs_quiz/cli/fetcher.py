@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from pathlib import Path
 from urllib.parse import urlparse
@@ -10,6 +11,8 @@ import requests  # type: ignore[import-untyped]
 
 from ..qti.extractor import extract_quizzes_from_directory, extract_quizzes_from_file
 from ..qti.models import Quiz
+
+logger = logging.getLogger(__name__)
 
 # Pattern to extract quiz source from HTML comments
 QUIZ_SOURCE_PATTERN = re.compile(
@@ -79,8 +82,7 @@ def parse_quiz_from_source(source: str, source_url: str, index: int) -> Quiz | N
     # Check if fill-in-the-blank
     if re.search(FILL_BLANK_REGEX, content):
         return _parse_fill_in_blank_quiz(content, identifier, source_url)
-    else:
-        return _parse_multiple_choice_quiz(content, identifier, source_url)
+    return _parse_multiple_choice_quiz(content, identifier, source_url)
 
 
 def _parse_fill_in_blank_quiz(content: str, identifier: str, source_url: str) -> Quiz:
@@ -127,7 +129,7 @@ def _parse_fill_in_blank_quiz(content: str, identifier: str, source_url: str) ->
         blanks=blanks,
         content=content_text,
         identifier=identifier,
-        source_file=source_url,  # type: ignore[arg-type]
+        source_file=Path(source_url),
         source_line=0,
     )
 
@@ -180,7 +182,7 @@ def _parse_multiple_choice_quiz(content: str, identifier: str, source_url: str) 
         blanks=[],
         content=content_text,
         identifier=identifier,
-        source_file=source_url,  # type: ignore[arg-type]
+        source_file=Path(source_url),
         source_line=0,
     )
 
@@ -223,6 +225,8 @@ def fetch_quizzes_from_url(url: str, timeout: int = 30) -> list[Quiz]:
         quiz = parse_quiz_from_source(source, url, i)
         if quiz:
             quizzes.append(quiz)
+        else:
+            logger.warning("Failed to parse quiz %d from %s", i + 1, url)
 
     return quizzes
 
@@ -254,6 +258,6 @@ def fetch_quizzes(path: str) -> list[Quiz]:
 
     if local_path.is_file():
         return extract_quizzes_from_file(local_path)
-    else:
-        collection = extract_quizzes_from_directory(local_path)
-        return collection.quizzes
+
+    collection = extract_quizzes_from_directory(local_path)
+    return collection.quizzes
