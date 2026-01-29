@@ -487,16 +487,30 @@ def run_fill_in_blank_quiz(quiz: Quiz) -> tuple[bool, list[str]]:
     num_blanks = len(quiz.blanks)
 
     # Replace blank markers with styled text for display
-    # We can't easily mix markdown and Rich styling, so we render as plain text
-    # with Rich markup for the blanks
+    # Handle both [[answer]] format (from URL fetch) and {{BLANK_N}} format (from local files)
     display_question = question_text
-    for i in range(num_blanks):
-        blank_label = " BLANK " if num_blanks == 1 else f" BLANK {i + 1} "
+
+    def make_blank_label(index: int) -> str:
+        """Create styled blank label."""
+        label = "[BLANK]" if num_blanks == 1 else f"[BLANK {index + 1}]"
+        return f"[magenta on black] {label} [/magenta on black]"
+
+    # Replace [[answer]] format
+    blank_index = 0
+    while re.search(r"\[\[[^\]]+\]\]", display_question):
         display_question = re.sub(
             r"\[\[[^\]]+\]\]",
-            f"[on black bold] {blank_label} [/on black bold]",
+            make_blank_label(blank_index),
             display_question,
             count=1,
+        )
+        blank_index += 1
+
+    # Replace {{BLANK_N}} format (from QTI extractor)
+    for i in range(num_blanks):
+        display_question = display_question.replace(
+            f"{{{{BLANK_{i}}}}}",
+            make_blank_label(i),
         )
 
     console.print()

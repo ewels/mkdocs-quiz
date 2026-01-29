@@ -1,6 +1,10 @@
 # CLI Quiz Runner
 
-MkDocs Quiz includes an interactive command-line quiz runner that lets you take quizzes directly in your terminal. This is useful for:
+MkDocs Quiz includes an interactive command-line quiz runner that lets you take quizzes directly in your terminal.
+
+![CLI Demo](assets/cli-demo.gif)
+
+This is useful for:
 
 - Doing quizzes within training environments where users are already working in the terminal
 - Quick self-assessment while developing documentation
