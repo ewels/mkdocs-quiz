@@ -23,6 +23,14 @@ click.rich_click.USE_RICH_MARKUP = True
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = True
 click.rich_click.GROUP_ARGUMENTS_OPTIONS = True
+click.rich_click.COMMAND_GROUPS = {
+    "mkdocs-quiz": [
+        {
+            "name": "Commands",
+            "commands": ["run", "history", "export", "migrate", "translations"],
+        }
+    ]
+}
 
 
 def _fetch_quizzes_or_exit(path: str) -> list[Quiz]:
