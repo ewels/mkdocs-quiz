@@ -91,6 +91,14 @@ plugins:
   - mkdocs_quiz # No language config needed
 ```
 
+!!! note "How language matching works"
+
+    MkDocs Quiz matches pages to language prefixes using **longest prefix match**.
+    For example, a page at `fr/docs/guide.md` would match `/fr/` over `/`.
+
+    Root `/` links are skipped since they would match all pages.
+    Sites using `/` for the default language should set `theme.language` instead.
+
 ### Set Global Language via Plugin Config
 
 ```yaml
