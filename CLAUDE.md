@@ -167,7 +167,7 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
    - `_get_translation_manager()` determines language for each page (later overrides earlier):
      - Default: `en`
      - `theme.language` from MkDocs config
-     - `extra.alternate` - Active language from Material's language selector (auto-detected from page URL)
+     - `extra.alternate` - Active language from Material's language selector (auto-detected from page URL using longest prefix match; root `/` links are skipped)
      - `language` config
      - `language_patterns` config
      - Page frontmatter (`quiz.language`) - highest priority

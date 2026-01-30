@@ -294,19 +294,24 @@ class MkDocsQuizPlugin(BasePlugin):
                 language = theme_lang
                 log.debug(f"Using theme.language: {language}")
 
-        # 3. Check extra.alternate for multi-language sites
+        # 3. Check extra.alternate for multi-language sites (longest prefix match)
         if hasattr(config, "extra") and "alternate" in config.extra:
             page_url = page.url or page.file.url
-            for alternate in config.extra["alternate"]:
-                link = alternate.get("link", "")
-                lang = alternate.get("lang")
-                # Check if page URL starts with this alternate's link prefix
-                if link and lang and page_url.startswith(link.lstrip("/")):
-                    language = lang
-                    log.debug(
-                        f"Matched extra.alternate link '{link}' for {page_url}, using language: {language}"
-                    )
-                    break
+            best_match = ("", None)  # (normalized_link, lang)
+            for alt in config.extra["alternate"]:
+                link, lang = alt.get("link", ""), alt.get("lang")
+                prefix = link.lstrip("/") if link else ""
+                # Skip root "/" (empty after lstrip) - matches everything
+                if (
+                    prefix
+                    and lang
+                    and page_url.startswith(prefix)
+                    and len(prefix) > len(best_match[0])
+                ):
+                    best_match = (prefix, lang)
+            if best_match[1]:
+                language = best_match[1]
+                log.debug(f"Matched extra.alternate '{best_match[0]}' for {page_url}: {language}")
 
         # 4. Check mkdocs_quiz.language config (only if explicitly set by user)
         plugin_language = self.config.get("language")

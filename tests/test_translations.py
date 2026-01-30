@@ -426,6 +426,160 @@ msgstr "Translated!"
         temp_path.unlink()
 
 
+def test_extra_alternate_root_link_skipped() -> None:
+    """Test that root '/' link in extra.alternate is skipped (matches all URLs).
+
+    Regression test for issue #40: Root '/' link incorrectly matched all pages,
+    overriding theme.language setting.
+    """
+    plugin = MkDocsQuizPlugin()
+    plugin.config = {
+        "language": None,
+        "custom_translations": {},
+        "language_patterns": [],
+    }
+
+    # Create config with theme.language and extra.alternate containing root "/"
+    config = MkDocsConfig()
+    config.theme = {"language": "fr"}  # type: ignore[assignment]
+    config.extra = {  # type: ignore[assignment]
+        "alternate": [
+            {"name": "English", "link": "/", "lang": "en"},
+            {"name": "Français", "link": "/fr/", "lang": "fr"},
+        ]
+    }
+
+    # Create a page at root level (should NOT match "/" alternate)
+    file = File(
+        path="index.md",
+        src_dir="docs",
+        dest_dir="site",
+        use_directory_urls=True,
+    )
+    page = Page(None, file, config)
+    page.meta = {}
+
+    t = plugin._get_translation_manager(page, config)
+
+    # Should use theme.language (fr), NOT the root "/" alternate (en)
+    assert t.language == "fr"
+
+
+def test_extra_alternate_prefix_matching() -> None:
+    """Test that extra.alternate correctly matches page URLs by prefix."""
+    plugin = MkDocsQuizPlugin()
+    plugin.config = {
+        "language": None,
+        "custom_translations": {},
+        "language_patterns": [],
+    }
+
+    config = MkDocsConfig()
+    config.theme = {"language": "en"}  # type: ignore[assignment]
+    config.extra = {  # type: ignore[assignment]
+        "alternate": [
+            {"name": "English", "link": "/", "lang": "en"},
+            {"name": "Français", "link": "/fr/", "lang": "fr"},
+            {"name": "Deutsch", "link": "/de/", "lang": "de"},
+        ]
+    }
+
+    # Test French page
+    file_fr = File(
+        path="fr/guide.md",
+        src_dir="docs",
+        dest_dir="site",
+        use_directory_urls=True,
+    )
+    page_fr = Page(None, file_fr, config)
+    page_fr.meta = {}
+
+    t_fr = plugin._get_translation_manager(page_fr, config)
+    assert t_fr.language == "fr"
+
+    # Test German page
+    file_de = File(
+        path="de/guide.md",
+        src_dir="docs",
+        dest_dir="site",
+        use_directory_urls=True,
+    )
+    page_de = Page(None, file_de, config)
+    page_de.meta = {}
+
+    t_de = plugin._get_translation_manager(page_de, config)
+    assert t_de.language == "de"
+
+
+def test_extra_alternate_longest_prefix_match() -> None:
+    """Test that longest prefix match is used when multiple prefixes could match.
+
+    While unusual in typical MkDocs setups, this ensures correct behavior
+    when overlapping prefixes exist (e.g., /fr/ and /fr/docs/).
+    """
+    plugin = MkDocsQuizPlugin()
+    plugin.config = {
+        "language": None,
+        "custom_translations": {},
+        "language_patterns": [],
+    }
+
+    config = MkDocsConfig()
+    config.theme = {"language": "en"}  # type: ignore[assignment]
+    config.extra = {  # type: ignore[assignment]
+        "alternate": [
+            {"name": "English", "link": "/", "lang": "en"},
+            {"name": "Français", "link": "/fr/", "lang": "fr"},
+            {"name": "Français Docs", "link": "/fr/docs/", "lang": "fr-CA"},
+        ]
+    }
+
+    # Page under /fr/docs/ should match fr-CA (longest prefix), not fr
+    file = File(
+        path="fr/docs/guide.md",
+        src_dir="docs",
+        dest_dir="site",
+        use_directory_urls=True,
+    )
+    page = Page(None, file, config)
+    page.meta = {}
+
+    t = plugin._get_translation_manager(page, config)
+    assert t.language == "fr-CA"
+
+
+def test_extra_alternate_no_match_uses_theme_language() -> None:
+    """Test that theme.language is used when no alternate prefix matches."""
+    plugin = MkDocsQuizPlugin()
+    plugin.config = {
+        "language": None,
+        "custom_translations": {},
+        "language_patterns": [],
+    }
+
+    config = MkDocsConfig()
+    config.theme = {"language": "es"}  # type: ignore[assignment]
+    config.extra = {  # type: ignore[assignment]
+        "alternate": [
+            {"name": "Français", "link": "/fr/", "lang": "fr"},
+            {"name": "Deutsch", "link": "/de/", "lang": "de"},
+        ]
+    }
+
+    # Page not matching any alternate should use theme.language
+    file = File(
+        path="guide.md",
+        src_dir="docs",
+        dest_dir="site",
+        use_directory_urls=True,
+    )
+    page = Page(None, file, config)
+    page.meta = {}
+
+    t = plugin._get_translation_manager(page, config)
+    assert t.language == "es"
+
+
 @pytest.fixture
 def mock_config() -> MkDocsConfig:
     """Create a mock config object."""
