@@ -1,5 +1,18 @@
 # Changelog
 
+## **Version 1.5.4** (2026-01-30)
+
+### Bug Fixes
+
+- Fix language detection for root `/` alternate link - [#41](https://github.com/ewels/mkdocs-quiz/pull/41)
+  - Sites using `extra.alternate` with a root `/` link incorrectly matched all pages to that language
+  - Now correctly respects `theme.language` setting
+
+### Improvements
+
+- Improve CLI history path display - [#39](https://github.com/ewels/mkdocs-quiz/pull/39)
+  - Show proper relative paths in history table
+
 ## **Version 1.5.3** (2026-01-29)
 
 ### Improvements
