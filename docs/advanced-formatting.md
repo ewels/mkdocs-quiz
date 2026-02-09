@@ -25,6 +25,7 @@ The content section (revealed after answering) supports headers, lists, links, a
     - Uses Markdown for content
     - Includes live preview server
     - Themeable with many themes available
+    - Many [cool plugins](index.md)
 
     [Learn more at mkdocs.org](https://www.mkdocs.org)
     </quiz>

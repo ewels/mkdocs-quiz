@@ -172,7 +172,7 @@ python -m build
 
 ## Publishing
 
-The package is automatically published to PyPI when a new release is created on GitHub. See the comments in [.github/workflows/publish.yml](.github/workflows/publish.yml) for one-time setup instructions.
+The package is automatically published to PyPI when a new release is created on GitHub. See the comments in [.github/workflows/publish.yml](https://github.com/ewels/mkdocs-quiz/blob/main/.github/workflows/publish.yml) for one-time setup instructions.
 
 ## Making Changes
 

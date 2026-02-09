@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from mkdocs.config.defaults import MkDocsConfig
+from mkdocs.structure.files import Files
 from mkdocs.structure.pages import Page
 
 from mkdocs_quiz.plugin import MkDocsQuizPlugin
@@ -46,6 +47,12 @@ def mock_page(mock_config: MkDocsConfig) -> Page:
     return page
 
 
+@pytest.fixture
+def mock_files() -> Files:
+    """Create a mock files collection."""
+    return Files([])
+
+
 def test_disabled_page(
     plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
 ) -> None:
@@ -65,7 +72,7 @@ Test question?
 
 
 def test_single_choice_quiz(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test processing a single choice quiz."""
     markdown = """
@@ -82,7 +89,9 @@ What is 2+2?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
     assert "quiz" in result
     assert "What is 2+2?" in result
@@ -93,7 +102,7 @@ What is 2+2?
 
 
 def test_multiple_choice_quiz(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test processing a multiple choice quiz."""
     markdown = """
@@ -110,7 +119,9 @@ Which are even numbers?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     assert "quiz" in result
@@ -122,7 +133,7 @@ Which are even numbers?
 
 
 def test_multiple_quizzes(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test processing multiple quizzes on the same page."""
     markdown = """
@@ -148,7 +159,9 @@ Second quiz?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Check both quizzes are present
@@ -162,7 +175,7 @@ Second quiz?
 
 
 def test_quiz_with_html_in_answers(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that HTML in answers is preserved."""
     markdown = """
@@ -178,7 +191,9 @@ Which is <strong>bold</strong>?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     assert "<strong>bold</strong>" in result
@@ -186,7 +201,7 @@ Which is <strong>bold</strong>?
 
 
 def test_quiz_without_content_section(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that content section is optional."""
     markdown = """
@@ -201,7 +216,9 @@ What is 2+2?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     assert "quiz" in result
@@ -213,7 +230,7 @@ What is 2+2?
 
 
 def test_markdown_in_questions_and_answers(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that markdown is parsed in questions and answers."""
     markdown = """
@@ -230,7 +247,9 @@ What is **bold** text?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Check that markdown in question is converted
@@ -241,7 +260,7 @@ What is **bold** text?
 
 
 def test_show_correct_disabled(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that show-correct can be disabled via page frontmatter (defaults to true)."""
     mock_page.meta["quiz"] = {"show_correct": False}
@@ -259,7 +278,9 @@ What is 2+2?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should NOT have the data attribute when disabled
@@ -268,7 +289,7 @@ What is 2+2?
 
 
 def test_auto_submit_disabled(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that auto-submit can be disabled via page frontmatter (defaults to true)."""
     mock_page.meta["quiz"] = {"auto_submit": False}
@@ -284,7 +305,9 @@ What is 2+2?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should NOT have the data attribute when disabled
@@ -321,7 +344,9 @@ What is 2+2?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Quiz should be processed
@@ -360,7 +385,7 @@ What is 2+2?
 
 
 def test_quiz_header_ids(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quiz headers have IDs with links."""
     markdown = """
@@ -380,7 +405,9 @@ Second question?
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Check that both quiz headers have IDs
@@ -392,7 +419,7 @@ Second question?
 
 
 def test_invalid_quiz_format(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that invalid quiz format raises ValueError and crashes build."""
     markdown = """
@@ -407,7 +434,7 @@ This is not a valid quiz format
 
 
 def test_quiz_in_fenced_code_block(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quiz tags inside fenced code blocks (``` or ~~~) are not processed."""
     markdown = """
@@ -453,7 +480,9 @@ What is 3+3?
     )  # Real quiz was converted to placeholder
 
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # The real quiz should be processed
@@ -463,7 +492,7 @@ What is 3+3?
 
 
 def test_xss_prevention_special_characters(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that special HTML characters in input values are properly escaped."""
     markdown = """
@@ -474,7 +503,9 @@ Test question?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # The value attribute should be escaped (our html.escape fix)
@@ -486,7 +517,7 @@ Test question?
 
 
 def test_empty_question_validation(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quizzes with empty questions raise ValueError and crash build."""
     markdown = """
@@ -502,7 +533,7 @@ def test_empty_question_validation(
 
 
 def test_quiz_no_correct_answers(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quizzes with no correct answers raise ValueError and crash build."""
     markdown = """
@@ -518,7 +549,7 @@ What is the answer?
 
 
 def test_quiz_all_correct_answers(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quizzes with all correct answers work properly."""
     markdown = """
@@ -530,7 +561,9 @@ Select all that apply:
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should use checkboxes since multiple correct answers
@@ -540,7 +573,7 @@ Select all that apply:
 
 
 def test_results_div_generation(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that results div is properly generated and injected."""
     markdown = """
@@ -553,7 +586,9 @@ Question 1?
 <!-- mkdocs-quiz results -->
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Results div should be injected
@@ -564,7 +599,7 @@ Question 1?
 
 
 def test_intro_generation(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that intro text with reset button is generated."""
     markdown = """
@@ -577,7 +612,9 @@ Question 1?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Intro div should be injected
@@ -587,7 +624,7 @@ Question 1?
 
 
 def test_confetti_config_injection(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that confetti configuration is properly injected."""
     plugin.config["confetti"] = True
@@ -598,7 +635,9 @@ Question?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Confetti library should be included (bundled locally)
@@ -609,7 +648,7 @@ Question?
 
 
 def test_confetti_disabled(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that confetti can be disabled."""
     plugin.config["confetti"] = False
@@ -620,7 +659,9 @@ Question?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Config should indicate confetti is disabled
@@ -647,7 +688,7 @@ def test_material_theme_integration(plugin: MkDocsQuizPlugin) -> None:
     config["theme"] = mock_theme
 
     # Call on_env
-    result_env = plugin.on_env(env, config, None)  # type: ignore[arg-type]
+    result_env = plugin.on_env(env, config, mock_files)
 
     # Should add our template loader
     assert result_env is not None
@@ -655,7 +696,7 @@ def test_material_theme_integration(plugin: MkDocsQuizPlugin) -> None:
 
 
 def test_show_progress_config(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that show_progress configuration works."""
     plugin.config["show_progress"] = False
@@ -666,7 +707,9 @@ Question?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Config should indicate progress is disabled
@@ -675,7 +718,7 @@ Question?
 
 
 def test_auto_number_config(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that auto_number configuration generates proper elements."""
     plugin.config["auto_number"] = True
@@ -693,7 +736,9 @@ Second question?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should have question numbers
@@ -703,7 +748,7 @@ Second question?
 
 
 def test_progress_sidebar_position_config(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that progress_sidebar_position configuration is injected."""
     # Test default value (top)
@@ -715,7 +760,9 @@ Question?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Config should include progressSidebarPosition
@@ -725,7 +772,9 @@ Question?
     # Test bottom value
     plugin.config["progress_sidebar_position"] = "bottom"
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Config should indicate bottom position
@@ -734,7 +783,7 @@ Question?
 
 
 def test_special_characters_in_answers(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quotes and special chars in answers work correctly."""
     markdown = """
@@ -745,7 +794,9 @@ What's the answer?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should process without errors
@@ -755,7 +806,7 @@ What's the answer?
 
 
 def test_code_in_quiz_content(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that code blocks in quiz content section work."""
     markdown = """
@@ -772,7 +823,9 @@ def hello():
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Code block should be present in content section (with syntax highlighting)
@@ -782,7 +835,7 @@ def hello():
 
 
 def test_multiple_quizzes_same_question(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that multiple quizzes with identical questions get unique IDs."""
     markdown = """
@@ -797,7 +850,9 @@ Same question?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Each quiz should have unique ID
@@ -808,7 +863,7 @@ Same question?
 
 
 def test_quiz_with_only_answers_no_question(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quiz with missing question raises ValueError and crashes build."""
     markdown = """
@@ -823,7 +878,7 @@ def test_quiz_with_only_answers_no_question(
 
 
 def test_capital_x_in_checkbox(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that capital X in checkboxes is recognized as correct."""
     markdown = """
@@ -834,7 +889,9 @@ Capital X test?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should recognize capital X as correct
@@ -843,7 +900,7 @@ Capital X test?
 
 
 def test_malformed_checkbox_y_raises_error(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that malformed checkbox with 'y' raises ValueError and crashes build."""
     markdown = """
@@ -863,7 +920,7 @@ Question?
 
 
 def test_malformed_checkbox_checkmark_raises_error(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that checkmark symbol raises ValueError."""
     markdown = """
@@ -878,7 +935,7 @@ Question?
 
 
 def test_malformed_checkbox_star_raises_error(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that star symbol raises ValueError."""
     markdown = """
@@ -893,7 +950,7 @@ Question?
 
 
 def test_malformed_checkbox_lowercase_o_raises_error(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that lowercase 'o' raises ValueError."""
     markdown = """
@@ -908,7 +965,7 @@ Question?
 
 
 def test_all_valid_checkbox_formats(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that all valid checkbox formats are accepted: [x], [X], [ ], []."""
     markdown = """
@@ -921,7 +978,9 @@ Which are valid?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should process successfully with all 4 formats
@@ -932,7 +991,7 @@ Which are valid?
 
 
 def test_very_long_quiz_content(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that very long quiz content is handled properly (stress test)."""
     # Generate a long question and many answers
@@ -954,7 +1013,9 @@ def test_very_long_quiz_content(
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should process successfully despite large size
@@ -966,7 +1027,7 @@ def test_very_long_quiz_content(
 
 
 def test_special_characters_in_question(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test special HTML characters in question text."""
     markdown = """
@@ -977,7 +1038,9 @@ What does <div class="test"> & "quotes" do?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Markdown should escape HTML in question
@@ -987,7 +1050,7 @@ What does <div class="test"> & "quotes" do?
 
 
 def test_quiz_with_only_empty_checkboxes(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test quiz with all empty checkboxes raises ValueError and crashes build."""
     markdown = """
@@ -1004,7 +1067,7 @@ Question?
 
 
 def test_nested_lists_in_quiz_content(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test nested lists in quiz content section."""
     markdown = """
@@ -1021,7 +1084,9 @@ Content with list:
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should process successfully
@@ -1032,7 +1097,7 @@ Content with list:
 
 
 def test_markdown_formatting_in_question(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test markdown formatting (bold, italic, code) in question."""
     markdown = """
@@ -1043,7 +1108,9 @@ What does **bold** and *italic* and `code` mean?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should process markdown in question
@@ -1053,7 +1120,7 @@ What does **bold** and *italic* and `code` mean?
 
 
 def test_old_syntax_detection_opening_tag(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that old v0.x <?quiz?> opening tag is detected and build fails."""
     markdown = """
@@ -1072,7 +1139,7 @@ answer: No!
 
 
 def test_old_syntax_detection_closing_tag(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that old v0.x <?/quiz?> closing tag is detected and build fails."""
     markdown = """
@@ -1087,7 +1154,7 @@ Some text with old closing tag: <?/quiz?>
 
 
 def test_old_syntax_error_message_content(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that error message contains helpful migration instructions."""
     markdown = """
@@ -1108,7 +1175,7 @@ answer-correct: Yes
 
 
 def test_new_syntax_not_detected_as_old(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that new v1.0 syntax is not incorrectly flagged as old syntax."""
     markdown = """
@@ -1120,13 +1187,15 @@ Are you ready?
 """
     # Should process without errors
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
     assert "Are you ready?" in html_result
 
 
 def test_old_syntax_in_code_block_not_detected(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that old syntax inside code blocks is ignored (documentation example)."""
     markdown = """
@@ -1149,7 +1218,9 @@ Real question?
 """
     # Should NOT raise an error because old syntax is in a code block
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
     assert "Real question?" in html_result
     # Old syntax should remain in code block
@@ -1157,7 +1228,7 @@ Real question?
 
 
 def test_fill_in_blank_single(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test processing a fill-in-the-blank quiz with a single blank."""
     markdown = """
@@ -1168,7 +1239,9 @@ def test_fill_in_blank_single(
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should contain fill-blank quiz marker
@@ -1183,7 +1256,7 @@ def test_fill_in_blank_single(
 
 
 def test_fill_in_blank_multiple(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test processing a fill-in-the-blank quiz with multiple blanks."""
     markdown = """
@@ -1194,7 +1267,9 @@ The capital of France is [[Paris]] and the capital of Spain is [[Madrid]].
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should contain fill-blank quiz marker
@@ -1211,7 +1286,7 @@ The capital of France is [[Paris]] and the capital of Spain is [[Madrid]].
 
 
 def test_fill_in_blank_with_markdown(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test fill-in-the-blank with markdown formatting around blanks."""
     markdown = """
@@ -1222,7 +1297,9 @@ The **bold** answer is [[correct]] and the *italic* one is [[also correct]].
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should process markdown
@@ -1234,7 +1311,7 @@ The **bold** answer is [[correct]] and the *italic* one is [[also correct]].
 
 
 def test_fill_in_blank_with_content(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test fill-in-the-blank with content section separated by horizontal rule."""
     markdown = """
@@ -1248,7 +1325,9 @@ That's correct! Basic arithmetic.
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should contain fill-blank quiz marker
@@ -1259,7 +1338,7 @@ That's correct! Basic arithmetic.
 
 
 def test_fill_in_blank_with_content_and_markdown(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test fill-in-the-blank with content section containing markdown."""
     markdown = """
@@ -1279,7 +1358,9 @@ It can have **bold** and `code`.
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should contain fill-blank quiz marker
@@ -1295,7 +1376,7 @@ It can have **bold** and `code`.
 
 
 def test_fill_in_blank_html_escaping(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that fill-in-the-blank answers are properly HTML escaped."""
     markdown = """
@@ -1306,7 +1387,9 @@ The HTML tag for bold is [[<strong>]].
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Answer should be HTML escaped in the data attribute
@@ -1316,7 +1399,7 @@ The HTML tag for bold is [[<strong>]].
 
 
 def test_fill_in_blank_no_blanks_error(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that quiz without blanks or checkboxes raises ValueError."""
     markdown = """
@@ -1330,7 +1413,7 @@ This has no blanks in it.
 
 
 def test_fill_in_blank_autocomplete_off(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that fill-in-the-blank inputs have autocomplete disabled."""
     markdown = """
@@ -1341,7 +1424,9 @@ Answer: [[test]]
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should have autocomplete="off" attribute
@@ -1349,7 +1434,7 @@ Answer: [[test]]
 
 
 def test_fill_in_blank_with_special_characters(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test fill-in-the-blank with special characters in answers."""
     markdown = """
@@ -1360,7 +1445,9 @@ The answer with quotes is [["hello"]] and with ampersand is [[a & b]].
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Answers should be properly escaped
@@ -1369,7 +1456,7 @@ The answer with quotes is [["hello"]] and with ampersand is [[a & b]].
 
 
 def test_fill_in_blank_unique_ids(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that multiple fill-in-the-blank inputs get unique IDs."""
     markdown = """
@@ -1384,7 +1471,9 @@ Third [[answer]].
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should have unique IDs for each input
@@ -1394,7 +1483,7 @@ Third [[answer]].
 
 
 def test_fill_in_blank_show_correct_option(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that fill-in-the-blank respects show_correct option."""
     mock_page.meta["quiz"] = {"show_correct": False}
@@ -1406,7 +1495,9 @@ Answer: [[test]]
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should NOT have show-correct data attribute when disabled
@@ -1416,7 +1507,7 @@ Answer: [[test]]
 
 
 def test_fill_in_blank_auto_number(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that fill-in-the-blank supports auto_number option."""
     mock_page.meta["quiz"] = {"auto_number": True}
@@ -1432,7 +1523,9 @@ Second: [[answer]]
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should have question numbers
@@ -1441,7 +1534,7 @@ Second: [[answer]]
 
 
 def test_fill_in_blank_markdown_extensions(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that fill-in-the-blank quizzes use markdown extensions from config."""
     # Configure markdown extensions
@@ -1458,7 +1551,9 @@ This *content* has `code` and uses extensions.
     # Process markdown phase
     markdown_result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     # Process content phase (convert placeholders to actual HTML)
-    result = plugin.on_page_content(markdown_result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    result = plugin.on_page_content(
+        markdown_result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert result is not None
 
     # Should convert markdown in question text
@@ -1472,7 +1567,7 @@ This *content* has `code` and uses extensions.
 
 
 def test_markdown_extensions_from_config(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that markdown extensions from mkdocs.yml config are used in quizzes."""
     # Configure admonition extension in mock config
@@ -1489,7 +1584,9 @@ What is this?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should have admonition processed
@@ -1498,7 +1595,7 @@ What is this?
 
 
 def test_markdown_extensions_with_config_options(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that markdown extension configs are passed through."""
     # Configure toc extension with a custom option
@@ -1513,7 +1610,9 @@ def test_markdown_extensions_with_config_options(
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should have heading with permalink (toc extension config applied)
@@ -1541,7 +1640,9 @@ def hello():
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, empty_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=empty_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=empty_config, files=mock_files
+    )
     assert html_result is not None
 
     # Default extensions should be used:
@@ -1554,7 +1655,7 @@ def hello():
 
 
 def test_tables_extension_in_quiz(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that tables extension works in quiz content section."""
     # The 'extra' extension includes tables
@@ -1572,7 +1673,9 @@ What is shown below?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Table should be converted to HTML
@@ -1581,7 +1684,7 @@ What is shown below?
 
 
 def test_pymdownx_superfences_if_installed(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that pymdownx.superfences works if installed."""
     try:
@@ -1603,7 +1706,9 @@ print("hello")
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Superfences should wrap code blocks
@@ -1617,7 +1722,7 @@ print("hello")
 
 
 def test_asterisk_bullet_single_choice(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that asterisk bullets work for single choice quizzes."""
     markdown = """
@@ -1629,7 +1734,9 @@ What is 2+2?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     assert "What is 2+2?" in html_result
@@ -1638,7 +1745,7 @@ What is 2+2?
 
 
 def test_asterisk_bullet_multiple_choice(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that asterisk bullets work for multiple choice quizzes."""
     markdown = """
@@ -1650,7 +1757,9 @@ Which are even numbers?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     assert "Which are even numbers?" in html_result
@@ -1660,7 +1769,7 @@ Which are even numbers?
 
 
 def test_mixed_bullet_styles(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that mixing hyphen and asterisk bullets works within same quiz."""
     markdown = """
@@ -1673,7 +1782,9 @@ Mixed bullets?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should have all 4 answers
@@ -1687,7 +1798,7 @@ Mixed bullets?
 
 
 def test_asterisk_bullet_all_valid_formats(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that all valid checkbox formats work with asterisk bullets."""
     markdown = """
@@ -1700,7 +1811,9 @@ Which are valid?
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     # Should process successfully with all 4 formats
@@ -1711,7 +1824,7 @@ Which are valid?
 
 
 def test_asterisk_bullet_with_content(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that asterisk bullets work with content section."""
     markdown = """
@@ -1724,7 +1837,9 @@ Python is a high-level programming language.
 </quiz>
 """
     result = plugin.on_page_markdown(markdown, mock_page, mock_config)
-    html_result = plugin.on_page_content(result, page=mock_page, config=mock_config, files=None)  # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
     assert html_result is not None
 
     assert "What is Python?" in html_result
@@ -1734,7 +1849,7 @@ Python is a high-level programming language.
 
 
 def test_asterisk_bullet_malformed_checkbox_raises_error(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
 ) -> None:
     """Test that malformed checkbox with asterisk bullet raises ValueError."""
     markdown = """
