@@ -374,9 +374,9 @@ class MkDocsQuizPlugin(BasePlugin):
         quiz_id: int,
         options: dict[str, bool],
         t: TranslationManager,
-        config: MkDocsConfig,
-        page: Page,
-        files: Files,
+        config: MkDocsConfig | None = None,
+        page: Page | None = None,
+        files: Files | None = None,
     ) -> str:
         """Process a fill-in-the-blank quiz.
 
@@ -716,6 +716,7 @@ class MkDocsQuizPlugin(BasePlugin):
         self, text: str, page: Page, config: MkDocsConfig, files: Files
     ) -> str:
         """Convert a markdown fragment to HTML registering MkDocs treeprocessors.
+
         This uses the same processors that `Page.render()` registers.
         """
         md_inst = md.Markdown(
@@ -737,9 +738,9 @@ class MkDocsQuizPlugin(BasePlugin):
         quiz_id: int,
         options: dict[str, bool],
         t: TranslationManager,
-        config: MkDocsConfig,
-        page: Page,
-        files: Files,
+        config: MkDocsConfig | None = None,
+        page: Page | None = None,
+        files: Files | None = None,
     ) -> str:
         """Process a single quiz and convert it to HTML.
 
@@ -805,7 +806,7 @@ class MkDocsQuizPlugin(BasePlugin):
         if content_lines:
             content_text = "\n".join(content_lines)
             # Use full markdown conversion for content section
-            content_html = self._convert_fragment_markdown(content_text, page, config)
+            content_html = self._convert_fragment_markdown(content_text, page, config, files)
 
         # Build data attributes for quiz options
         data_attrs = []
