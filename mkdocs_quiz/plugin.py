@@ -464,7 +464,7 @@ class MkDocsQuizPlugin(BasePlugin):
         question_with_placeholders = re.sub(FILL_BLANK_REGEX, create_placeholder, question_text)
 
         # Convert markdown to HTML using configured markdown extensions
-        # Convert question markdown to HTML using MkDocs-aware fragment conversion when possible
+        # Convert question markdown to HTML using MkDocs-aware fragment conversion.
         question_html = self._convert_fragment_markdown(
             question_with_placeholders, page, config, files
         )
