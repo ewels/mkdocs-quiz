@@ -343,8 +343,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 is_correct = checkbox_content.lower() == "x"
                 answer_text = checkbox_pattern.group(2)
                 # Store raw answer markdown here and convert later with
-                # MkDocs-aware processors in `_generate_answer_html` so that
-                # relative links are resolved correctly.
+                # MkDocs-aware processors in `_generate_answer_html`.
                 all_answers.append(answer_text)
                 if is_correct:
                     correct_answers.append(answer_text)
@@ -718,8 +717,7 @@ class MkDocsQuizPlugin(BasePlugin):
     ) -> str:
         """Convert a markdown fragment to HTML registering MkDocs treeprocessors.
 
-        This uses the same processors that `Page.render()` registers so that
-        relative links and image `src` values are resolved in the same way.
+        This uses the same processors that `Page.render()` registers.
         """
         md_inst = md.Markdown(
             extensions=config.markdown_extensions,
@@ -727,17 +725,10 @@ class MkDocsQuizPlugin(BasePlugin):
         )
 
         # Register MkDocs-specific processors used during full page rendering
-        raw_html_ext = _RawHTMLPreprocessor()
-        raw_html_ext._register(md_inst)
-
-        extract_anchors_ext = _ExtractAnchorsTreeprocessor(page.file, files, config)
-        extract_anchors_ext._register(md_inst)
-
-        relative_path_ext = _RelativePathTreeprocessor(page.file, files, config)
-        relative_path_ext._register(md_inst)
-
-        extract_title_ext = _ExtractTitleTreeprocessor()
-        extract_title_ext._register(md_inst)
+        _RawHTMLPreprocessor()._register(md_inst)
+        _ExtractAnchorsTreeprocessor(page.file, files, config)._register(md_inst)
+        _RelativePathTreeprocessor(page.file, files, config)._register(md_inst)
+        _ExtractTitleTreeprocessor()._register(md_inst)
 
         return md_inst.convert(text)
 
