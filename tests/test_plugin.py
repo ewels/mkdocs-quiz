@@ -54,7 +54,7 @@ def mock_files() -> Files:
 
 
 def test_disabled_page(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
 ) -> None:
     """Test that quiz processing is disabled when page meta is set."""
     mock_page.meta["quiz"] = {"enabled": False}
