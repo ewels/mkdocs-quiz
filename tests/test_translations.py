@@ -160,7 +160,9 @@ What is 2+2?
 
     # Process markdown and content
     markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
-    html_result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=mock_files)
+    html_result = plugin.on_page_content(
+        markdown_result, page=page, config=mock_config, files=mock_files
+    )
 
     assert html_result is not None
     # Should contain translation script
@@ -318,7 +320,9 @@ Second question?
 """
 
     markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
-    html_result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=mock_files)
+    html_result = plugin.on_page_content(
+        markdown_result, page=page, config=mock_config, files=mock_files
+    )
 
     assert html_result is not None
     # Should have auto-numbered questions
@@ -391,7 +395,9 @@ Test?
 """
 
     markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
-    html_result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=mock_files)
+    html_result = plugin.on_page_content(
+        markdown_result, page=page, config=mock_config, files=mock_files
+    )
 
     assert html_result is not None
     # Should contain Submit button (multiple choice quiz)

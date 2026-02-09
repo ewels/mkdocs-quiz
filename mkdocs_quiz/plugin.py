@@ -374,9 +374,9 @@ class MkDocsQuizPlugin(BasePlugin):
         quiz_id: int,
         options: dict[str, bool],
         t: TranslationManager,
-        config: MkDocsConfig | None = None,
-        page: Page | None = None,
-        files: Files | None = None,
+        config: MkDocsConfig,
+        page: Page,
+        files: Files,
     ) -> str:
         """Process a fill-in-the-blank quiz.
 
@@ -527,9 +527,9 @@ class MkDocsQuizPlugin(BasePlugin):
         all_answers: list[str],
         correct_answers: list[str],
         quiz_id: int,
-        page: Page | None = None,
-        config: MkDocsConfig | None = None,
-        files: Files | None = None,
+        page: Page,
+        config: MkDocsConfig,
+        files: Files,
     ) -> tuple[list[str], bool]:
         """Generate HTML for quiz answers.
 
@@ -738,9 +738,9 @@ class MkDocsQuizPlugin(BasePlugin):
         quiz_id: int,
         options: dict[str, bool],
         t: TranslationManager,
-        config: MkDocsConfig | None = None,
-        page: Page | None = None,
-        files: Files | None = None,
+        config: MkDocsConfig,
+        page: Page,
+        files: Files,
     ) -> str:
         """Process a single quiz and convert it to HTML.
 
@@ -760,7 +760,9 @@ class MkDocsQuizPlugin(BasePlugin):
         # Helper to convert markdown fragments using MkDocs' page-aware processors
         # Check if this is a fill-in-the-blank quiz
         if self._is_fill_in_blank_quiz(quiz_content):
-            return self._process_fill_in_blank_quiz(quiz_content, quiz_id, options, t, config, page, files)
+            return self._process_fill_in_blank_quiz(
+                quiz_content, quiz_id, options, t, config, page, files
+            )
 
         # Dedent the quiz content to handle indented quizzes (e.g., in content tabs)
         quiz_content = dedent(quiz_content)
