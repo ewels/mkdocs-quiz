@@ -728,10 +728,31 @@
                 }
               });
 
-              // Show correct feedback
+              // Show correct feedback - prefer per-answer feedback if present
               feedbackDiv.classList.remove("hidden", "incorrect");
               feedbackDiv.classList.add("correct");
-              feedbackDiv.textContent = t("Correct answer!");
+              let feedbackHTML = "";
+              const shownSelectedInputs = fieldset.querySelectorAll('input[name="answer"]:checked');
+              shownSelectedInputs.forEach((input) => {
+                const fb = input.parentElement.querySelector('.answer-feedback');
+                if (fb && fb.innerHTML.trim()) {
+                  feedbackHTML += fb.innerHTML + "<br>";
+                }
+              });
+              if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
+                const correctInputs = fieldset.querySelectorAll('input[name="answer"][correct]');
+                correctInputs.forEach((input) => {
+                  const fb = input.parentElement.querySelector('.answer-feedback');
+                  if (fb && fb.innerHTML.trim()) {
+                    feedbackHTML += fb.innerHTML + "<br>";
+                  }
+                });
+              }
+              if (feedbackHTML) {
+                feedbackDiv.innerHTML = feedbackHTML;
+              } else {
+                feedbackDiv.textContent = t("Correct answer!");
+              }
 
               // Disable inputs if disable-after-submit is enabled
               if (quiz.hasAttribute("data-disable-after-submit")) {
@@ -776,11 +797,23 @@
                 });
               }
 
-              // Show incorrect feedback
+              // Show incorrect feedback - prefer per-answer feedback for selected answers
               feedbackDiv.classList.remove("hidden", "correct");
               feedbackDiv.classList.add("incorrect");
               const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-              feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+              let feedbackHTML = "";
+              const shownSelectedInputs = fieldset.querySelectorAll('input[name="answer"]:checked');
+              shownSelectedInputs.forEach((input) => {
+                const fb = input.parentElement.querySelector('.answer-feedback');
+                if (fb && fb.innerHTML.trim()) {
+                  feedbackHTML += fb.innerHTML + "<br>";
+                }
+              });
+              if (feedbackHTML) {
+                feedbackDiv.innerHTML = feedbackHTML;
+              } else {
+                feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+              }
 
               // Disable inputs if disable-after-submit is enabled
               if (quiz.hasAttribute("data-disable-after-submit")) {
@@ -895,10 +928,29 @@
           }
 
           if (is_correct) {
-            // Show correct feedback
+            // Show correct feedback - prefer per-answer feedback if present
             feedbackDiv.classList.remove("hidden", "incorrect");
             feedbackDiv.classList.add("correct");
-            feedbackDiv.textContent = t("Correct answer!");
+            let feedbackHTML = "";
+            Array.from(selectedAnswers).forEach((answer) => {
+              const fb = answer.parentElement.querySelector('.answer-feedback');
+              if (fb && fb.innerHTML.trim()) {
+                feedbackHTML += fb.innerHTML + "<br>";
+              }
+            });
+            if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
+              Array.from(correctAnswers).forEach((answer) => {
+                const fb = answer.parentElement.querySelector('.answer-feedback');
+                if (fb && fb.innerHTML.trim()) {
+                  feedbackHTML += fb.innerHTML + "<br>";
+                }
+              });
+            }
+            if (feedbackHTML) {
+              feedbackDiv.innerHTML = feedbackHTML;
+            } else {
+              feedbackDiv.textContent = t("Correct answer!");
+            }
           } else {
             // Show incorrect feedback with detailed list
             feedbackDiv.classList.remove("hidden", "correct");
@@ -987,12 +1039,22 @@
                 answer.parentElement.classList.add("correct");
               });
             }
-            // Show incorrect feedback
+            // Show incorrect feedback - prefer per-answer feedback for selected answers
             feedbackDiv.classList.remove("hidden", "correct");
             feedbackDiv.classList.add("incorrect");
-            // Only show "Please try again" if the quiz is not disabled after submission
             const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-            feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+            let feedbackHTML = "";
+            Array.from(selectedAnswers).forEach((answer) => {
+              const fb = answer.parentElement.querySelector('.answer-feedback');
+              if (fb && fb.innerHTML.trim()) {
+                feedbackHTML += fb.innerHTML + "<br>";
+              }
+            });
+            if (feedbackHTML) {
+              feedbackDiv.innerHTML = feedbackHTML;
+            } else {
+              feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+            }
           }
 
           // Get selected values to save

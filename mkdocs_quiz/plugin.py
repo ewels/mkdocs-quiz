@@ -280,7 +280,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
     def _parse_quiz_question_and_answers(
         self, quiz_lines: list[str], config: MkDocsConfig | None = None
-    ) -> tuple[str, list[str], list[str], int]:
+    ) -> tuple[str, list[str], list[str], list[str], int]:
         """Parse quiz question and answers from quiz lines.
 
         The question is everything up to the first checkbox answer.
@@ -292,7 +292,7 @@ class MkDocsQuizPlugin(BasePlugin):
             config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
-            A tuple of (question_text, all_answers, correct_answers, content_start_index).
+            A tuple of (question_text, all_answers, correct_answers, answer_feedbacks, content_start_index).
         """
         # Find the first answer line and validate checkbox format
         first_answer_index = None
@@ -323,17 +323,18 @@ class MkDocsQuizPlugin(BasePlugin):
         question_text = "\n".join(question_lines).strip()
 
         # Parse answers starting from first_answer_index
-        all_answers = []
-        correct_answers = []
+        all_answers: list[str] = []
+        correct_answers: list[str] = []
+        answer_feedbacks: list[str] = []
         content_start_index = first_answer_index
 
-        for i, line in enumerate(quiz_lines[first_answer_index:], start=first_answer_index):
-            # First check if this looks like a checkbox item (any character in brackets)
-            # Supports both hyphen (-) and asterisk (*) bullets
+        i = first_answer_index
+        length = len(quiz_lines)
+        while i < length:
+            line = quiz_lines[i]
             checkbox_pattern = re.match(r"^[-*] \[(.?)\] (.*)$", line)
             if checkbox_pattern:
                 checkbox_content = checkbox_pattern.group(1)
-                # Strictly validate: only accept x, X, space, or empty
                 if checkbox_content not in ["x", "X", " ", ""]:
                     raise ValueError(
                         f"Invalid checkbox format: '[{checkbox_content}]'. "
@@ -342,20 +343,52 @@ class MkDocsQuizPlugin(BasePlugin):
                     )
                 is_correct = checkbox_content.lower() == "x"
                 answer_text = checkbox_pattern.group(2)
-                # Store raw answer markdown here and convert later with
-                # MkDocs-aware processors in `_generate_answer_html`.
                 all_answers.append(answer_text)
                 if is_correct:
                     correct_answers.append(answer_text)
-                content_start_index = i + 1
+
+                # Collect optional per-answer feedback lines immediately following the answer.
+                # Accept blockquote-style lines (starting with optional whitespace then '>')
+                feedback_lines: list[str] = []
+                j = i + 1
+                while j < length:
+                    next_line = quiz_lines[j]
+                    # If the next line is a blockquote (possibly indented), treat as feedback
+                    bq_match = re.match(r"^\s*>\s?(.*)$", next_line)
+                    if bq_match:
+                        feedback_lines.append(bq_match.group(1))
+                        j += 1
+                        continue
+                    # If the next line is empty, stop collecting feedback (do not skip blanks)
+                    if not next_line.strip():
+                        break
+                    # If the next line is another checkbox, stop
+                    if re.match(r"^[-*] \[(.?)\] (.*)$", next_line):
+                        break
+                    # Otherwise it's content (end of answers)
+                    break
+
+                if feedback_lines:
+                    # Reconstruct markdown feedback (as plain text lines without the leading '>')
+                    feedback_md = "\n".join(feedback_lines).rstrip()
+                else:
+                    feedback_md = ""
+
+                answer_feedbacks.append(feedback_md)
+
+                # Advance index to the line after any collected feedback
+                i = j
+                content_start_index = i
+                continue
             elif not line.strip():
                 # Empty line, continue
+                i += 1
                 continue
             else:
                 # Not a checkbox item and not empty, must be content
                 break
 
-        return question_text, all_answers, correct_answers, content_start_index
+        return question_text, all_answers, correct_answers, answer_feedbacks, content_start_index
 
     def _is_fill_in_blank_quiz(self, quiz_content: str) -> bool:
         """Check if quiz contains fill-in-the-blank patterns.
@@ -526,6 +559,7 @@ class MkDocsQuizPlugin(BasePlugin):
         self,
         all_answers: list[str],
         correct_answers: list[str],
+        answer_feedbacks: list[str],
         quiz_id: int,
         page: Page,
         config: MkDocsConfig,
@@ -564,10 +598,20 @@ class MkDocsQuizPlugin(BasePlugin):
             # If the converter wrapped the answer in a single <p>..</p>, strip it
             stripped = re.sub(r"^\s*<p>(.*)</p>\s*$", r"\1", converted, flags=re.S)
 
+            # Prepare per-answer feedback HTML if provided
+            feedback_html = ""
+            if i < len(answer_feedbacks) and answer_feedbacks[i].strip():
+                feedback_md = answer_feedbacks[i]
+                converted_feedback = self._convert_fragment_markdown(feedback_md, page, config, files)
+                # Strip enclosing paragraph if present
+                converted_feedback = re.sub(r"^\s*<p>(.*)</p>\s*$", r"\1", converted_feedback, flags=re.S)
+                feedback_html = f'<div class="answer-feedback hidden">{converted_feedback}</div>'
+
             answer_html = (
                 f'<div><input type="{input_type}" name="answer" value="{escaped_value}" '
                 f'id="{input_id}" {correct_attr}>'
-                f'<label for="{input_id}">{stripped}</label></div>'
+                f'<label for="{input_id}">{stripped}</label>'
+                f'{feedback_html}</div>'
             )
             answer_html_list.append(answer_html)
 
@@ -780,7 +824,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Parse question and answers
         # Question is everything up to the first checkbox answer
-        question_text, all_answers, correct_answers, content_start_index = (
+        question_text, all_answers, correct_answers, answer_feedbacks, content_start_index = (
             self._parse_quiz_question_and_answers(quiz_lines, config)
         )
 
@@ -798,7 +842,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
         # Generate answer HTML (pass page/config/files so links are resolved)
         answer_html_list, as_checkboxes = self._generate_answer_html(
-            all_answers, correct_answers, quiz_id, page=page, config=config, files=files
+            all_answers, correct_answers, answer_feedbacks, quiz_id, page=page, config=config, files=files
         )
 
         # Get quiz content (everything after the last answer)
