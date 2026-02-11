@@ -168,7 +168,7 @@ Answers can also include markdown formatting:
 
 ## Changing Response Text
 
-The feedback received on the completion of a form can be changed by including a `>`
+The feedback received on the completion of a form can be customised by including a `>`
 
 This is optional, any entry that does not include any modified answers will
 receive the standard 'Correct' or 'Incorrect'.
