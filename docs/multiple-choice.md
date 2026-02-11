@@ -166,6 +166,86 @@ Answers can also include markdown formatting:
     </quiz>
     ```
 
+## Changing Response Text
+
+The feedback received on the completion of a form can be changed by including a `>`
+
+This is optional, any entry that does not include any modified answers will
+receive the standard 'Correct' or 'Incorrect'.
+
+### Radio Button
+
+=== "Example"
+
+    <quiz>
+    Testing multiple answer texts.
+    What is 2 x 2 ?
+
+    - [ ] 3
+    > Nope, but close!
+    - [x] 4
+    > Amazing!
+    - [ ] 6
+    > No. Stop it.
+
+    Anything else in this section should be prepended.
+    </quiz>
+
+=== "Syntax"
+
+    ~~~markdown
+    <quiz>
+    Testing multiple answer texts.
+    What is 2 x 2 ?
+
+    - [ ] 3
+    > Nope, but close!
+    - [x] 4
+    > Amazing!
+    - [ ] 6
+    > No. Stop it.
+
+    Anything else in this section should be prepended.
+    </quiz>
+    ~~~
+
+### Multiple Choice
+
+=== "Example"
+
+    <quiz>
+    Testing multiple answer texts.
+    Which of these fruits are yellow.
+
+    - [ ] Orange
+    > Oranges are _Orange_
+    - [x] Bananna
+    - [x] Pineapple 
+    - [ ] Blueberry
+    > Blueberries are blue.
+    
+    Some feedback.
+    </quiz>
+
+=== "Syntax"
+
+    ~~~markdown
+    <quiz>
+    Testing multiple answer texts.
+    Which of these fruits are yellow.
+
+    - [ ] Orange
+    > Oranges are _orange_
+    - [x] Bananna
+    > Sometimes Banannas are green.
+    - [x] Pineapple 
+    - [ ] Blueberry
+    > Blueberries are _blue_.
+    
+    Some feedback.
+    </quiz>
+    ~~~
+
 ## Important Notes
 
 1. **At least one correct answer required**: Every quiz must have at least one `- [x]` answer

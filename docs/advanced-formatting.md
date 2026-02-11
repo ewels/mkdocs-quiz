@@ -292,42 +292,6 @@ Include images in the content section:
     </quiz>
     ```
 
-### Multiple Answer Text
-
-You can also include code blocks in the question itself:
-
-=== "Example"
-
-    <quiz>
-    Testing multiple answer texts.
-    What is 2 x 2 ?
-
-    - [ ] 3
-    > Nope, but close!
-    - [x] 4
-    > Amazing!
-    - [ ] 6
-    > No. Stop it.
-
-    </quiz>
-
-=== "Syntax"
-
-    ~~~markdown
-    <quiz>
-    Testing multiple answer texts.
-    What is 2 x 2 ?
-
-    - [ ] 3
-    > Nope, but close!
-    - [x] 4
-    > Amazing!
-    - [ ] 6
-    > No. Stop it.
-
-    </quiz>
-    ~~~
-
 ## Supported Extensions
 
 All markdown extensions configured in your `mkdocs.yml` work within quizzes, including:
