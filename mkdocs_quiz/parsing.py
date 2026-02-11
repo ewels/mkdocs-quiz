@@ -21,6 +21,10 @@ CHECKBOX_REGEX = r"^[-*] \[(.?)\] (.*)$"
 # Checkbox answer pattern: - [x] Answer or * [x] Answer
 ANSWER_PATTERN = re.compile(r"^[-*]\s*\[([xX ]?)\]\s*(.*)$")
 
+# Per-answer feedback pattern: blockquote lines (with optional leading whitespace)
+# Example: > This is feedback text
+FEEDBACK_REGEX = re.compile(r"^\s*>\s?(.*)$")
+
 # Old v0.x syntax patterns (no longer supported)
 OLD_SYNTAX_PATTERNS = [
     r"<\?quiz\?>",  # Old quiz opening tag
@@ -29,6 +33,7 @@ OLD_SYNTAX_PATTERNS = [
 
 __all__ = [
     "ANSWER_PATTERN",
+    "FEEDBACK_REGEX",
     "FILL_BLANK_REGEX",
     "OLD_SYNTAX_PATTERNS",
     "QUIZ_END_TAG",
