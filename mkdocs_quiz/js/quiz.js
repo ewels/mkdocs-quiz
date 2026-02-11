@@ -777,7 +777,7 @@
               }
             } else {
               // Restore incorrect answer state
-              const selectedInputs = Array.from(allAnswers).filter((input) =>
+              const selectedAnswers = Array.from(allAnswers).filter((input) =>
                 savedState.selectedValues.includes(input.value),
               );
 
@@ -787,7 +787,7 @@
               }
 
               // Mark selected answers
-              selectedInputs.forEach((input) => {
+              selectedAnswers.forEach((input) => {
                 if (input.hasAttribute("data-correct")) {
                   input.parentElement.classList.add("correct");
                 } else {
