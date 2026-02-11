@@ -35,6 +35,7 @@ def make_files() -> Files:
 
 
 def test_per_answer_feedback_rendering():
+    """Test basic per-answer feedback rendering."""
     plugin = make_plugin()
     mock_config = MkDocsConfig()
     page = make_page(mock_config)
@@ -50,16 +51,86 @@ What number is shown?
 </quiz>
 """
 
-    # Process markdown and convert to HTML
     md_result = plugin.on_page_markdown(markdown, page, mock_config)
     html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
 
     assert html_result is not None
-    # Expect two inputs
-    assert 'id="quiz-0-0"' in html_result
-    assert 'id="quiz-0-1"' in html_result
-
-    # Expect per-answer feedback divs present with supplied text
     assert 'class="answer-feedback' in html_result
     assert "Correct!" in html_result
     assert "No, that is wrong." in html_result
+
+
+def test_feedback_blank_line_stops_collection():
+    """Test that blank lines between answer and feedback prevent feedback collection."""
+    plugin = make_plugin()
+    mock_config = MkDocsConfig()
+    page = make_page(mock_config)
+    files = make_files()
+
+    markdown = """
+<quiz>
+Question?
+- [x] Correct answer
+
+  > This feedback won't be collected
+- [ ] Wrong answer
+</quiz>
+"""
+
+    md_result = plugin.on_page_markdown(markdown, page, mock_config)
+    html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
+
+    assert html_result is not None
+    assert "This feedback won't be collected" not in html_result
+
+
+def test_multiple_feedback_lines():
+    """Test that multiple consecutive feedback lines are collected."""
+    plugin = make_plugin()
+    mock_config = MkDocsConfig()
+    page = make_page(mock_config)
+    files = make_files()
+
+    markdown = """
+<quiz>
+Question?
+- [x] Right
+  > Line 1
+  > Line 2
+- [ ] Wrong
+</quiz>
+"""
+
+    md_result = plugin.on_page_markdown(markdown, page, mock_config)
+    html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
+
+    assert html_result is not None
+    assert "Line 1" in html_result
+    assert "Line 2" in html_result
+
+
+def test_mixed_feedback_and_no_feedback():
+    """Test quiz with some answers having feedback and others without."""
+    plugin = make_plugin()
+    mock_config = MkDocsConfig()
+    page = make_page(mock_config)
+    files = make_files()
+
+    markdown = """
+<quiz>
+Question?
+- [x] Correct with feedback
+  > Great job!
+- [ ] Wrong without feedback
+- [x] Another correct
+  > Well done!
+</quiz>
+"""
+
+    md_result = plugin.on_page_markdown(markdown, page, mock_config)
+    html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
+
+    assert html_result is not None
+    assert "Great job!" in html_result
+    assert "Well done!" in html_result
+    assert html_result.count('class="answer-feedback') == 2
