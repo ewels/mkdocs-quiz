@@ -29,6 +29,7 @@ from .parsing import (
     FILL_BLANK_REGEX,
     OLD_SYNTAX_PATTERNS,
     CHECKBOX_REGEX,
+    FEEDBACK_REGEX,
     find_quizzes,
     mask_code_blocks,
     unmask_code_blocks,
@@ -279,6 +280,46 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return TranslationManager(language, custom_path)
 
+    def _extract_feedback_from_lines(
+        self, quiz_lines: list[str], start_idx: int
+    ) -> tuple[list[str], int]:
+        """Extract per-answer feedback blockquote lines.
+
+        Parsing stops when encountering:
+        - A blank or whitespace-only line
+        - Another checkbox (next answer)
+        - End of input
+
+        Args:
+            quiz_lines: All lines in the quiz block.
+            start_idx: Index of first potential feedback line.
+
+        Returns:
+            Tuple of (list of feedback text lines, index where collection stopped).
+        """
+        feedback_lines: list[str] = []
+        j = start_idx
+        length = len(quiz_lines)
+
+        while j < length:
+            next_line = quiz_lines[j]
+            # Try to match blockquote-style feedback line (> optional text)
+            bq_match = FEEDBACK_REGEX.match(next_line)
+            if bq_match:
+                feedback_lines.append(bq_match.group(1))
+                j += 1
+                continue
+            # Stop on blank lines (no feedback continuation allowed)
+            if not next_line.strip():
+                break
+            # Stop on next checkbox (next answer)
+            if re.match(CHECKBOX_REGEX, next_line):
+                break
+            # Stop on any other non-feedback content
+            break
+
+        return feedback_lines, j
+
     def _parse_quiz_question_and_answers(
         self, quiz_lines: list[str], config: MkDocsConfig | None = None
     ) -> tuple[str, list[str], list[str], list[str], int]:
@@ -349,34 +390,8 @@ class MkDocsQuizPlugin(BasePlugin):
                     correct_answers.append(answer_text)
 
                 # Collect optional per-answer feedback lines immediately following the answer.
-                # Feedback must be on consecutive lines with no blank lines allowed.
-                # Accept blockquote-style lines (starting with optional whitespace then '>')
-                feedback_lines: list[str] = []
-                j = i + 1
-                while j < length:
-                    next_line = quiz_lines[j]
-                    # If the next line is a blockquote (possibly indented), treat as feedback
-                    bq_match = re.match(r"^\s*>\s?(.*)$", next_line)
-                    if bq_match:
-                        feedback_lines.append(bq_match.group(1))
-                        j += 1
-                        continue
-                    # If the next line is empty, stop collecting feedback immediately.
-                    # Blank lines are not allowed between answer and feedback.
-                    if not next_line.strip():
-                        break
-                    # If the next line is another checkbox, stop
-                    if re.match(CHECKBOX_REGEX, next_line):
-                        break
-                    # Otherwise it's content (end of answers)
-                    break
-
-                if feedback_lines:
-                    # Reconstruct markdown feedback (as plain text lines without the leading '>')
-                    feedback_md = "\n".join(feedback_lines).rstrip()
-                else:
-                    feedback_md = ""
-
+                feedback_lines, j = self._extract_feedback_from_lines(quiz_lines, i + 1)
+                feedback_md = "\n".join(feedback_lines).rstrip() if feedback_lines else ""
                 answer_feedbacks.append(feedback_md)
 
                 # Advance index to the line after any collected feedback
@@ -598,7 +613,8 @@ class MkDocsQuizPlugin(BasePlugin):
             # Convert answer markdown to HTML using MkDocs-aware fragment processors
             converted = self._convert_fragment_markdown(answer, page, config, files)
 
-            # If the converter wrapped the answer in a single <p>..</p>, strip it
+            # Strip enclosing <p> tags added by markdown processor
+            # (we need inline content, not block-level paragraphs)
             stripped = re.sub(r"^\s*<p>(.*)</p>\s*$", r"\1", converted, flags=re.S)
 
             # Prepare per-answer feedback HTML if provided

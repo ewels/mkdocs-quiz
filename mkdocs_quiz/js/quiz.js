@@ -520,6 +520,46 @@
     return feedbackHTML;
   }
 
+  // Get default feedback message based on submission correctness and retry status
+  function getDefaultFeedbackMessage(isCorrect, canRetry) {
+    if (isCorrect) return t("Correct answer!");
+    return canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+  }
+
+  // Mark answer elements with correct/wrong classes based on selection and correctness
+  function markAnswers(selectedAnswers, correctAnswers, quiz, isCorrect) {
+    selectedAnswers.forEach((answer) => {
+      if (isCorrect) {
+        // All selected answers are correct (since it's multiple correct)
+        answer.parentElement.classList.add("correct");
+      } else {
+        // Mark selected wrong answers, keep correct ones highlighted
+        const isAnswerCorrect = answer.hasAttribute("data-correct");
+        answer.parentElement.classList.toggle("wrong", !isAnswerCorrect);
+        answer.parentElement.classList.toggle("correct", isAnswerCorrect);
+      }
+    });
+
+    // If show-correct is enabled, also highlight unselected correct answers on incorrect submission
+    if (!isCorrect && quiz.hasAttribute("data-show-correct")) {
+      correctAnswers.forEach((a) => a.parentElement.classList.add("correct"));
+    }
+  }
+
+  // Display feedback message and styling after quiz submission
+  function showFeedback(feedbackDiv, isCorrect, selectedAnswers, correctAnswers, fieldset, quiz) {
+    // Update feedback styling
+    feedbackDiv.classList.remove("hidden", "correct", "incorrect");
+    feedbackDiv.classList.add(isCorrect ? "correct" : "incorrect");
+
+    // Collect per-answer feedback or use default message
+    let feedbackHTML = isCorrect
+      ? collectFeedbackForSelectedOrCorrect(fieldset, quiz)
+      : collectFeedbackHTMLFromNodeList(selectedAnswers);
+
+    feedbackDiv.innerHTML = feedbackHTML || getDefaultFeedbackMessage(isCorrect, !quiz.hasAttribute("data-disable-after-submit"));
+  }
+
   // Initialize results div reset button
   function initializeResultsDiv() {
     const resultsDiv = document.getElementById("quiz-results");
@@ -996,45 +1036,12 @@
 
           if (is_correct) {
             resetFieldset(fieldset);
-            // Mark only the selected answers in green (since they're all correct)
-            Array.from(selectedAnswers).forEach((answer) => {
-              answer.parentElement.classList.add("correct");
-            });
-            // Show correct feedback - prefer per-answer feedback if present
-            feedbackDiv.classList.remove("hidden", "incorrect");
-            feedbackDiv.classList.add("correct");
-            let feedbackHTML = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
-            if (feedbackHTML) {
-              feedbackDiv.innerHTML = feedbackHTML;
-            } else {
-              feedbackDiv.textContent = t("Correct answer!");
-            }
+            markAnswers(selectedAnswers, correctAnswers, quiz, true);
+            showFeedback(feedbackDiv, true, selectedAnswers, correctAnswers, fieldset, quiz);
           } else {
             resetFieldset(fieldset);
-            // Mark wrong fields with colors
-            Array.from(selectedAnswers).forEach((answer) => {
-              if (!answer.hasAttribute("data-correct")) {
-                answer.parentElement.classList.add("wrong");
-              } else {
-                answer.parentElement.classList.add("correct");
-              }
-            });
-            // If show-correct is enabled, also show all correct answers
-            if (quiz.hasAttribute("data-show-correct")) {
-              correctAnswers.forEach((answer) => {
-                answer.parentElement.classList.add("correct");
-              });
-            }
-            // Show incorrect feedback - prefer per-answer feedback for selected answers
-            feedbackDiv.classList.remove("hidden", "correct");
-            feedbackDiv.classList.add("incorrect");
-            const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-            let feedbackHTML = collectFeedbackHTMLFromNodeList(selectedAnswers);
-            if (feedbackHTML) {
-              feedbackDiv.innerHTML = feedbackHTML;
-            } else {
-              feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
-            }
+            markAnswers(selectedAnswers, correctAnswers, quiz, false);
+            showFeedback(feedbackDiv, false, selectedAnswers, correctAnswers, fieldset, quiz);
           }
 
           // Get selected values to save
