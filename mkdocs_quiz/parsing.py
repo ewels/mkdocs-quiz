@@ -16,6 +16,8 @@ QUIZ_REGEX = r"<quiz>(.*?)</quiz>"
 # Pattern to match fill-in-the-blank placeholders: [[answer]]
 FILL_BLANK_REGEX = r"\[\[([^\]]+)\]\]"
 
+CHECKBOX_REGEX = r"^[-*] \[(.?)\] (.*)$"
+
 # Checkbox answer pattern: - [x] Answer or * [x] Answer
 ANSWER_PATTERN = re.compile(r"^[-*]\s*\[([xX ]?)\]\s*(.*)$")
 
@@ -32,6 +34,7 @@ __all__ = [
     "QUIZ_END_TAG",
     "QUIZ_REGEX",
     "QUIZ_START_TAG",
+    "CHECKBOX_REGEX",
     "find_quizzes",
     "mask_code_blocks",
     "parse_answer",
