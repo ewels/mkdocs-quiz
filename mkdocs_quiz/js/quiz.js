@@ -703,7 +703,7 @@
         } else {
           // Restore multiple-choice quiz state (existing code)
           const allAnswers = fieldset.querySelectorAll('input[name="answer"]');
-          const correctAnswers = fieldset.querySelectorAll('input[name="answer"][correct]');
+          const correctAnswers = fieldset.querySelectorAll('input[name="answer"][data-correct="true"]');
 
           if (savedState.answered) {
             // Restore selected answers based on saved values
@@ -723,7 +723,7 @@
 
               // Only mark the correct answers in green (don't highlight wrong answers)
               allAnswers.forEach((input) => {
-                if (input.hasAttribute("correct")) {
+                if (input.hasAttribute("data-correct")) {
                   input.parentElement.classList.add("correct");
                 }
               });
@@ -740,7 +740,7 @@
                 }
               });
               if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
-                const correctInputs = fieldset.querySelectorAll('input[name="answer"][correct]');
+                const correctInputs = fieldset.querySelectorAll('input[name="answer"][data-correct="true"]');
                 correctInputs.forEach((input) => {
                   const fb = input.parentElement.querySelector('.answer-feedback');
                   if (fb && fb.innerHTML.trim()) {
@@ -783,7 +783,7 @@
 
               // Mark selected answers
               selectedInputs.forEach((input) => {
-                if (input.hasAttribute("correct")) {
+                if (input.hasAttribute("data-correct")) {
                   input.parentElement.classList.add("correct");
                 } else {
                   input.parentElement.classList.add("wrong");
@@ -996,11 +996,11 @@
         } else {
           // Handle multiple-choice quiz (existing code)
           let selectedAnswers = form.querySelectorAll('input[name="answer"]:checked');
-          let correctAnswers = fieldset.querySelectorAll('input[name="answer"][correct]');
+          let correctAnswers = fieldset.querySelectorAll('input[name="answer"][data-correct="true"]');
           // Check if all correct answers are selected
           is_correct = selectedAnswers.length === correctAnswers.length;
           Array.from(selectedAnswers).forEach((answer) => {
-            if (!answer.hasAttribute("correct")) {
+            if (!answer.hasAttribute("data-correct")) {
               is_correct = false;
             }
           });
@@ -1015,7 +1015,7 @@
             // Only mark the correct answers in green (don't highlight wrong answers)
             const allAnswers = fieldset.querySelectorAll('input[name="answer"]');
             allAnswers.forEach((answer) => {
-              if (answer.hasAttribute("correct")) {
+              if (answer.hasAttribute("data-correct")) {
                 answer.parentElement.classList.add("correct");
               }
             });
@@ -1027,7 +1027,7 @@
             resetFieldset(fieldset);
             // Mark wrong fields with colors
             Array.from(selectedAnswers).forEach((answer) => {
-              if (!answer.hasAttribute("correct")) {
+              if (!answer.hasAttribute("data-correct")) {
                 answer.parentElement.classList.add("wrong");
               } else {
                 answer.parentElement.classList.add("correct");

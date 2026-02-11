@@ -280,7 +280,7 @@ class MkDocsQuizPlugin(BasePlugin):
         return TranslationManager(language, custom_path)
 
     def _parse_quiz_question_and_answers(
-        self, quiz_lines: list[str]
+        self, quiz_lines: list[str], config: MkDocsConfig | None = None
     ) -> tuple[str, list[str], list[str], list[str], int]:
         """Parse quiz question and answers from quiz lines.
 

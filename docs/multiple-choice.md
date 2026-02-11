@@ -218,11 +218,11 @@ receive the standard 'Correct' or 'Incorrect'.
     Which of these fruits are yellow.
 
     - [ ] Orange
-    > Oranges are _Orange_
+    > Oranges are _Orange_.
     - [x] Bananna
     - [x] Pineapple 
     - [ ] Blueberry
-    > Blueberries are blue.
+    > Blueberries are _blue_.
     
     Some feedback.
     </quiz>
