@@ -28,6 +28,7 @@ from mkdocs.structure.pages import (
 from .parsing import (
     FILL_BLANK_REGEX,
     OLD_SYNTAX_PATTERNS,
+    CHECKBOX_REGEX,
     find_quizzes,
     mask_code_blocks,
     unmask_code_blocks,
@@ -299,7 +300,7 @@ class MkDocsQuizPlugin(BasePlugin):
         for i, line in enumerate(quiz_lines):
             # Check if this looks like a checkbox list item (any character in brackets)
             # Supports both hyphen (-) and asterisk (*) bullets
-            checkbox_check = re.match(r"^[-*] \[(.?)\] (.*)$", line)
+            checkbox_check = re.match(CHECKBOX_REGEX, line)
             if checkbox_check:
                 checkbox_content = checkbox_check.group(1)
                 # Strictly validate: only accept x, X, space, or empty
@@ -332,7 +333,7 @@ class MkDocsQuizPlugin(BasePlugin):
         length = len(quiz_lines)
         while i < length:
             line = quiz_lines[i]
-            checkbox_pattern = re.match(r"^[-*] \[(.?)\] (.*)$", line)
+            checkbox_pattern = re.match(CHECKBOX_REGEX, line)
             if checkbox_pattern:
                 checkbox_content = checkbox_pattern.group(1)
                 if checkbox_content not in ["x", "X", " ", ""]:
@@ -363,7 +364,7 @@ class MkDocsQuizPlugin(BasePlugin):
                     if not next_line.strip():
                         break
                     # If the next line is another checkbox, stop
-                    if re.match(r"^[-*] \[(.?)\] (.*)$", next_line):
+                    if re.match(CHECKBOX_REGEX, next_line):
                         break
                     # Otherwise it's content (end of answers)
                     break
