@@ -588,7 +588,7 @@ class MkDocsQuizPlugin(BasePlugin):
             is_correct = answer in correct_answers
             input_id = f"quiz-{quiz_id}-{i}"
             input_type = "checkbox" if as_checkboxes else "radio"
-            correct_attr = "correct" if is_correct else ""
+            correct_attr = 'data-correct="true"' if is_correct else ""
 
             # Escape the value attribute for defense-in-depth (i is numeric, but escape anyway)
             escaped_value = html.escape(str(i))

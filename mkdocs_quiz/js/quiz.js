@@ -499,6 +499,27 @@
     });
   }
 
+  // Collect feedback HTML from a NodeList of input elements
+  function collectFeedbackHTMLFromNodeList(nodeList) {
+    let html = "";
+    nodeList.forEach((input) => {
+      const fb = input.parentElement.querySelector(".answer-feedback");
+      if (fb && fb.innerHTML.trim()) {
+        html += '<div class="answer-feedback-item">' + fb.innerHTML + "</div>";
+      }
+    });
+    return html;
+  }
+
+  // Try to collect feedback from selected inputs, falling back to correct inputs if configured
+  function collectFeedbackForSelectedOrCorrect(fieldset, quiz) {
+    let feedbackHTML = collectFeedbackHTMLFromNodeList(fieldset.querySelectorAll('input[name="answer"]:checked'));
+    if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
+      feedbackHTML = collectFeedbackHTMLFromNodeList(fieldset.querySelectorAll('input[name="answer"][data-correct="true"]'));
+    }
+    return feedbackHTML;
+  }
+
   // Initialize results div reset button
   function initializeResultsDiv() {
     const resultsDiv = document.getElementById("quiz-results");
@@ -731,23 +752,7 @@
               // Show correct feedback - prefer per-answer feedback if present
               feedbackDiv.classList.remove("hidden", "incorrect");
               feedbackDiv.classList.add("correct");
-              let feedbackHTML = "";
-              const shownSelectedInputs = fieldset.querySelectorAll('input[name="answer"]:checked');
-              shownSelectedInputs.forEach((input) => {
-                const fb = input.parentElement.querySelector('.answer-feedback');
-                if (fb && fb.innerHTML.trim()) {
-                  feedbackHTML += fb.innerHTML + "<br>";
-                }
-              });
-              if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
-                const correctInputs = fieldset.querySelectorAll('input[name="answer"][data-correct="true"]');
-                correctInputs.forEach((input) => {
-                  const fb = input.parentElement.querySelector('.answer-feedback');
-                  if (fb && fb.innerHTML.trim()) {
-                    feedbackHTML += fb.innerHTML + "<br>";
-                  }
-                });
-              }
+              let feedbackHTML = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
               if (feedbackHTML) {
                 feedbackDiv.innerHTML = feedbackHTML;
               } else {
@@ -801,14 +806,7 @@
               feedbackDiv.classList.remove("hidden", "correct");
               feedbackDiv.classList.add("incorrect");
               const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-              let feedbackHTML = "";
-              const shownSelectedInputs = fieldset.querySelectorAll('input[name="answer"]:checked');
-              shownSelectedInputs.forEach((input) => {
-                const fb = input.parentElement.querySelector('.answer-feedback');
-                if (fb && fb.innerHTML.trim()) {
-                  feedbackHTML += fb.innerHTML + "<br>";
-                }
-              });
+              let feedbackHTML = collectFeedbackHTMLFromNodeList(fieldset.querySelectorAll('input[name="answer"]:checked'));
               if (feedbackHTML) {
                 feedbackDiv.innerHTML = feedbackHTML;
               } else {
@@ -931,21 +929,7 @@
             // Show correct feedback - prefer per-answer feedback if present
             feedbackDiv.classList.remove("hidden", "incorrect");
             feedbackDiv.classList.add("correct");
-            let feedbackHTML = "";
-            Array.from(selectedAnswers).forEach((answer) => {
-              const fb = answer.parentElement.querySelector('.answer-feedback');
-              if (fb && fb.innerHTML.trim()) {
-                feedbackHTML += fb.innerHTML + "<br>";
-              }
-            });
-            if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
-              Array.from(correctAnswers).forEach((answer) => {
-                const fb = answer.parentElement.querySelector('.answer-feedback');
-                if (fb && fb.innerHTML.trim()) {
-                  feedbackHTML += fb.innerHTML + "<br>";
-                }
-              });
-            }
+            let feedbackHTML = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
             if (feedbackHTML) {
               feedbackDiv.innerHTML = feedbackHTML;
             } else {
@@ -1012,17 +996,19 @@
 
           if (is_correct) {
             resetFieldset(fieldset);
-            // Only mark the correct answers in green (don't highlight wrong answers)
-            const allAnswers = fieldset.querySelectorAll('input[name="answer"]');
-            allAnswers.forEach((answer) => {
-              if (answer.hasAttribute("data-correct")) {
-                answer.parentElement.classList.add("correct");
-              }
+            // Mark only the selected answers in green (since they're all correct)
+            Array.from(selectedAnswers).forEach((answer) => {
+              answer.parentElement.classList.add("correct");
             });
-            // Show correct feedback
+            // Show correct feedback - prefer per-answer feedback if present
             feedbackDiv.classList.remove("hidden", "incorrect");
             feedbackDiv.classList.add("correct");
-            feedbackDiv.textContent = t("Correct answer!");
+            let feedbackHTML = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
+            if (feedbackHTML) {
+              feedbackDiv.innerHTML = feedbackHTML;
+            } else {
+              feedbackDiv.textContent = t("Correct answer!");
+            }
           } else {
             resetFieldset(fieldset);
             // Mark wrong fields with colors
@@ -1043,13 +1029,7 @@
             feedbackDiv.classList.remove("hidden", "correct");
             feedbackDiv.classList.add("incorrect");
             const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-            let feedbackHTML = "";
-            Array.from(selectedAnswers).forEach((answer) => {
-              const fb = answer.parentElement.querySelector('.answer-feedback');
-              if (fb && fb.innerHTML.trim()) {
-                feedbackHTML += fb.innerHTML + "<br>";
-              }
-            });
+            let feedbackHTML = collectFeedbackHTMLFromNodeList(selectedAnswers);
             if (feedbackHTML) {
               feedbackDiv.innerHTML = feedbackHTML;
             } else {
