@@ -222,9 +222,9 @@ receive the standard 'Correct' or 'Incorrect'.
     - [x] Bananna
     - [x] Pineapple 
     - [ ] Blueberry
-    > Blueberries are _blue_.
-    
-    Some feedback.
+    > Blueberries are _blue_.  
+    > ...  
+    > You _fool_.
     </quiz>
 
 === "Syntax"
@@ -235,14 +235,13 @@ receive the standard 'Correct' or 'Incorrect'.
     Which of these fruits are yellow.
 
     - [ ] Orange
-    > Oranges are _orange_
+    > Oranges are _Orange_.
     - [x] Bananna
-    > Sometimes Banannas are green.
     - [x] Pineapple 
     - [ ] Blueberry
-    > Blueberries are _blue_.
-    
-    Some feedback.
+    > Blueberries are _blue_.  
+    > ...  
+    > You _fool_.
     </quiz>
     ~~~
 

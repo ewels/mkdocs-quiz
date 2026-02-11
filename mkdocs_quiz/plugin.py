@@ -349,6 +349,7 @@ class MkDocsQuizPlugin(BasePlugin):
                     correct_answers.append(answer_text)
 
                 # Collect optional per-answer feedback lines immediately following the answer.
+                # Feedback must be on consecutive lines with no blank lines allowed.
                 # Accept blockquote-style lines (starting with optional whitespace then '>')
                 feedback_lines: list[str] = []
                 j = i + 1
@@ -360,7 +361,8 @@ class MkDocsQuizPlugin(BasePlugin):
                         feedback_lines.append(bq_match.group(1))
                         j += 1
                         continue
-                    # If the next line is empty, stop collecting feedback (do not skip blanks)
+                    # If the next line is empty, stop collecting feedback immediately.
+                    # Blank lines are not allowed between answer and feedback.
                     if not next_line.strip():
                         break
                     # If the next line is another checkbox, stop
