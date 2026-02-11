@@ -279,7 +279,7 @@ class MkDocsQuizPlugin(BasePlugin):
         return TranslationManager(language, custom_path)
 
     def _parse_quiz_question_and_answers(
-        self, quiz_lines: list[str], config: MkDocsConfig | None = None
+        self, quiz_lines: list[str]
     ) -> tuple[str, list[str], list[str], list[str], int]:
         """Parse quiz question and answers from quiz lines.
 
@@ -837,7 +837,6 @@ class MkDocsQuizPlugin(BasePlugin):
             raise ValueError("Quiz must have at least one correct answer")
 
         # Convert question markdown to HTML (supports multi-line questions with markdown)
-        # Convert question to HTML; prefer MkDocs-aware fragment conversion when `page` and `files` available
         question = self._convert_fragment_markdown(question_text, page, config, files)
 
         # Generate answer HTML (pass page/config/files so links are resolved)
