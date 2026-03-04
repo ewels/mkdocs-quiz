@@ -963,6 +963,44 @@ class MkDocsQuizPlugin(BasePlugin):
         ).strip()
         return intro_html
 
+    def _adjust_relative_paths(self, html_content: str, page: Page) -> str:
+        """Adjust relative image/link paths in quiz HTML for use_directory_urls.
+
+        When MkDocs renders with use_directory_urls=True, output files are placed
+        one directory deeper than their source. This corrects relative URLs in quiz
+        HTML that was generated before MkDocs' own path adjustment runs.
+
+        Args:
+            html_content: The quiz HTML string to adjust.
+            page: The current page object.
+
+        Returns:
+            The HTML with adjusted relative paths.
+        """
+        import posixpath
+
+        src_depth = page.file.src_path.count("/")  # dirs above the .md file
+        dest_depth = page.file.dest_path.count("/")  # dirs above the output file
+        depth_diff = dest_depth - src_depth
+
+        if depth_diff <= 0:
+            return html_content
+
+        prefix = "../" * depth_diff
+
+        def fix_url(match: re.Match) -> str:
+            attr, url = match.group(1), match.group(2)
+            # Only touch relative paths (not http://, https://, /, data:, etc.)
+            if re.match(r"^(?:[a-z][a-z0-9+\-.]*:|/|#)", url):
+                return match.group(0)
+            fixed = posixpath.normpath(prefix + url)
+            return f'{attr}="{fixed}"'
+
+        # Adjust src="..." and href="..." attributes
+        html_content = re.sub(r'(src)="([^"]*)"', fix_url, html_content)
+        html_content = re.sub(r'(href)="([^"]*)"', fix_url, html_content)
+        return html_content
+
     def on_page_content(
         self, html: str, *, page: Page, config: MkDocsConfig, files: Files
     ) -> str | None:
@@ -988,6 +1026,7 @@ class MkDocsQuizPlugin(BasePlugin):
         if page_key in self._quiz_storage:
             for placeholder, quiz_data in self._quiz_storage[page_key].items():
                 quiz_html = quiz_data["html"]
+                quiz_html = self._adjust_relative_paths(quiz_html, page)
 
                 # Optionally embed the original quiz source as an HTML comment
                 # This allows CLI tools to extract quiz content from rendered pages

@@ -1749,3 +1749,50 @@ Question?
         match=r"Invalid checkbox format.*\[y\]",
     ):
         plugin.on_page_markdown(markdown, mock_page, mock_config)
+
+
+def test_image_path_adjusted_for_use_directory_urls() -> None:
+    """Image paths in quiz content should be adjusted for use_directory_urls."""
+    from textwrap import dedent
+    from unittest.mock import MagicMock
+
+    from mkdocs.structure.files import File
+
+    plugin = MkDocsQuizPlugin()
+    plugin.load_config({})
+
+    markdown = dedent("""
+        <quiz>
+        What is shown?
+
+        ![diagram](../../assets/images/diagram.svg)
+
+        - [x] A diagram
+        - [ ] Nothing
+        </quiz>
+    """).strip()
+
+    # Simulate page at docs/chapter1/quiz.md -> site/chapter1/quiz/index.html
+    mock_file = MagicMock()
+    mock_file.src_path = "chapter1/quiz.md"
+    mock_file.dest_path = "chapter1/quiz/index.html"
+
+    mock_page = MagicMock()
+    mock_page.file = mock_file
+    mock_page.meta = {}
+
+    mock_config = MagicMock()
+    mock_config.markdown_extensions = []
+    mock_config.mdx_configs = {}
+
+    result_md = plugin.on_page_markdown(markdown, page=mock_page, config=mock_config)
+    result_html = plugin.on_page_content(
+        "<p></p>" + result_md, page=mock_page, config=mock_config, files=MagicMock()
+    )
+
+    # The image path should be adjusted: ../../assets -> ../../../assets
+    # Strip out the embedded source comment (contains original markdown) before checking
+    import re as _re
+    html_without_source = _re.sub(r"<!--\s*mkdocs-quiz-source.*?-->", "", result_html, flags=_re.DOTALL)
+    assert 'src="../../../assets/images/diagram.svg"' in html_without_source
+    assert 'src="../../assets/images/diagram.svg"' not in html_without_source
