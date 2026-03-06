@@ -17,6 +17,9 @@ msgstr ""
 msgid "Submit"
 msgstr "जमा करें"
 
+msgid "Answer"
+msgstr "उत्तर"
+
 #: plugin.py:643
 msgid "Question {n}"
 msgstr "प्रश्न {n}"

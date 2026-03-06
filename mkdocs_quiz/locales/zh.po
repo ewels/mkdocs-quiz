@@ -17,6 +17,9 @@ msgstr ""
 msgid "Submit"
 msgstr "提交"
 
+msgid "Answer"
+msgstr "答案"
+
 #: plugin.py:643
 msgid "Question {n}"
 msgstr "问题 {n}"

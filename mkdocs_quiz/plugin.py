@@ -514,10 +514,11 @@ class MkDocsQuizPlugin(BasePlugin):
             escaped_answer = html.escape(answer)
             # Calculate input size based on answer length (min 5 chars, add padding for typing)
             input_size = max(5, len(answer) + 2)
+            answer_label = t.get("Answer")
             input_html = (
                 f'<input type="text" class="quiz-blank-input" '
                 f'id="{input_id}" data-answer="{escaped_answer}" autocomplete="off" '
-                f'size="{input_size}">'
+                f'size="{input_size}" aria-label="{answer_label}">'
             )
             input_counter += 1
             return input_html
@@ -962,11 +963,11 @@ class MkDocsQuizPlugin(BasePlugin):
             <div class="quiz" {attrs} id="{quiz_header_id}">
                 <a href="#{quiz_header_id}" class="quiz-header-link">#</a>
                 {question_header}
-                <div class="quiz-question">
+                <div class="quiz-question" id="{quiz_header_id}-question">
                     {question}
                 </div>
                 <form action="javascript:void(0);" onsubmit="return false;">
-                    <fieldset>{answers_html}</fieldset>
+                    <fieldset aria-labelledby="{quiz_header_id}-question">{answers_html}</fieldset>
                     <div class="quiz-feedback hidden"></div>
                     {submit_button}
                 </form>

@@ -18,6 +18,9 @@ msgstr ""
 msgid "Submit"
 msgstr "Enviar"
 
+msgid "Answer"
+msgstr "Respuesta"
+
 #: plugin.py:643
 msgid "Question {n}"
 msgstr "Pregunta {n}"
