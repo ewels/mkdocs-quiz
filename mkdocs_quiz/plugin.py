@@ -313,7 +313,7 @@ class MkDocsQuizPlugin(BasePlugin):
             if not next_line.strip():
                 break
             # Stop on next checkbox (next answer)
-            if re.match(CHECKBOX_REGEX, next_line):
+            if CHECKBOX_REGEX.match(next_line):
                 break
             # Stop on any other non-feedback content
             break
@@ -340,7 +340,7 @@ class MkDocsQuizPlugin(BasePlugin):
         for i, line in enumerate(quiz_lines):
             # Check if this looks like a checkbox list item (any character in brackets)
             # Supports both hyphen (-) and asterisk (*) bullets
-            checkbox_check = re.match(CHECKBOX_REGEX, line)
+            checkbox_check = CHECKBOX_REGEX.match(line)
             if checkbox_check:
                 checkbox_content = checkbox_check.group(1)
                 # Strictly validate: only accept x, X, space, or empty
@@ -373,7 +373,7 @@ class MkDocsQuizPlugin(BasePlugin):
         length = len(quiz_lines)
         while i < length:
             line = quiz_lines[i]
-            checkbox_pattern = re.match(CHECKBOX_REGEX, line)
+            checkbox_pattern = CHECKBOX_REGEX.match(line)
             if checkbox_pattern:
                 checkbox_content = checkbox_pattern.group(1)
                 if checkbox_content not in ["x", "X", " ", ""]:
@@ -405,7 +405,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 # Feedback line separated from its answer by a blank line.
                 # Check if there are more answers after this line — if so, it's an error.
                 has_more_answers = any(
-                    re.match(CHECKBOX_REGEX, quiz_lines[k]) for k in range(i + 1, length)
+                    CHECKBOX_REGEX.match(quiz_lines[k]) for k in range(i + 1, length)
                 )
                 if has_more_answers:
                     last_answer = all_answers[-1] if all_answers else "unknown"
@@ -648,7 +648,7 @@ class MkDocsQuizPlugin(BasePlugin):
 
             # Strip enclosing <p> tags added by markdown processor
             # (we need inline content, not block-level paragraphs)
-            stripped = re.sub(r"^\s*<p>(.*)</p>\s*$", r"\1", converted, flags=re.S)
+            stripped = self._strip_paragraph_wrapper(converted)
 
             # Prepare per-answer feedback HTML if provided
             feedback_html = ""
@@ -657,10 +657,7 @@ class MkDocsQuizPlugin(BasePlugin):
                 converted_feedback = self._convert_fragment_markdown(
                     feedback_md, page, config, files, md_inst=md_inst
                 )
-                # Strip enclosing paragraph if present
-                converted_feedback = re.sub(
-                    r"^\s*<p>(.*)</p>\s*$", r"\1", converted_feedback, flags=re.S
-                )
+                converted_feedback = self._strip_paragraph_wrapper(converted_feedback)
                 feedback_html = f'<div class="answer-feedback hidden">{converted_feedback}</div>'
 
             answer_html = (
@@ -797,6 +794,15 @@ class MkDocsQuizPlugin(BasePlugin):
         _ExtractTitleTreeprocessor()._register(md_inst)
 
         return md_inst
+
+    @staticmethod
+    def _strip_paragraph_wrapper(html: str) -> str:
+        """Strip enclosing <p>...</p> tags from HTML fragment.
+
+        Markdown processors wrap inline content in paragraph tags,
+        but we need bare inline content for answer labels and feedback.
+        """
+        return re.sub(r"^\s*<p>(.*)</p>\s*$", r"\1", html, flags=re.S)
 
     def _convert_fragment_markdown(
         self,

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 import pytest
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.structure.files import Files
@@ -11,12 +9,7 @@ from mkdocs.structure.pages import Page
 
 from mkdocs_quiz.plugin import MkDocsQuizPlugin
 
-
-def _strip_injected_assets(html: str) -> str:
-    """Remove inline <script> and <style> tags from HTML for clean attribute counting."""
-    html = re.sub(r"<script\b[^>]*>.*?</script>", "", html, flags=re.DOTALL)
-    html = re.sub(r"<style\b[^>]*>.*?</style>", "", html, flags=re.DOTALL)
-    return html
+from .conftest import strip_injected_assets
 
 
 @pytest.fixture
@@ -577,7 +570,7 @@ Select all that apply:
     # Should use checkboxes since multiple correct answers
     assert 'type="checkbox"' in html_result
     # All three inputs should have the correct attribute (without quotes, just the word "correct")
-    clean_html = _strip_injected_assets(html_result)
+    clean_html = strip_injected_assets(html_result)
     assert clean_html.count('data-correct="true"') == 3  # All three have correct attribute
 
 
@@ -1000,7 +993,7 @@ Which are valid?
     assert 'type="checkbox"' in html_result  # Multiple correct = checkboxes
     assert html_result.count('type="checkbox"') == 4
     # Both [x] and [X] should be marked as correct
-    clean_html = _strip_injected_assets(html_result)
+    clean_html = strip_injected_assets(html_result)
     assert clean_html.count('data-correct="true"') == 2
 
 
@@ -1780,7 +1773,7 @@ Which are even numbers?
     assert "Which are even numbers?" in html_result
     assert 'type="checkbox"' in html_result
     # Two correct answers
-    clean_html = _strip_injected_assets(html_result)
+    clean_html = strip_injected_assets(html_result)
     assert clean_html.count('data-correct="true"') == 2
 
 
@@ -1806,7 +1799,7 @@ Mixed bullets?
     # Should have all 4 answers
     assert html_result.count('type="checkbox"') == 4
     # Two correct answers
-    clean_html = _strip_injected_assets(html_result)
+    clean_html = strip_injected_assets(html_result)
     assert clean_html.count('data-correct="true"') == 2
     assert "Hyphen correct" in html_result
     assert "Asterisk wrong" in html_result
@@ -1837,7 +1830,7 @@ Which are valid?
     assert 'type="checkbox"' in html_result
     assert html_result.count('type="checkbox"') == 4
     # Both [x] and [X] should be marked as correct
-    clean_html = _strip_injected_assets(html_result)
+    clean_html = strip_injected_assets(html_result)
     assert clean_html.count('data-correct="true"') == 2
 
 

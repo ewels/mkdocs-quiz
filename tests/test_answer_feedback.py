@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 import pytest
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.structure.files import Files
@@ -11,17 +9,7 @@ from mkdocs.structure.pages import Page
 
 from mkdocs_quiz.plugin import MkDocsQuizPlugin
 
-
-def _strip_source_comments(html: str) -> str:
-    """Remove <!-- mkdocs-quiz-source ... --> comments from HTML."""
-    return re.sub(r"<!-- mkdocs-quiz-source\n.*?\n-->", "", html, flags=re.DOTALL)
-
-
-def _strip_injected_assets(html: str) -> str:
-    """Remove inline <script> and <style> tags from HTML for clean attribute counting."""
-    html = re.sub(r"<script\b[^>]*>.*?</script>", "", html, flags=re.DOTALL)
-    html = re.sub(r"<style\b[^>]*>.*?</style>", "", html, flags=re.DOTALL)
-    return html
+from .conftest import strip_injected_assets, strip_source_comments
 
 
 def make_plugin() -> MkDocsQuizPlugin:
@@ -146,7 +134,7 @@ Question?
     assert html_result is not None
     assert "Great job!" in html_result
     assert "Well done!" in html_result
-    clean_html = _strip_injected_assets(html_result)
+    clean_html = strip_injected_assets(html_result)
     assert clean_html.count('class="answer-feedback') == 2
 
 
@@ -171,7 +159,7 @@ Question?
     html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
 
     assert html_result is not None
-    rendered_html = _strip_source_comments(html_result)
+    rendered_html = strip_source_comments(html_result)
     # The blockquote should appear in the content section, not as answer feedback
     assert "This should be content" in rendered_html
     assert 'class="answer-feedback' not in rendered_html
