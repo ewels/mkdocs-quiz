@@ -166,6 +166,122 @@ Answers can also include markdown formatting:
     </quiz>
     ```
 
+## Per-Answer Feedback
+
+The feedback received on the completion of a form can be customised by including a `>`
+
+This is optional, any entry that does not include any modified answers will
+receive the standard 'Correct' or 'Incorrect'.
+
+### Radio Button
+
+=== "Example"
+
+    <quiz>
+    Testing multiple answer texts.
+    What is 2 x 2 ?
+
+    - [ ] 3
+    > Nope, but close!
+    - [x] 4
+    > Amazing!
+    - [ ] 6
+    > No. Stop it.
+
+    Anything else in this section should be prepended.
+    </quiz>
+
+=== "Syntax"
+
+    ~~~markdown
+    <quiz>
+    Testing multiple answer texts.
+    What is 2 x 2 ?
+
+    - [ ] 3
+    > Nope, but close!
+    - [x] 4
+    > Amazing!
+    - [ ] 6
+    > No. Stop it.
+
+    Anything else in this section should be prepended.
+    </quiz>
+    ~~~
+
+### Multiple Choice
+
+=== "Example"
+
+    <quiz>
+    Testing multiple answer texts.
+    Which of these fruits are yellow.
+
+    - [ ] Orange
+    > Oranges are _Orange_.
+    - [x] Banana
+    - [x] Pineapple
+    - [ ] Blueberry
+    > Blueberries are _blue_.
+    > ...
+    > You _fool_.
+    </quiz>
+
+=== "Syntax"
+
+    ~~~markdown
+    <quiz>
+    Testing multiple answer texts.
+    Which of these fruits are yellow.
+
+    - [ ] Orange
+    > Oranges are _Orange_.
+    - [x] Banana
+    - [x] Pineapple
+    - [ ] Blueberry
+    > Blueberries are _blue_.
+    > ...
+    > You _fool_.
+    </quiz>
+    ~~~
+
+### Formatting
+
+The formatting requirements for the per-answer feedback is quite strict.
+The `>` markdown must come _immediately_ after an answer (no blank newlines inbetween).
+
+Getting this wrong has two possible scenarios:
+
+- If on the final answer, it'll be parsed as a [Rich Content Section](advanced-formatting.md#rich-content-section) with a markdown blockquote, and shown for all answers
+- If on any other answer, it'll trigger a mkdocs build failure
+
+For example:
+
+<!-- prettier-ignore-start -->
+```markdown
+<quiz>
+The formatting on this quiz question is wrong:
+it has blank newlines around the `>`.
+It will trigger a build error.
+
+- [ ] Orange
+
+> Oranges are _Orange_.
+
+- [x] Banana
+- [x] Pineapple
+- [ ] Blueberry
+</quiz>
+```
+<!-- prettier-ignore-end -->
+
+```console
+$ mkdocs serve
+...
+ValueError: Error in quiz #7 in multiple-choice.md (line 311): Orphaned feedback line found after answer 'Orange'. Feedback blockquotes (> ...) must immediately follow their answer with no blank lines in between. Found: > Oranges are _Orange_.
+  Quiz preview: Testing multiple answer texts.     Which of these fruits are...
+```
+
 ## Important Notes
 
 1. **At least one correct answer required**: Every quiz must have at least one `- [x]` answer
