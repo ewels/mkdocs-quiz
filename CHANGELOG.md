@@ -1,5 +1,12 @@
 # Changelog
 
+## **Version 1.6.1** (2026-03-06)
+
+### Improvements
+
+- Add per-answer feedback support to CLI runner and QTI export
+- Extract shared `collect_feedback()` helper into `parsing.py` to deduplicate feedback parsing across plugin, CLI, and QTI modules
+
 ## **Version 1.6.0** (2026-03-06)
 
 > [!IMPORTANT]
