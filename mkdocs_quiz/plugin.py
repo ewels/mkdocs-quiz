@@ -321,7 +321,7 @@ class MkDocsQuizPlugin(BasePlugin):
         return feedback_lines, j
 
     def _parse_quiz_question_and_answers(
-        self, quiz_lines: list[str], config: MkDocsConfig | None = None
+        self, quiz_lines: list[str]
     ) -> tuple[str, list[str], list[str], list[str], int]:
         """Parse quiz question and answers from quiz lines.
 
@@ -415,7 +415,14 @@ class MkDocsQuizPlugin(BasePlugin):
                         f"with no blank lines in between. "
                         f"Found: {line.strip()}"
                     )
-                # After the last answer — treat as content section
+                # After the last answer — treat as content section.
+                # Warn because this is likely unintentional feedback formatting.
+                last_answer = all_answers[-1] if all_answers else "unknown"
+                log.warning(
+                    f"Blockquote after last answer '{last_answer}' is separated by a blank line. "
+                    f"It will be treated as content, not per-answer feedback. "
+                    f"Remove the blank line if you intended it as feedback."
+                )
                 break
             else:
                 # Not a checkbox item and not empty, must be content
@@ -871,7 +878,7 @@ class MkDocsQuizPlugin(BasePlugin):
         # Parse question and answers
         # Question is everything up to the first checkbox answer
         question_text, all_answers, correct_answers, answer_feedbacks, content_start_index = (
-            self._parse_quiz_question_and_answers(quiz_lines, config)
+            self._parse_quiz_question_and_answers(quiz_lines)
         )
 
         # Validate quiz structure

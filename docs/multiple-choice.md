@@ -219,7 +219,7 @@ receive the standard 'Correct' or 'Incorrect'.
 
     - [ ] Orange
     > Oranges are _Orange_.
-    - [x] Bananna
+    - [x] Banana
     - [x] Pineapple
     - [ ] Blueberry
     > Blueberries are _blue_.
@@ -236,7 +236,7 @@ receive the standard 'Correct' or 'Incorrect'.
 
     - [ ] Orange
     > Oranges are _Orange_.
-    - [x] Bananna
+    - [x] Banana
     - [x] Pineapple
     - [ ] Blueberry
     > Blueberries are _blue_.
@@ -268,7 +268,7 @@ It will trigger a build error.
 
 > Oranges are _Orange_.
 
-- [x] Bananna
+- [x] Banana
 - [x] Pineapple
 - [ ] Blueberry
 </quiz>
