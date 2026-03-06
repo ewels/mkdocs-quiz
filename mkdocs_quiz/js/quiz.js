@@ -515,7 +515,9 @@
   function collectFeedbackForSelectedOrCorrect(fieldset, quiz) {
     let feedbackHTML = collectFeedbackHTMLFromNodeList(fieldset.querySelectorAll('input[name="answer"]:checked'));
     if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
-      feedbackHTML = collectFeedbackHTMLFromNodeList(fieldset.querySelectorAll('input[name="answer"][data-correct="true"]'));
+      feedbackHTML = collectFeedbackHTMLFromNodeList(
+        fieldset.querySelectorAll('input[name="answer"][data-correct="true"]'),
+      );
     }
     return feedbackHTML;
   }
@@ -557,7 +559,8 @@
       ? collectFeedbackForSelectedOrCorrect(fieldset, quiz)
       : collectFeedbackHTMLFromNodeList(selectedAnswers);
 
-    feedbackDiv.innerHTML = feedbackHTML || getDefaultFeedbackMessage(isCorrect, !quiz.hasAttribute("data-disable-after-submit"));
+    feedbackDiv.innerHTML =
+      feedbackHTML || getDefaultFeedbackMessage(isCorrect, !quiz.hasAttribute("data-disable-after-submit"));
   }
 
   // Initialize results div reset button
@@ -846,7 +849,9 @@
               feedbackDiv.classList.remove("hidden", "correct");
               feedbackDiv.classList.add("incorrect");
               const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-              let feedbackHTML = collectFeedbackHTMLFromNodeList(fieldset.querySelectorAll('input[name="answer"]:checked'));
+              let feedbackHTML = collectFeedbackHTMLFromNodeList(
+                fieldset.querySelectorAll('input[name="answer"]:checked'),
+              );
               if (feedbackHTML) {
                 feedbackDiv.innerHTML = feedbackHTML;
               } else {

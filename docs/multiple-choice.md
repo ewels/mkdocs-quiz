@@ -220,10 +220,10 @@ receive the standard 'Correct' or 'Incorrect'.
     - [ ] Orange
     > Oranges are _Orange_.
     - [x] Bananna
-    - [x] Pineapple 
+    - [x] Pineapple
     - [ ] Blueberry
-    > Blueberries are _blue_.  
-    > ...  
+    > Blueberries are _blue_.
+    > ...
     > You _fool_.
     </quiz>
 
@@ -237,10 +237,10 @@ receive the standard 'Correct' or 'Incorrect'.
     - [ ] Orange
     > Oranges are _Orange_.
     - [x] Bananna
-    - [x] Pineapple 
+    - [x] Pineapple
     - [ ] Blueberry
-    > Blueberries are _blue_.  
-    > ...  
+    > Blueberries are _blue_.
+    > ...
     > You _fool_.
     </quiz>
     ~~~
