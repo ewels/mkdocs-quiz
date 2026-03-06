@@ -279,7 +279,7 @@ class MkDocsQuizPlugin(BasePlugin):
         return TranslationManager(language, custom_path)
 
     def _parse_quiz_question_and_answers(
-        self, quiz_lines: list[str], config: MkDocsConfig | None = None
+        self, quiz_lines: list[str]
     ) -> tuple[str, list[str], list[str], int]:
         """Parse quiz question and answers from quiz lines.
 
@@ -289,7 +289,6 @@ class MkDocsQuizPlugin(BasePlugin):
 
         Args:
             quiz_lines: The lines of the quiz content.
-            config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
             A tuple of (question_text, all_answers, correct_answers, content_start_index).
@@ -789,7 +788,7 @@ class MkDocsQuizPlugin(BasePlugin):
         # Parse question and answers
         # Question is everything up to the first checkbox answer
         question_text, all_answers, correct_answers, content_start_index = (
-            self._parse_quiz_question_and_answers(quiz_lines, config)
+            self._parse_quiz_question_and_answers(quiz_lines)
         )
 
         # Validate quiz structure
