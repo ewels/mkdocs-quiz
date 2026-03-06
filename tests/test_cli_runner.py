@@ -127,7 +127,7 @@ class TestQuizRunning:
         with patch("mkdocs_quiz.cli.runner.questionary") as mock_q:
             mock_q.select.return_value.unsafe_ask.return_value = correct_answer
 
-            is_correct, correct_texts = run_multiple_choice_quiz(quiz, shuffle=False)
+            is_correct, correct_texts, _feedback = run_multiple_choice_quiz(quiz, shuffle=False)
 
             assert is_correct is True
             assert "4" in correct_texts
@@ -154,7 +154,7 @@ class TestQuizRunning:
         with patch("mkdocs_quiz.cli.runner.questionary") as mock_q:
             mock_q.select.return_value.unsafe_ask.return_value = wrong_answer
 
-            is_correct, _ = run_multiple_choice_quiz(quiz, shuffle=False)
+            is_correct, _, _feedback = run_multiple_choice_quiz(quiz, shuffle=False)
 
             assert is_correct is False
 
@@ -180,7 +180,7 @@ class TestQuizRunning:
         with patch("mkdocs_quiz.cli.runner.questionary") as mock_q:
             mock_q.checkbox.return_value.unsafe_ask.return_value = [answer_a, answer_b]
 
-            is_correct, _ = run_multiple_choice_quiz(quiz, shuffle=False)
+            is_correct, _, _feedback = run_multiple_choice_quiz(quiz, shuffle=False)
 
             assert is_correct is True
 
@@ -206,9 +206,93 @@ class TestQuizRunning:
         with patch("mkdocs_quiz.cli.runner.questionary") as mock_q:
             mock_q.checkbox.return_value.unsafe_ask.return_value = [answer_a, answer_c]
 
-            is_correct, _ = run_multiple_choice_quiz(quiz, shuffle=False)
+            is_correct, _, _feedback = run_multiple_choice_quiz(quiz, shuffle=False)
 
             assert is_correct is False
+
+    def test_run_single_choice_returns_feedback(self) -> None:
+        """Test that single-choice quiz returns per-answer feedback."""
+        from mkdocs_quiz.cli.runner import run_multiple_choice_quiz
+
+        selected_answer = Answer(text="3", is_correct=False, feedback="Nope, but close!")
+        quiz = Quiz(
+            question="What is 2+2?",
+            answers=[
+                selected_answer,
+                Answer(text="4", is_correct=True, feedback="Correct!"),
+                Answer(text="5", is_correct=False, feedback="Too high."),
+            ],
+            blanks=[],
+            content=None,
+            identifier="test",
+            source_file=Path("test.md"),
+            source_line=1,
+        )
+
+        with patch("mkdocs_quiz.cli.runner.questionary") as mock_q:
+            mock_q.select.return_value.unsafe_ask.return_value = selected_answer
+
+            is_correct, _, feedback = run_multiple_choice_quiz(quiz, shuffle=False)
+
+            assert is_correct is False
+            assert feedback is not None
+            assert len(feedback) == 1
+            assert feedback[0] == ("3", "Nope, but close!")
+
+    def test_run_single_choice_no_feedback(self) -> None:
+        """Test that single-choice quiz returns None when no feedback."""
+        from mkdocs_quiz.cli.runner import run_multiple_choice_quiz
+
+        selected_answer = Answer(text="4", is_correct=True)
+        quiz = Quiz(
+            question="What is 2+2?",
+            answers=[
+                Answer(text="3", is_correct=False),
+                selected_answer,
+            ],
+            blanks=[],
+            content=None,
+            identifier="test",
+            source_file=Path("test.md"),
+            source_line=1,
+        )
+
+        with patch("mkdocs_quiz.cli.runner.questionary") as mock_q:
+            mock_q.select.return_value.unsafe_ask.return_value = selected_answer
+
+            is_correct, _, feedback = run_multiple_choice_quiz(quiz, shuffle=False)
+
+            assert is_correct is True
+            assert feedback is None
+
+    def test_run_multiple_choice_returns_combined_feedback(self) -> None:
+        """Test that multi-choice quiz returns combined feedback from selected answers."""
+        from mkdocs_quiz.cli.runner import run_multiple_choice_quiz
+
+        answer_a = Answer(text="Apple", is_correct=True, feedback="Yes, apple is a fruit!")
+        answer_b = Answer(text="Banana", is_correct=True, feedback="Banana is also a fruit!")
+        answer_c = Answer(text="Carrot", is_correct=False, feedback="Carrot is a vegetable.")
+
+        quiz = Quiz(
+            question="Which are fruits?",
+            answers=[answer_a, answer_b, answer_c],
+            blanks=[],
+            content=None,
+            identifier="test",
+            source_file=Path("test.md"),
+            source_line=1,
+        )
+
+        with patch("mkdocs_quiz.cli.runner.questionary") as mock_q:
+            mock_q.checkbox.return_value.unsafe_ask.return_value = [answer_a, answer_c]
+
+            is_correct, _, feedback = run_multiple_choice_quiz(quiz, shuffle=False)
+
+            assert is_correct is False
+            assert feedback is not None
+            assert len(feedback) == 2
+            assert feedback[0] == ("Apple", "Yes, apple is a fruit!")
+            assert feedback[1] == ("Carrot", "Carrot is a vegetable.")
 
     def test_run_fill_in_blank_correct(self) -> None:
         """Test running fill-in-the-blank quiz with correct answer."""

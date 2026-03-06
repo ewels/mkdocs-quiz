@@ -30,6 +30,7 @@ from .parsing import (
     FEEDBACK_REGEX,
     FILL_BLANK_REGEX,
     OLD_SYNTAX_PATTERNS,
+    collect_feedback,
     find_quizzes,
     mask_code_blocks,
     unmask_code_blocks,
@@ -280,46 +281,6 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return TranslationManager(language, custom_path)
 
-    def _extract_feedback_from_lines(
-        self, quiz_lines: list[str], start_idx: int
-    ) -> tuple[list[str], int]:
-        """Extract per-answer feedback blockquote lines.
-
-        Parsing stops when encountering:
-        - A blank or whitespace-only line
-        - Another checkbox (next answer)
-        - End of input
-
-        Args:
-            quiz_lines: All lines in the quiz block.
-            start_idx: Index of first potential feedback line.
-
-        Returns:
-            Tuple of (list of feedback text lines, index where collection stopped).
-        """
-        feedback_lines: list[str] = []
-        j = start_idx
-        length = len(quiz_lines)
-
-        while j < length:
-            next_line = quiz_lines[j]
-            # Try to match blockquote-style feedback line (> optional text)
-            bq_match = FEEDBACK_REGEX.match(next_line)
-            if bq_match:
-                feedback_lines.append(bq_match.group(1))
-                j += 1
-                continue
-            # Stop on blank lines (no feedback continuation allowed)
-            if not next_line.strip():
-                break
-            # Stop on next checkbox (next answer)
-            if CHECKBOX_REGEX.match(next_line):
-                break
-            # Stop on any other non-feedback content
-            break
-
-        return feedback_lines, j
-
     def _parse_quiz_question_and_answers(
         self, quiz_lines: list[str]
     ) -> tuple[str, list[str], list[str], list[str], int]:
@@ -389,12 +350,8 @@ class MkDocsQuizPlugin(BasePlugin):
                     correct_answers.append(answer_text)
 
                 # Collect optional per-answer feedback lines immediately following the answer.
-                feedback_lines, j = self._extract_feedback_from_lines(quiz_lines, i + 1)
-                feedback_md = "\n".join(feedback_lines).rstrip() if feedback_lines else ""
-                answer_feedbacks.append(feedback_md)
-
-                # Advance index to the line after any collected feedback
-                i = j
+                feedback_md, i = collect_feedback(quiz_lines, i + 1)
+                answer_feedbacks.append(feedback_md or "")
                 content_start_index = i
                 continue
             elif not line.strip():

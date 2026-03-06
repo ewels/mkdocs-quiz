@@ -344,11 +344,71 @@ def _print_with_border(text: str, border_style: str) -> None:
         console.print(f"[{border_style}]▎[/{border_style}] {line}")
 
 
+def _render_content_block(text: str, source_file: str | None = None) -> None:
+    """Render a markdown content block as a blockquote or with admonitions.
+
+    Args:
+        text: Markdown text to render.
+        source_file: Optional source file path for expanding anchor links.
+    """
+    clean_content = clean_markdown(text, source_file).strip()
+    if not clean_content:
+        return
+    # Check if content has admonitions - if so, render directly
+    if re.search(r"^(!{3}|\?{3}\+?) \w+", clean_content, re.MULTILINE):
+        render_markdown_with_admonitions(clean_content)
+    else:
+        # Render as blockquote markdown
+        blockquote_content = "> " + clean_content.replace("\n", "\n> ")
+        console.print(Markdown(blockquote_content))
+
+
+# Type alias for per-answer feedback: list of (answer_label, feedback_text) pairs
+AnswerFeedbackItems = list[tuple[str, str]]
+
+
+def _render_answer_feedback(
+    feedback_items: AnswerFeedbackItems,
+    is_correct: bool,
+    source_file: str | None = None,
+) -> None:
+    """Render per-answer feedback items with answer label badges.
+
+    Each item is displayed with a colored border and the answer text as a badge,
+    mirroring the HTML version's quiz-feedback-item + quiz-feedback-badge pattern.
+
+    Args:
+        feedback_items: List of (answer_label, feedback_text) pairs.
+        is_correct: Whether the quiz was answered correctly (affects border color).
+        source_file: Optional source file path for expanding anchor links.
+    """
+    border_color = "green" if is_correct else "red"
+
+    printed = 0
+    for answer_label, feedback_text in feedback_items:
+        clean_label = clean_markdown(answer_label, source_file).strip()
+        # Truncate long labels (matches JS behavior at 30 chars)
+        if len(clean_label) > 30:
+            clean_label = clean_label[:27] + "..."
+
+        clean_feedback = clean_markdown(feedback_text, source_file).strip()
+        if not clean_feedback:
+            continue
+
+        # Add blank line between multiple feedback items
+        if printed > 0:
+            console.print()
+
+        _print_with_border(f"[bold dim]{clean_label}:[/bold dim] {clean_feedback}", border_color)
+        printed += 1
+
+
 def display_feedback(
     is_correct: bool,
     correct_answer: str | list[str] | None = None,
     content: str | None = None,
     source_file: str | None = None,
+    answer_feedback: AnswerFeedbackItems | None = None,
 ) -> None:
     """Display feedback after answering a question.
 
@@ -357,6 +417,7 @@ def display_feedback(
         correct_answer: The correct answer(s) to display if wrong.
         content: Optional explanation content to display.
         source_file: Optional source file path for expanding anchor links.
+        answer_feedback: Optional list of (answer_label, feedback_text) pairs.
     """
     console.print()
 
@@ -379,17 +440,15 @@ def display_feedback(
         else:
             _print_with_border("[red]✗ Incorrect[/red]", "red")
 
+    # Show per-answer feedback if available
+    if answer_feedback:
+        console.print()
+        _render_answer_feedback(answer_feedback, is_correct, source_file)
+
     # Show content/explanation as a separate blockquote below (rendered as markdown)
     if content and content.strip():
         console.print()
-        clean_content = clean_markdown(content, source_file).strip()
-        # Check if content has admonitions - if so, render directly
-        if re.search(r"^(!{3}|\?{3}\+?) \w+", clean_content, re.MULTILINE):
-            render_markdown_with_admonitions(clean_content)
-        else:
-            # Render as blockquote markdown
-            blockquote_content = "> " + clean_content.replace("\n", "\n> ")
-            console.print(Markdown(blockquote_content))
+        _render_content_block(content, source_file)
 
     # Wait for user to press Enter before continuing
     console.print()
@@ -408,7 +467,9 @@ def display_feedback(
 # =============================================================================
 
 
-def run_multiple_choice_quiz(quiz: Quiz, shuffle: bool = False) -> tuple[bool, list[str]]:
+def run_multiple_choice_quiz(
+    quiz: Quiz, shuffle: bool = False
+) -> tuple[bool, list[str], AnswerFeedbackItems | None]:
     """Run a multiple-choice quiz interactively.
 
     Args:
@@ -416,7 +477,9 @@ def run_multiple_choice_quiz(quiz: Quiz, shuffle: bool = False) -> tuple[bool, l
         shuffle: Whether to shuffle the answer order.
 
     Returns:
-        Tuple of (is_correct, correct_answer_texts).
+        Tuple of (is_correct, correct_answer_texts, answer_feedback).
+        answer_feedback is a list of (answer_label, feedback_text) pairs for the
+        selected answer(s), or None if no per-answer feedback exists.
     """
     # Get source file path as string for link expansion
     source_file = str(quiz.source_file) if quiz.source_file else None
@@ -443,6 +506,8 @@ def run_multiple_choice_quiz(quiz: Quiz, shuffle: bool = False) -> tuple[bool, l
     correct_answers = quiz.correct_answers
     is_multiple = len(correct_answers) > 1
 
+    answer_feedback: AnswerFeedbackItems | None = None
+
     if is_multiple:
         # Multiple choice - use checkboxes
         selected = questionary.checkbox(
@@ -455,6 +520,11 @@ def run_multiple_choice_quiz(quiz: Quiz, shuffle: bool = False) -> tuple[bool, l
         selected_texts = {a.text for a in selected}
         correct_texts = {a.text for a in correct_answers}
         is_correct = selected_texts == correct_texts
+
+        # Collect per-answer feedback from selected answers as (label, feedback) pairs
+        feedback_items = [(a.text, a.feedback) for a in selected if a.feedback]
+        if feedback_items:
+            answer_feedback = feedback_items
     else:
         # Single choice - use select
         selected = questionary.select(
@@ -465,11 +535,13 @@ def run_multiple_choice_quiz(quiz: Quiz, shuffle: bool = False) -> tuple[bool, l
         ).unsafe_ask()
 
         is_correct = selected.is_correct
+        if selected.feedback:
+            answer_feedback = [(selected.text, selected.feedback)]
 
     # Get correct answer text for feedback
     correct_answer_texts = [strip_html_tags(a.text) for a in correct_answers]
 
-    return is_correct, correct_answer_texts
+    return is_correct, correct_answer_texts, answer_feedback
 
 
 def run_fill_in_blank_quiz(quiz: Quiz) -> tuple[bool, list[str]]:
@@ -570,10 +642,14 @@ def run_single_quiz(quiz: Quiz, shuffle: bool = False) -> bool:
     Returns:
         True if the answer was correct, False otherwise.
     """
+    answer_feedback: AnswerFeedbackItems | None = None
+
     if quiz.is_fill_in_blank:
         is_correct, correct_answers = run_fill_in_blank_quiz(quiz)
     else:
-        is_correct, correct_answers = run_multiple_choice_quiz(quiz, shuffle=shuffle)
+        is_correct, correct_answers, answer_feedback = run_multiple_choice_quiz(
+            quiz, shuffle=shuffle
+        )
 
     # Get source file path as string for link expansion
     source_file = str(quiz.source_file) if quiz.source_file else None
@@ -584,6 +660,7 @@ def run_single_quiz(quiz: Quiz, shuffle: bool = False) -> bool:
         correct_answer=correct_answers if not is_correct else None,
         content=quiz.content,
         source_file=source_file,
+        answer_feedback=answer_feedback,
     )
 
     return is_correct

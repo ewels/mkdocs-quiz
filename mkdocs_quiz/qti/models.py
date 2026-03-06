@@ -19,15 +19,19 @@ class Answer:
         text: The answer text (may contain HTML/markdown).
         is_correct: Whether this is a correct answer.
         identifier: Unique identifier for this answer (auto-generated if not provided).
+        feedback: Optional per-answer feedback text (markdown).
     """
 
     text: str
     is_correct: bool
     identifier: str = field(default_factory=lambda: f"answer_{uuid.uuid4().hex[:8]}")
+    feedback: str | None = None
 
     def __post_init__(self) -> None:
         """Strip whitespace from text."""
         self.text = self.text.strip()
+        if self.feedback is not None:
+            self.feedback = self.feedback.strip() or None
 
 
 @dataclass

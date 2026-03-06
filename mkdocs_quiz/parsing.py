@@ -40,11 +40,38 @@ __all__ = [
     "QUIZ_END_TAG",
     "QUIZ_REGEX",
     "QUIZ_START_TAG",
+    "collect_feedback",
     "find_quizzes",
     "mask_code_blocks",
     "parse_answer",
     "unmask_code_blocks",
 ]
+
+
+def collect_feedback(lines: list[str], start_idx: int) -> tuple[str | None, int]:
+    """Collect per-answer feedback from blockquote lines following an answer.
+
+    Reads consecutive blockquote lines (``> text``) starting at *start_idx*.
+    Stops on any non-blockquote line (blank lines, next checkbox, other content).
+
+    Args:
+        lines: All lines in the quiz block.
+        start_idx: Index of the first potential feedback line.
+
+    Returns:
+        Tuple of (feedback text or None, index where collection stopped).
+    """
+    feedback_lines: list[str] = []
+    i = start_idx
+    while i < len(lines):
+        bq_match = FEEDBACK_REGEX.match(lines[i])
+        if bq_match:
+            feedback_lines.append(bq_match.group(1))
+            i += 1
+        else:
+            break
+    feedback = "\n".join(feedback_lines).rstrip() if feedback_lines else None
+    return feedback, i
 
 
 def mask_code_blocks(markdown: str) -> tuple[str, dict[str, str]]:
