@@ -643,10 +643,6 @@ class MkDocsQuizPlugin(BasePlugin):
         # This prevents false positives from documentation examples in code blocks
         self._check_for_old_syntax(masked_markdown, page)
 
-        # Process quizzes and replace with placeholders
-        options = self._get_quiz_options(page)
-        translation_manager = self._get_translation_manager(page, config)
-
         # Find all quiz matches
         matches = find_quizzes(masked_markdown)
 
@@ -655,51 +651,19 @@ class MkDocsQuizPlugin(BasePlugin):
         last_end = 0
 
         for quiz_id, match in enumerate(matches):
-            try:
-                # Get the original quiz content (for embed_source)
-                original_quiz_content = match.group(0)  # Full <quiz>...</quiz> tag
+            # Get the original quiz content (for embed_source)
+            original_quiz_content = match.group(0)  # Full <quiz>...</quiz> tag
 
-                # Create a markdown-safe placeholder
-                placeholder = f"<!-- MKDOCS_QUIZ_PLACEHOLDER_{quiz_id} -->"
+            # Create a markdown-safe placeholder
+            placeholder = f"<!-- MKDOCS_QUIZ_PLACEHOLDER_{quiz_id} -->"
 
-                # Store the original quiz content for later HTML generation (in on_page_content)
-                self._quiz_storage[page_key][placeholder] = {"source": original_quiz_content}
+            # Store the original quiz content for later HTML generation (in on_page_content)
+            self._quiz_storage[page_key][placeholder] = {"source": original_quiz_content}
 
-                # Add the text before this match and the placeholder
-                segments.append(masked_markdown[last_end : match.start()])
-                segments.append(placeholder)
-                last_end = match.end()
-
-            except ValueError as e:
-                # Re-raise ValueError with additional context to help identify the problematic quiz
-                # Calculate line number by finding the quiz in the original markdown
-                # (match position is in masked_markdown which has different offsets)
-                quiz_tag = f"<quiz>{match.group(1)}</quiz>"
-                original_pos = markdown.find(quiz_tag)
-                if original_pos >= 0:
-                    line_number = markdown[:original_pos].count("\n") + 1
-                else:
-                    # Fallback: use masked markdown position (may be approximate)
-                    line_number = masked_markdown[: match.start()].count("\n") + 1
-
-                # Get a preview of the quiz content (first 60 chars, single line)
-                quiz_preview = match.group(1).strip()[:60].replace("\n", " ")
-                if len(match.group(1).strip()) > 60:
-                    quiz_preview += "..."
-
-                # Build helpful error message
-                error_msg = (
-                    f"Error in quiz #{quiz_id + 1} in {page.file.src_path} "
-                    f"(line {line_number}): {e}\n"
-                    f"  Quiz preview: {quiz_preview}"
-                )
-                raise ValueError(error_msg) from e
-            except Exception as e:
-                # Log other errors but continue
-                log.error(f"Failed to process quiz {quiz_id} in {page.file.src_path}: {e}")
-                # On error, include the original quiz text
-                segments.append(masked_markdown[last_end : match.end()])
-                last_end = match.end()
+            # Add the text before this match and the placeholder
+            segments.append(masked_markdown[last_end : match.start()])
+            segments.append(placeholder)
+            last_end = match.end()
 
         # Add any remaining text after the last match
         segments.append(masked_markdown[last_end:])
@@ -958,16 +922,35 @@ class MkDocsQuizPlugin(BasePlugin):
                 id_match = re.search(r"MKDOCS_QUIZ_PLACEHOLDER_(\d+)", placeholder)
                 quiz_id = int(id_match.group(1)) if id_match else 0
 
-                # Generate the quiz HTML now that we have `files` available
-                quiz_html = self._process_quiz(
-                    inner,
-                    quiz_id,
-                    self._get_quiz_options(page),
-                    self._get_translation_manager(page, config),
-                    config,
-                    page,
-                    files,
-                )
+                try:
+                    # Generate the quiz HTML now that we have `files` available
+                    quiz_html = self._process_quiz(
+                        inner,
+                        quiz_id,
+                        self._get_quiz_options(page),
+                        self._get_translation_manager(page, config),
+                        config,
+                        page,
+                        files,
+                    )
+                except ValueError as e:
+                    # Re-raise with context to help identify the problematic quiz
+                    original_pos = html.find(placeholder)
+                    line_number = html[:original_pos].count("\n") + 1 if original_pos >= 0 else 0
+
+                    quiz_preview = inner.strip()[:60].replace("\n", " ")
+                    if len(inner.strip()) > 60:
+                        quiz_preview += "..."
+
+                    error_msg = (
+                        f"Error in quiz #{quiz_id + 1} in {page.file.src_path} "
+                        f"(line {line_number}): {e}\n"
+                        f"  Quiz preview: {quiz_preview}"
+                    )
+                    raise ValueError(error_msg) from e
+                except Exception as e:
+                    log.error(f"Failed to process quiz {quiz_id} in {page.file.src_path}: {e}")
+                    continue
 
                 # Optionally embed the original quiz source as an HTML comment
                 if embed_source:

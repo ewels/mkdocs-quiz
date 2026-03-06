@@ -8,9 +8,8 @@ from pathlib import Path
 
 import pytest
 from mkdocs.config.defaults import MkDocsConfig
-from mkdocs.structure.files import File
+from mkdocs.structure.files import File, Files
 from mkdocs.structure.pages import Page
-from test_plugin import mock_files
 
 from mkdocs_quiz.plugin import MkDocsQuizPlugin
 from mkdocs_quiz.translations import TranslationManager
@@ -126,7 +125,7 @@ def test_translation_manager_to_dict() -> None:
     assert t_en.to_dict() == {}
 
 
-def test_plugin_translation_injection(mock_config: MkDocsConfig) -> None:
+def test_plugin_translation_injection(mock_config: MkDocsConfig, mock_files: Files) -> None:
     """Test that translations are injected into HTML."""
     plugin = MkDocsQuizPlugin()
     plugin.config = {
@@ -160,7 +159,9 @@ What is 2+2?
 
     # Process markdown and content
     markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
-    html_result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=mock_files) # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        markdown_result, page=page, config=mock_config, files=mock_files
+    )  # type: ignore[arg-type]
 
     assert html_result is not None
     # Should contain translation script
@@ -280,7 +281,7 @@ def test_plugin_language_resolution_order(mock_config: MkDocsConfig) -> None:
     assert t.language == "es"
 
 
-def test_translation_with_multiple_quizzes(mock_config: MkDocsConfig) -> None:
+def test_translation_with_multiple_quizzes(mock_config: MkDocsConfig, mock_files: Files) -> None:
     """Test translations work correctly with multiple quizzes."""
     plugin = MkDocsQuizPlugin()
     plugin.config = {
@@ -318,7 +319,9 @@ Second question?
 """
 
     markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
-    html_result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=mock_files) # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        markdown_result, page=page, config=mock_config, files=mock_files
+    )  # type: ignore[arg-type]
 
     assert html_result is not None
     # Should have auto-numbered questions
@@ -359,7 +362,7 @@ def test_custom_translation_malformed_raises() -> None:
         temp_path.unlink()
 
 
-def test_translated_button_text_in_html(mock_config: MkDocsConfig) -> None:
+def test_translated_button_text_in_html(mock_config: MkDocsConfig, mock_files: Files) -> None:
     """Test that button text is properly translated in generated HTML."""
     plugin = MkDocsQuizPlugin()
     plugin.config = {
@@ -391,7 +394,9 @@ Test?
 """
 
     markdown_result = plugin.on_page_markdown(markdown, page, mock_config)
-    html_result = plugin.on_page_content(markdown_result, page=page, config=mock_config, files=mock_files) # type: ignore[arg-type]
+    html_result = plugin.on_page_content(
+        markdown_result, page=page, config=mock_config, files=mock_files
+    )  # type: ignore[arg-type]
 
     assert html_result is not None
     # Should contain Submit button (multiple choice quiz)
