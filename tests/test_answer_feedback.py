@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 
+import pytest
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.structure.files import Files
 from mkdocs.structure.pages import Page
@@ -74,8 +75,8 @@ What number is shown?
     assert "No, that is wrong." in html_result
 
 
-def test_feedback_blank_line_stops_collection() -> None:
-    """Test that blank lines between answer and feedback prevent feedback collection."""
+def test_feedback_blank_line_raises_error() -> None:
+    """Test that blank lines between answer and feedback raise a build error."""
     plugin = make_plugin()
     mock_config = MkDocsConfig()
     page = make_page(mock_config)
@@ -92,12 +93,8 @@ Question?
 """
 
     md_result = plugin.on_page_markdown(markdown, page, mock_config)
-    html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
-
-    assert html_result is not None
-    # Strip source comments which contain raw markdown
-    rendered_html = _strip_source_comments(html_result)
-    assert "This feedback won't be collected" not in rendered_html
+    with pytest.raises(ValueError, match="Orphaned feedback line"):
+        plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
 
 
 def test_multiple_feedback_lines() -> None:
@@ -151,3 +148,32 @@ Question?
     assert "Well done!" in html_result
     clean_html = _strip_injected_assets(html_result)
     assert clean_html.count('class="answer-feedback') == 2
+
+
+def test_blockquote_after_last_answer_becomes_content() -> None:
+    """Test that a blockquote after a blank line following the last answer becomes content."""
+    plugin = make_plugin()
+    mock_config = MkDocsConfig()
+    page = make_page(mock_config)
+    files = make_files()
+
+    markdown = """
+<quiz>
+Question?
+- [x] Correct answer
+- [ ] Wrong answer
+
+> This should be content
+</quiz>
+"""
+
+    md_result = plugin.on_page_markdown(markdown, page, mock_config)
+    html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
+
+    assert html_result is not None
+    rendered_html = _strip_source_comments(html_result)
+    # The blockquote should appear in the content section, not as answer feedback
+    assert "This should be content" in rendered_html
+    assert 'class="answer-feedback' not in rendered_html
+    # It should be in a content section (blockquote rendered)
+    assert "<blockquote>" in rendered_html

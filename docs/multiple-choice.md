@@ -245,6 +245,43 @@ receive the standard 'Correct' or 'Incorrect'.
     </quiz>
     ~~~
 
+### Formatting
+
+The formatting requirements for the per-answer feedback is quite strict.
+The `>` markdown must come _immediately_ after an answer (no blank newlines inbetween).
+
+Getting this wrong has two possible scenarios:
+
+- If on the final answer, it'll be parsed as a _Rich Content Section_ with a markdown blockquote, and shown for all answers
+- If on any other answer, it'll trigger a mkdocs build failure
+
+For example:
+
+<!-- prettier-ignore-start -->
+```markdown
+<quiz>
+The formatting on this quiz question is wrong:
+it has blank newlines around the `>`.
+It will trigger a build error.
+
+- [ ] Orange
+
+> Oranges are _Orange_.
+
+- [x] Bananna
+- [x] Pineapple
+- [ ] Blueberry
+</quiz>
+```
+<!-- prettier-ignore-end -->
+
+```console
+$ mkdocs serve
+...
+ValueError: Error in quiz #7 in multiple-choice.md (line 311): Orphaned feedback line found after answer 'Orange'. Feedback blockquotes (> ...) must immediately follow their answer with no blank lines in between. Found: > Oranges are _Orange_.
+  Quiz preview: Testing multiple answer texts.     Which of these fruits are...
+```
+
 ## Important Notes
 
 1. **At least one correct answer required**: Every quiz must have at least one `- [x]` answer

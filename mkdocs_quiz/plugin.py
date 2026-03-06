@@ -402,9 +402,21 @@ class MkDocsQuizPlugin(BasePlugin):
                 i += 1
                 continue
             elif FEEDBACK_REGEX.match(line):
-                # Orphaned feedback line (after blank line gap) — skip it
-                i += 1
-                continue
+                # Feedback line separated from its answer by a blank line.
+                # Check if there are more answers after this line — if so, it's an error.
+                has_more_answers = any(
+                    re.match(CHECKBOX_REGEX, quiz_lines[k]) for k in range(i + 1, length)
+                )
+                if has_more_answers:
+                    last_answer = all_answers[-1] if all_answers else "unknown"
+                    raise ValueError(
+                        f"Orphaned feedback line found after answer '{last_answer}'. "
+                        f"Feedback blockquotes (> ...) must immediately follow their answer "
+                        f"with no blank lines in between. "
+                        f"Found: {line.strip()}"
+                    )
+                # After the last answer — treat as content section
+                break
             else:
                 # Not a checkbox item and not empty, must be content
                 break
