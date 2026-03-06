@@ -161,10 +161,8 @@
           section.classList.add("hidden");
         }
 
-        // Hide feedback message
+        // Hide feedback container
         feedbackDiv.classList.add("hidden");
-        feedbackDiv.classList.remove("correct", "incorrect");
-        feedbackDiv.textContent = "";
         feedbackDiv.innerHTML = "";
 
         // Show submit button, hide reset button
@@ -499,27 +497,64 @@
     });
   }
 
-  // Collect feedback HTML from a NodeList of input elements
-  function collectFeedbackHTMLFromNodeList(nodeList) {
-    let html = "";
-    nodeList.forEach((input) => {
-      const fb = input.parentElement.querySelector(".answer-feedback");
-      if (fb && fb.innerHTML.trim()) {
-        html += '<div class="answer-feedback-item">' + fb.innerHTML + "</div>";
-      }
-    });
-    return html;
+  // Truncate text to a maximum length, adding ellipsis if needed
+  function truncateText(text, maxLength) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trimEnd() + "\u2026";
   }
 
-  // Try to collect feedback from selected inputs, falling back to correct inputs if configured
+  // Collect feedback HTML from a NodeList of input elements.
+  // Returns an array of {label, html} objects (one per answer that has feedback).
+  function collectFeedbackFromNodeList(nodeList) {
+    var items = [];
+    nodeList.forEach(function (input) {
+      var fb = input.parentElement.querySelector(".answer-feedback");
+      if (fb && fb.innerHTML.trim()) {
+        var label = input.parentElement.querySelector("label");
+        var labelText = label ? label.textContent.trim() : "";
+        items.push({ label: labelText, html: fb.innerHTML });
+      }
+    });
+    return items;
+  }
+
+  // Try to collect feedback from selected inputs, falling back to correct inputs if configured.
+  // Returns an array of {label, html} objects.
   function collectFeedbackForSelectedOrCorrect(fieldset, quiz) {
-    let feedbackHTML = collectFeedbackHTMLFromNodeList(fieldset.querySelectorAll('input[name="answer"]:checked'));
-    if (!feedbackHTML && quiz.hasAttribute("data-show-correct")) {
-      feedbackHTML = collectFeedbackHTMLFromNodeList(
-        fieldset.querySelectorAll('input[name="answer"][data-correct="true"]'),
-      );
+    var items = collectFeedbackFromNodeList(fieldset.querySelectorAll('input[name="answer"]:checked'));
+    if (!items.length && quiz.hasAttribute("data-show-correct")) {
+      items = collectFeedbackFromNodeList(fieldset.querySelectorAll('input[name="answer"][data-correct="true"]'));
     }
-    return feedbackHTML;
+    return items;
+  }
+
+  // Build feedback container HTML from an array of {label, html} items.
+  // Each item becomes its own styled feedback box with a badge showing the answer label.
+  function buildFeedbackHTML(items, cssClass) {
+    if (!items.length) return "";
+    var maxBadgeLen = 30;
+    var result = "";
+    items.forEach(function (item) {
+      var badge = "";
+      if (item.label) {
+        var escaped = item.label
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+        badge =
+          '<span class="quiz-feedback-badge" title="' + escaped + '">' + truncateText(escaped, maxBadgeLen) + "</span>";
+      }
+      result +=
+        '<div class="quiz-feedback-item ' +
+        cssClass +
+        '">' +
+        badge +
+        '<div class="quiz-feedback-item-content">' +
+        item.html +
+        "</div></div>";
+    });
+    return result;
   }
 
   // Get default feedback message based on submission correctness and retry status
@@ -550,17 +585,26 @@
 
   // Display feedback message and styling after quiz submission
   function showFeedback(feedbackDiv, isCorrect, selectedAnswers, correctAnswers, fieldset, quiz) {
-    // Update feedback styling
-    feedbackDiv.classList.remove("hidden", "correct", "incorrect");
-    feedbackDiv.classList.add(isCorrect ? "correct" : "incorrect");
+    feedbackDiv.classList.remove("hidden");
 
-    // Collect per-answer feedback or use default message
-    let feedbackHTML = isCorrect
+    // Collect per-answer feedback items
+    var cssClass = isCorrect ? "correct" : "incorrect";
+    var items = isCorrect
       ? collectFeedbackForSelectedOrCorrect(fieldset, quiz)
-      : collectFeedbackHTMLFromNodeList(selectedAnswers);
+      : collectFeedbackFromNodeList(selectedAnswers);
 
-    feedbackDiv.innerHTML =
-      feedbackHTML || getDefaultFeedbackMessage(isCorrect, !quiz.hasAttribute("data-disable-after-submit"));
+    var html = buildFeedbackHTML(items, cssClass);
+    if (html) {
+      feedbackDiv.innerHTML = html;
+    } else {
+      // No per-answer feedback — show a single default message box
+      feedbackDiv.innerHTML =
+        '<div class="quiz-feedback-item ' +
+        cssClass +
+        '"><div class="quiz-feedback-item-content">' +
+        getDefaultFeedbackMessage(isCorrect, !quiz.hasAttribute("data-disable-after-submit")) +
+        "</div></div>";
+    }
   }
 
   // Initialize results div reset button
@@ -683,9 +727,11 @@
               if (section) {
                 section.classList.remove("hidden");
               }
-              feedbackDiv.classList.remove("hidden", "incorrect");
-              feedbackDiv.classList.add("correct");
-              feedbackDiv.textContent = t("Correct answer!");
+              feedbackDiv.classList.remove("hidden");
+              feedbackDiv.innerHTML =
+                '<div class="quiz-feedback-item correct"><div class="quiz-feedback-item-content">' +
+                t("Correct answer!") +
+                "</div></div>";
 
               // Mark all inputs as correct
               blankInputs.forEach((input) => {
@@ -726,27 +772,35 @@
               });
 
               // Show incorrect feedback with detailed list
-              feedbackDiv.classList.remove("hidden", "correct");
-              feedbackDiv.classList.add("incorrect");
-              const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-              const feedbackText = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+              feedbackDiv.classList.remove("hidden");
+              var canRetryRestore = !quiz.hasAttribute("data-disable-after-submit");
+              var feedbackTextRestore = canRetryRestore
+                ? t("Incorrect answer. Please try again.")
+                : t("Incorrect answer.");
 
               // Show correct answers if show-correct is enabled
               if (quiz.hasAttribute("data-show-correct")) {
-                let feedbackHTML = feedbackText + "<ul>";
-                blankInputs.forEach((input) => {
+                var fillRestoreHTML = feedbackTextRestore + "<ul>";
+                blankInputs.forEach(function (input) {
                   if (!input.classList.contains("correct")) {
-                    const userAnswer = input.value.trim();
-                    const correctAnswer = input.getAttribute("data-answer");
-                    feedbackHTML += `<li><del>${userAnswer || t("(empty)")}</del> → ${correctAnswer}</li>`;
+                    var userAnswer = input.value.trim();
+                    var correctAnswer = input.getAttribute("data-answer");
+                    fillRestoreHTML +=
+                      "<li><del>" + (userAnswer || t("(empty)")) + "</del> \u2192 " + correctAnswer + "</li>";
                     // Also show in placeholder
                     input.placeholder = correctAnswer;
                   }
                 });
-                feedbackHTML += "</ul>";
-                feedbackDiv.innerHTML = feedbackHTML;
+                fillRestoreHTML += "</ul>";
+                feedbackDiv.innerHTML =
+                  '<div class="quiz-feedback-item incorrect"><div class="quiz-feedback-item-content">' +
+                  fillRestoreHTML +
+                  "</div></div>";
               } else {
-                feedbackDiv.textContent = feedbackText;
+                feedbackDiv.innerHTML =
+                  '<div class="quiz-feedback-item incorrect"><div class="quiz-feedback-item-content">' +
+                  feedbackTextRestore +
+                  "</div></div>";
               }
 
               // Disable inputs if disable-after-submit is enabled
@@ -793,13 +847,16 @@
               });
 
               // Show correct feedback - prefer per-answer feedback if present
-              feedbackDiv.classList.remove("hidden", "incorrect");
-              feedbackDiv.classList.add("correct");
-              let feedbackHTML = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
-              if (feedbackHTML) {
-                feedbackDiv.innerHTML = feedbackHTML;
+              feedbackDiv.classList.remove("hidden");
+              var correctItems = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
+              var correctFeedbackHTML = buildFeedbackHTML(correctItems, "correct");
+              if (correctFeedbackHTML) {
+                feedbackDiv.innerHTML = correctFeedbackHTML;
               } else {
-                feedbackDiv.textContent = t("Correct answer!");
+                feedbackDiv.innerHTML =
+                  '<div class="quiz-feedback-item correct"><div class="quiz-feedback-item-content">' +
+                  t("Correct answer!") +
+                  "</div></div>";
               }
 
               // Disable inputs if disable-after-submit is enabled
@@ -846,16 +903,19 @@
               }
 
               // Show incorrect feedback - prefer per-answer feedback for selected answers
-              feedbackDiv.classList.remove("hidden", "correct");
-              feedbackDiv.classList.add("incorrect");
-              const canRetry = !quiz.hasAttribute("data-disable-after-submit");
-              let feedbackHTML = collectFeedbackHTMLFromNodeList(
+              feedbackDiv.classList.remove("hidden");
+              var canRetry = !quiz.hasAttribute("data-disable-after-submit");
+              var incorrectItems = collectFeedbackFromNodeList(
                 fieldset.querySelectorAll('input[name="answer"]:checked'),
               );
-              if (feedbackHTML) {
-                feedbackDiv.innerHTML = feedbackHTML;
+              var incorrectFeedbackHTML = buildFeedbackHTML(incorrectItems, "incorrect");
+              if (incorrectFeedbackHTML) {
+                feedbackDiv.innerHTML = incorrectFeedbackHTML;
               } else {
-                feedbackDiv.textContent = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+                feedbackDiv.innerHTML =
+                  '<div class="quiz-feedback-item incorrect"><div class="quiz-feedback-item-content">' +
+                  (canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.")) +
+                  "</div></div>";
               }
 
               // Disable inputs if disable-after-submit is enabled
@@ -918,10 +978,8 @@
         if (section) {
           section.classList.add("hidden");
         }
-        // Hide feedback message
+        // Hide feedback container
         feedbackDiv.classList.add("hidden");
-        feedbackDiv.classList.remove("correct", "incorrect");
-        feedbackDiv.textContent = "";
         feedbackDiv.innerHTML = "";
         // Show submit button, hide reset button
         if (submitButton) {
@@ -971,40 +1029,42 @@
           }
 
           if (is_correct) {
-            // Show correct feedback - prefer per-answer feedback if present
-            feedbackDiv.classList.remove("hidden", "incorrect");
-            feedbackDiv.classList.add("correct");
-            let feedbackHTML = collectFeedbackForSelectedOrCorrect(fieldset, quiz);
-            if (feedbackHTML) {
-              feedbackDiv.innerHTML = feedbackHTML;
-            } else {
-              feedbackDiv.textContent = t("Correct answer!");
-            }
+            // Show correct feedback
+            feedbackDiv.classList.remove("hidden");
+            feedbackDiv.innerHTML =
+              '<div class="quiz-feedback-item correct"><div class="quiz-feedback-item-content">' +
+              t("Correct answer!") +
+              "</div></div>";
           } else {
             // Show incorrect feedback with detailed list
-            feedbackDiv.classList.remove("hidden", "correct");
-            feedbackDiv.classList.add("incorrect");
-            const canRetry = !quiz.hasAttribute("data-disable-after-submit");
+            feedbackDiv.classList.remove("hidden");
+            var canRetryFill = !quiz.hasAttribute("data-disable-after-submit");
 
             // Build detailed feedback with bullet list
-            const feedbackText = canRetry ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
+            var feedbackTextFill = canRetryFill ? t("Incorrect answer. Please try again.") : t("Incorrect answer.");
 
             // Show correct answers if show-correct is enabled
             if (quiz.hasAttribute("data-show-correct")) {
-              let feedbackHTML = feedbackText + "<ul>";
-              blankInputs.forEach((input) => {
+              var fillHTML = feedbackTextFill + "<ul>";
+              blankInputs.forEach(function (input) {
                 if (!input.classList.contains("correct")) {
-                  const userAnswer = input.value.trim();
-                  const correctAnswer = input.getAttribute("data-answer");
-                  feedbackHTML += `<li><del>${userAnswer || "(empty)"}</del> → ${correctAnswer}</li>`;
+                  var userAnswer = input.value.trim();
+                  var correctAnswer = input.getAttribute("data-answer");
+                  fillHTML += "<li><del>" + (userAnswer || "(empty)") + "</del> \u2192 " + correctAnswer + "</li>";
                   // Also show in placeholder
                   input.placeholder = correctAnswer;
                 }
               });
-              feedbackHTML += "</ul>";
-              feedbackDiv.innerHTML = feedbackHTML;
+              fillHTML += "</ul>";
+              feedbackDiv.innerHTML =
+                '<div class="quiz-feedback-item incorrect"><div class="quiz-feedback-item-content">' +
+                fillHTML +
+                "</div></div>";
             } else {
-              feedbackDiv.textContent = feedbackText;
+              feedbackDiv.innerHTML =
+                '<div class="quiz-feedback-item incorrect"><div class="quiz-feedback-item-content">' +
+                feedbackTextFill +
+                "</div></div>";
             }
           }
 
