@@ -25,6 +25,7 @@ The content section (revealed after answering) supports headers, lists, links, a
     - Uses Markdown for content
     - Includes live preview server
     - Themeable with many themes available
+    - Many [cool plugins](index.md)
 
     [Learn more at mkdocs.org](https://www.mkdocs.org)
     </quiz>
@@ -308,7 +309,7 @@ All markdown extensions configured in your `mkdocs.yml` work within quizzes, inc
 ## Important Notes
 
 1. **Content must be valid markdown**: The content section is processed as markdown
-2. **Extensions must be enabled**: Features like admonitions require the corresponding extension in `mkdocs.yml`
+2. **Extensions must be enabled**: Quiz content uses _only_ the extensions listed in your `mkdocs.yml` `markdown_extensions`. No extra extensions are added automatically — if you want syntax highlighting, admonitions, or other features in quizzes, you must enable the corresponding extensions in your config
 3. **Nesting code blocks**: When showing quiz syntax in documentation, use more backticks/tildes than the inner block
 
 ## Next Steps

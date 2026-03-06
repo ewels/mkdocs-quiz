@@ -31,7 +31,7 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = [
-    "mkdocs>=1.0.0",
+    "mkdocs>=1.5.0",
     "importlib-resources>=5.0; python_version < '3.9'",
     "polib>=1.1.0",
     "questionary>=2.0.0",
