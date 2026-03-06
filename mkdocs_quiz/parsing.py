@@ -33,13 +33,13 @@ OLD_SYNTAX_PATTERNS = [
 
 __all__ = [
     "ANSWER_PATTERN",
+    "CHECKBOX_REGEX",
     "FEEDBACK_REGEX",
     "FILL_BLANK_REGEX",
     "OLD_SYNTAX_PATTERNS",
     "QUIZ_END_TAG",
     "QUIZ_REGEX",
     "QUIZ_START_TAG",
-    "CHECKBOX_REGEX",
     "find_quizzes",
     "mask_code_blocks",
     "parse_answer",
