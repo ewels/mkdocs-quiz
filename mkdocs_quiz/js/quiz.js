@@ -923,16 +923,38 @@
         }
       }
 
-      // Auto-submit on radio button change if enabled (not for fill-in-blank)
-      if (!isFillBlank && quiz.hasAttribute("data-auto-submit")) {
+      // Auto-submit on radio button selection if enabled (not for fill-in-blank)
+      // Arrow keys on radio buttons fire both "click" and "change" events, so we
+      // can't use either directly. Instead, use "mouseup" for pointer interactions
+      // and handle keyboard submission from the keydown handler below.
+      let autoSubmit = !isFillBlank && quiz.hasAttribute("data-auto-submit");
+      if (autoSubmit) {
         let radioButtons = fieldset.querySelectorAll('input[type="radio"]');
         radioButtons.forEach((radio) => {
-          const handler = (e) => {
-            e.preventDefault(); // Prevent page scroll to top
-            // Trigger form submission with proper event options
+          const handler = () => {
             form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
           };
-          addTrackedEventListener(radio, "change", handler);
+          addTrackedEventListener(radio, "mouseup", handler);
+        });
+      }
+
+      // Keyboard handling for quiz inputs:
+      // - Space: prevent page scroll, toggle input, auto-submit radios if enabled
+      // - Enter: auto-submit radios if enabled (consistent with Space)
+      if (!isFillBlank && fieldset) {
+        addTrackedEventListener(fieldset, "keydown", (e) => {
+          if (!e.target.matches("input[type='radio'], input[type='checkbox']")) return;
+
+          if (e.key === " ") {
+            e.preventDefault();
+            e.target.click();
+            if (autoSubmit && e.target.matches("input[type='radio']")) {
+              form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+            }
+          } else if (e.key === "Enter" && autoSubmit && e.target.matches("input[type='radio']")) {
+            e.preventDefault();
+            form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+          }
         });
       }
 
@@ -1103,6 +1125,12 @@
               submitButton.classList.add("hidden");
             }
           }
+        }
+
+        // Move focus to feedback div for screen readers and keyboard users
+        if (feedbackDiv) {
+          feedbackDiv.setAttribute("tabindex", "-1");
+          feedbackDiv.focus();
         }
 
         // Update tracker

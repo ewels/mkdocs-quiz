@@ -25,6 +25,10 @@ msgstr ""
 msgid "Submit"
 msgstr ""
 
+#: plugin.py
+msgid "Answer"
+msgstr ""
+
 #: overrides/main.html:12 plugin.py:964
 msgid "Quiz Progress"
 msgstr ""

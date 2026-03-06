@@ -17,6 +17,9 @@ msgstr ""
 msgid "Submit"
 msgstr "제출"
 
+msgid "Answer"
+msgstr "답변"
+
 #: plugin.py:643
 msgid "Question {n}"
 msgstr "문제 {n}"
