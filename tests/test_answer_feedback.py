@@ -2,11 +2,25 @@
 
 from __future__ import annotations
 
+import re
+
 from mkdocs.config.defaults import MkDocsConfig
-from mkdocs.structure.pages import Page
 from mkdocs.structure.files import Files
+from mkdocs.structure.pages import Page
 
 from mkdocs_quiz.plugin import MkDocsQuizPlugin
+
+
+def _strip_source_comments(html: str) -> str:
+    """Remove <!-- mkdocs-quiz-source ... --> comments from HTML."""
+    return re.sub(r"<!-- mkdocs-quiz-source\n.*?\n-->", "", html, flags=re.DOTALL)
+
+
+def _strip_injected_assets(html: str) -> str:
+    """Remove inline <script> and <style> tags from HTML for clean attribute counting."""
+    html = re.sub(r"<script\b[^>]*>.*?</script>", "", html, flags=re.DOTALL)
+    html = re.sub(r"<style\b[^>]*>.*?</style>", "", html, flags=re.DOTALL)
+    return html
 
 
 def make_plugin() -> MkDocsQuizPlugin:
@@ -34,7 +48,7 @@ def make_files() -> Files:
     return Files([])
 
 
-def test_per_answer_feedback_rendering():
+def test_per_answer_feedback_rendering() -> None:
     """Test basic per-answer feedback rendering."""
     plugin = make_plugin()
     mock_config = MkDocsConfig()
@@ -60,7 +74,7 @@ What number is shown?
     assert "No, that is wrong." in html_result
 
 
-def test_feedback_blank_line_stops_collection():
+def test_feedback_blank_line_stops_collection() -> None:
     """Test that blank lines between answer and feedback prevent feedback collection."""
     plugin = make_plugin()
     mock_config = MkDocsConfig()
@@ -81,10 +95,12 @@ Question?
     html_result = plugin.on_page_content(md_result, page=page, config=mock_config, files=files)
 
     assert html_result is not None
-    assert "This feedback won't be collected" not in html_result
+    # Strip source comments which contain raw markdown
+    rendered_html = _strip_source_comments(html_result)
+    assert "This feedback won't be collected" not in rendered_html
 
 
-def test_multiple_feedback_lines():
+def test_multiple_feedback_lines() -> None:
     """Test that multiple consecutive feedback lines are collected."""
     plugin = make_plugin()
     mock_config = MkDocsConfig()
@@ -109,7 +125,7 @@ Question?
     assert "Line 2" in html_result
 
 
-def test_mixed_feedback_and_no_feedback():
+def test_mixed_feedback_and_no_feedback() -> None:
     """Test quiz with some answers having feedback and others without."""
     plugin = make_plugin()
     mock_config = MkDocsConfig()
@@ -133,4 +149,5 @@ Question?
     assert html_result is not None
     assert "Great job!" in html_result
     assert "Well done!" in html_result
-    assert html_result.count('class="answer-feedback') == 2
+    clean_html = _strip_injected_assets(html_result)
+    assert clean_html.count('class="answer-feedback') == 2

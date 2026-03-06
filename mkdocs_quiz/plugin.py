@@ -401,6 +401,10 @@ class MkDocsQuizPlugin(BasePlugin):
                 # Empty line, continue
                 i += 1
                 continue
+            elif FEEDBACK_REGEX.match(line):
+                # Orphaned feedback line (after blank line gap) — skip it
+                i += 1
+                continue
             else:
                 # Not a checkbox item and not empty, must be content
                 break
