@@ -26,10 +26,10 @@ from mkdocs.structure.pages import (
 )
 
 from .parsing import (
-    FILL_BLANK_REGEX,
-    OLD_SYNTAX_PATTERNS,
     CHECKBOX_REGEX,
     FEEDBACK_REGEX,
+    FILL_BLANK_REGEX,
+    OLD_SYNTAX_PATTERNS,
     find_quizzes,
     mask_code_blocks,
     unmask_code_blocks,
@@ -331,7 +331,6 @@ class MkDocsQuizPlugin(BasePlugin):
 
         Args:
             quiz_lines: The lines of the quiz content.
-            config: Optional MkDocs config to get markdown extensions from.
 
         Returns:
             A tuple of (question_text, all_answers, correct_answers, answer_feedbacks, content_start_index).
@@ -358,7 +357,7 @@ class MkDocsQuizPlugin(BasePlugin):
             # No answers found - invalid quiz structure
             question_text = "\n".join(quiz_lines).strip()
             log.warning(f"Quiz has no checkbox answers: {question_text[:50]}...")
-            return question_text, [], [], len(quiz_lines)
+            return question_text, [], [], [], len(quiz_lines)
 
         # Everything before the first answer is the question
         question_lines = quiz_lines[:first_answer_index]
@@ -436,7 +435,9 @@ class MkDocsQuizPlugin(BasePlugin):
             quiz_id: The unique ID for this quiz.
             options: Quiz options (show_correct, auto_submit, disable_after_submit, auto_number).
             t: Translation manager for this page.
-            config: Optional MkDocs config to get markdown extensions from.
+            config: MkDocs config to get markdown extensions from.
+            page: MkDocs Page object used to resolve relative links.
+            files: MkDocs Files collection used by MkDocs treeprocessors.
 
         Returns:
             The HTML representation of the fill-in-the-blank quiz.
@@ -514,10 +515,13 @@ class MkDocsQuizPlugin(BasePlugin):
         # Replace blanks with placeholders before markdown conversion
         question_with_placeholders = re.sub(FILL_BLANK_REGEX, create_placeholder, question_text)
 
+        # Create a single Markdown instance for all fragment conversions in this quiz
+        md_inst = self._create_fragment_markdown(page, config, files)
+
         # Convert markdown to HTML using configured markdown extensions
         # Convert question markdown to HTML using MkDocs-aware fragment conversion.
         question_html = self._convert_fragment_markdown(
-            question_with_placeholders, page, config, files
+            question_with_placeholders, page, config, files, md_inst=md_inst
         )
 
         # Now replace placeholders with actual input fields
@@ -533,7 +537,9 @@ class MkDocsQuizPlugin(BasePlugin):
         if content_lines and any(line.strip() for line in content_lines):
             content_text = "\n".join(content_lines)
             # Use configured markdown extensions for content section
-            content_html = self._convert_fragment_markdown(content_text, page, config, files)
+            content_html = self._convert_fragment_markdown(
+                content_text, page, config, files, md_inst=md_inst
+            )
 
         # Build data attributes
         data_attrs = ['data-quiz-type="fill-blank"']
@@ -582,6 +588,7 @@ class MkDocsQuizPlugin(BasePlugin):
         page: Page,
         config: MkDocsConfig,
         files: Files,
+        md_inst: md.Markdown | None = None,
     ) -> tuple[list[str], bool]:
         """Generate HTML for quiz answers.
 
@@ -589,9 +596,10 @@ class MkDocsQuizPlugin(BasePlugin):
             all_answers: List of all answer texts (raw markdown).
             correct_answers: List of correct answer texts (raw markdown).
             quiz_id: The unique ID for this quiz.
-            page: Optional MkDocs `Page` object used to resolve relative links.
-            config: Optional MkDocs `MkDocsConfig` used to configure the markdown converter.
-            files: Optional MkDocs `Files` collection used by MkDocs treeprocessors.
+            page: MkDocs Page object used to resolve relative links.
+            config: MkDocs config used to configure the markdown converter.
+            files: MkDocs Files collection used by MkDocs treeprocessors.
+            md_inst: Pre-created Markdown instance to reuse across fragments.
 
         Returns:
             A tuple of (list of answer HTML strings, whether to use checkboxes).
@@ -611,7 +619,9 @@ class MkDocsQuizPlugin(BasePlugin):
             escaped_value = html.escape(str(i))
 
             # Convert answer markdown to HTML using MkDocs-aware fragment processors
-            converted = self._convert_fragment_markdown(answer, page, config, files)
+            converted = self._convert_fragment_markdown(
+                answer, page, config, files, md_inst=md_inst
+            )
 
             # Strip enclosing <p> tags added by markdown processor
             # (we need inline content, not block-level paragraphs)
@@ -621,16 +631,20 @@ class MkDocsQuizPlugin(BasePlugin):
             feedback_html = ""
             if i < len(answer_feedbacks) and answer_feedbacks[i].strip():
                 feedback_md = answer_feedbacks[i]
-                converted_feedback = self._convert_fragment_markdown(feedback_md, page, config, files)
+                converted_feedback = self._convert_fragment_markdown(
+                    feedback_md, page, config, files, md_inst=md_inst
+                )
                 # Strip enclosing paragraph if present
-                converted_feedback = re.sub(r"^\s*<p>(.*)</p>\s*$", r"\1", converted_feedback, flags=re.S)
+                converted_feedback = re.sub(
+                    r"^\s*<p>(.*)</p>\s*$", r"\1", converted_feedback, flags=re.S
+                )
                 feedback_html = f'<div class="answer-feedback hidden">{converted_feedback}</div>'
 
             answer_html = (
                 f'<div><input type="{input_type}" name="answer" value="{escaped_value}" '
                 f'id="{input_id}" {correct_attr}>'
                 f'<label for="{input_id}">{stripped}</label>'
-                f'{feedback_html}</div>'
+                f"{feedback_html}</div>"
             )
             answer_html_list.append(answer_html)
 
@@ -706,10 +720,6 @@ class MkDocsQuizPlugin(BasePlugin):
         # This prevents false positives from documentation examples in code blocks
         self._check_for_old_syntax(masked_markdown, page)
 
-        # Process quizzes and replace with placeholders
-        options = self._get_quiz_options(page)
-        translation_manager = self._get_translation_manager(page, config)
-
         # Find all quiz matches
         matches = find_quizzes(masked_markdown)
 
@@ -718,51 +728,19 @@ class MkDocsQuizPlugin(BasePlugin):
         last_end = 0
 
         for quiz_id, match in enumerate(matches):
-            try:
-                # Get the original quiz content (for embed_source)
-                original_quiz_content = match.group(0)  # Full <quiz>...</quiz> tag
+            # Get the original quiz content (for embed_source)
+            original_quiz_content = match.group(0)  # Full <quiz>...</quiz> tag
 
-                # Create a markdown-safe placeholder
-                placeholder = f"<!-- MKDOCS_QUIZ_PLACEHOLDER_{quiz_id} -->"
+            # Create a markdown-safe placeholder
+            placeholder = f"<!-- MKDOCS_QUIZ_PLACEHOLDER_{quiz_id} -->"
 
-                # Store the original quiz content for later HTML generation (in on_page_content)
-                self._quiz_storage[page_key][placeholder] = {"source": original_quiz_content}
+            # Store the original quiz content for later HTML generation (in on_page_content)
+            self._quiz_storage[page_key][placeholder] = {"source": original_quiz_content}
 
-                # Add the text before this match and the placeholder
-                segments.append(masked_markdown[last_end : match.start()])
-                segments.append(placeholder)
-                last_end = match.end()
-
-            except ValueError as e:
-                # Re-raise ValueError with additional context to help identify the problematic quiz
-                # Calculate line number by finding the quiz in the original markdown
-                # (match position is in masked_markdown which has different offsets)
-                quiz_tag = f"<quiz>{match.group(1)}</quiz>"
-                original_pos = markdown.find(quiz_tag)
-                if original_pos >= 0:
-                    line_number = markdown[:original_pos].count("\n") + 1
-                else:
-                    # Fallback: use masked markdown position (may be approximate)
-                    line_number = masked_markdown[: match.start()].count("\n") + 1
-
-                # Get a preview of the quiz content (first 60 chars, single line)
-                quiz_preview = match.group(1).strip()[:60].replace("\n", " ")
-                if len(match.group(1).strip()) > 60:
-                    quiz_preview += "..."
-
-                # Build helpful error message
-                error_msg = (
-                    f"Error in quiz #{quiz_id + 1} in {page.file.src_path} "
-                    f"(line {line_number}): {e}\n"
-                    f"  Quiz preview: {quiz_preview}"
-                )
-                raise ValueError(error_msg) from e
-            except Exception as e:
-                # Log other errors but continue
-                log.error(f"Failed to process quiz {quiz_id} in {page.file.src_path}: {e}")
-                # On error, include the original quiz text
-                segments.append(masked_markdown[last_end : match.end()])
-                last_end = match.end()
+            # Add the text before this match and the placeholder
+            segments.append(masked_markdown[last_end : match.start()])
+            segments.append(placeholder)
+            last_end = match.end()
 
         # Add any remaining text after the last match
         segments.append(masked_markdown[last_end:])
@@ -775,12 +753,14 @@ class MkDocsQuizPlugin(BasePlugin):
 
         return markdown
 
-    def _convert_fragment_markdown(
-        self, text: str, page: Page, config: MkDocsConfig, files: Files
-    ) -> str:
-        """Convert a markdown fragment to HTML registering MkDocs treeprocessors.
+    def _create_fragment_markdown(
+        self, page: Page, config: MkDocsConfig, files: Files
+    ) -> md.Markdown:
+        """Create a Markdown instance with MkDocs treeprocessors registered.
 
         This uses the same processors that `Page.render()` registers.
+        The returned instance can be reused across fragments by calling `.reset()`
+        between conversions.
         """
         md_inst = md.Markdown(
             extensions=config.markdown_extensions,
@@ -792,6 +772,35 @@ class MkDocsQuizPlugin(BasePlugin):
         _ExtractAnchorsTreeprocessor(page.file, files, config)._register(md_inst)
         _RelativePathTreeprocessor(page.file, files, config)._register(md_inst)
         _ExtractTitleTreeprocessor()._register(md_inst)
+
+        return md_inst
+
+    def _convert_fragment_markdown(
+        self,
+        text: str,
+        page: Page,
+        config: MkDocsConfig,
+        files: Files,
+        md_inst: md.Markdown | None = None,
+    ) -> str:
+        """Convert a markdown fragment to HTML using MkDocs treeprocessors.
+
+        Args:
+            text: The markdown text to convert.
+            page: MkDocs Page object for resolving relative links.
+            config: MkDocs config for markdown extensions.
+            files: MkDocs Files collection for link resolution.
+            md_inst: Optional pre-created Markdown instance to reuse.
+                If provided, it will be reset before use.
+                If not provided, a new instance is created.
+
+        Returns:
+            The converted HTML string.
+        """
+        if md_inst is not None:
+            md_inst.reset()
+        else:
+            md_inst = self._create_fragment_markdown(page, config, files)
 
         return md_inst.convert(text)
 
@@ -812,7 +821,9 @@ class MkDocsQuizPlugin(BasePlugin):
             quiz_id: The unique ID for this quiz.
             options: Quiz options (show_correct, auto_submit, disable_after_submit, auto_number).
             t: Translation manager for this page.
-            config: Optional MkDocs config to get markdown extensions from.
+            config: MkDocs config to get markdown extensions from.
+            page: MkDocs Page object used to resolve relative links.
+            files: MkDocs Files collection used by MkDocs treeprocessors.
 
         Returns:
             The HTML representation of the quiz.
@@ -855,12 +866,24 @@ class MkDocsQuizPlugin(BasePlugin):
         if not correct_answers:
             raise ValueError("Quiz must have at least one correct answer")
 
+        # Create a single Markdown instance for all fragment conversions in this quiz
+        md_inst = self._create_fragment_markdown(page, config, files)
+
         # Convert question markdown to HTML (supports multi-line questions with markdown)
-        question = self._convert_fragment_markdown(question_text, page, config, files)
+        question = self._convert_fragment_markdown(
+            question_text, page, config, files, md_inst=md_inst
+        )
 
         # Generate answer HTML (pass page/config/files so links are resolved)
         answer_html_list, as_checkboxes = self._generate_answer_html(
-            all_answers, correct_answers, answer_feedbacks, quiz_id, page=page, config=config, files=files
+            all_answers,
+            correct_answers,
+            answer_feedbacks,
+            quiz_id,
+            page=page,
+            config=config,
+            files=files,
+            md_inst=md_inst,
         )
 
         # Get quiz content (everything after the last answer)
@@ -870,7 +893,9 @@ class MkDocsQuizPlugin(BasePlugin):
         if content_lines:
             content_text = "\n".join(content_lines)
             # Use full markdown conversion for content section
-            content_html = self._convert_fragment_markdown(content_text, page, config, files)
+            content_html = self._convert_fragment_markdown(
+                content_text, page, config, files, md_inst=md_inst
+            )
 
         # Build data attributes for quiz options
         data_attrs = []
@@ -1020,16 +1045,32 @@ class MkDocsQuizPlugin(BasePlugin):
                 id_match = re.search(r"MKDOCS_QUIZ_PLACEHOLDER_(\d+)", placeholder)
                 quiz_id = int(id_match.group(1)) if id_match else 0
 
-                # Generate the quiz HTML now that we have `files` available
-                quiz_html = self._process_quiz(
-                    inner,
-                    quiz_id,
-                    self._get_quiz_options(page),
-                    self._get_translation_manager(page, config),
-                    config,
-                    page,
-                    files,
-                )
+                try:
+                    # Generate the quiz HTML now that we have `files` available
+                    quiz_html = self._process_quiz(
+                        inner,
+                        quiz_id,
+                        self._get_quiz_options(page),
+                        self._get_translation_manager(page, config),
+                        config,
+                        page,
+                        files,
+                    )
+                except ValueError as e:
+                    # Re-raise with context to help identify the problematic quiz
+                    original_pos = html.find(placeholder)
+                    line_number = html[:original_pos].count("\n") + 1 if original_pos >= 0 else 0
+
+                    quiz_preview = inner.strip()[:60].replace("\n", " ")
+                    if len(inner.strip()) > 60:
+                        quiz_preview += "..."
+
+                    error_msg = (
+                        f"Error in quiz #{quiz_id + 1} in {page.file.src_path} "
+                        f"(line {line_number}): {e}\n"
+                        f"  Quiz preview: {quiz_preview}"
+                    )
+                    raise ValueError(error_msg) from e
 
                 # Optionally embed the original quiz source as an HTML comment
                 if embed_source:

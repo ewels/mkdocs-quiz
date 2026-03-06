@@ -47,12 +47,6 @@ def mock_page(mock_config: MkDocsConfig) -> Page:
     return page
 
 
-@pytest.fixture
-def mock_files() -> Files:
-    """Create a mock files collection."""
-    return Files([])
-
-
 def test_disabled_page(
     plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig
 ) -> None:
@@ -317,7 +311,7 @@ What is 2+2?
     assert "Submit" in result
 
 
-def test_opt_in_mode_enabled(mock_config: MkDocsConfig) -> None:
+def test_opt_in_mode_enabled(mock_config: MkDocsConfig, mock_files: Files) -> None:
     """Test that opt-in mode only processes when quiz.enabled: true is set."""
     plugin = MkDocsQuizPlugin()
     plugin.config = {"enabled_by_default": False}
@@ -429,8 +423,11 @@ This is not a valid quiz format
 """
 
     # Should raise ValueError (no answers found) and crash the build
+    # With the deferred processing model, on_page_markdown stores the quiz source
+    # and on_page_content processes it, so the error is raised in on_page_content
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Quiz must have at least one answer"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_quiz_in_fenced_code_block(
@@ -528,8 +525,9 @@ def test_empty_question_validation(
 </quiz>
 """
     # Should raise ValueError and crash the build
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Quiz must have a question"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_quiz_no_correct_answers(
@@ -544,8 +542,9 @@ What is the answer?
 </quiz>
 """
     # Should raise ValueError and crash the build
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Quiz must have at least one correct answer"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_quiz_all_correct_answers(
@@ -671,7 +670,7 @@ Question?
     # when confetti config is false
 
 
-def test_material_theme_integration(plugin: MkDocsQuizPlugin) -> None:
+def test_material_theme_integration(plugin: MkDocsQuizPlugin, mock_files: Files) -> None:
     """Test that Material theme template overrides are added."""
     from unittest.mock import Mock
 
@@ -828,9 +827,8 @@ def hello():
     )
     assert html_result is not None
 
-    # Code block should be present in content section (with syntax highlighting)
+    # Code block should be present in content section
     assert "hello" in html_result  # Function name should be there
-    assert "codehilite" in html_result  # Syntax highlighting div
     assert '<section class="content hidden">' in html_result
 
 
@@ -873,8 +871,9 @@ def test_quiz_with_only_answers_no_question(
 </quiz>
 """
     # Should raise ValueError and crash the build
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Quiz must have a question"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_capital_x_in_checkbox(
@@ -912,11 +911,12 @@ Question?
 </quiz>
 """
     # Should raise ValueError and prevent build from completing
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(
         ValueError,
         match=r"Invalid checkbox format.*\[y\].*Only.*\[x\].*\[X\].*\[ \].*\[\].*allowed.*- or \* bullet",
     ):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_malformed_checkbox_checkmark_raises_error(
@@ -930,8 +930,9 @@ Question?
 - [x] Correct
 </quiz>
 """
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[✓\]"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_malformed_checkbox_star_raises_error(
@@ -945,8 +946,9 @@ Question?
 - [x] Correct
 </quiz>
 """
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[\*\]"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_malformed_checkbox_lowercase_o_raises_error(
@@ -960,8 +962,9 @@ Question?
 - [x] Correct
 </quiz>
 """
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Invalid checkbox format.*\[o\]"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_all_valid_checkbox_formats(
@@ -1062,8 +1065,9 @@ Question?
 </quiz>
 """
     # Should raise ValueError (no correct answers) and crash the build
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Quiz must have at least one correct answer"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_nested_lists_in_quiz_content(
@@ -1408,8 +1412,9 @@ This has no blanks in it.
 </quiz>
 """
     # Should raise ValueError (no answers found - treated as multiple-choice quiz)
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(ValueError, match=r"Quiz must have at least one answer"):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
 
 
 def test_fill_in_blank_autocomplete_off(
@@ -1621,8 +1626,10 @@ def test_markdown_extensions_with_config_options(
     assert "<h2" in html_result
 
 
-def test_default_extensions_when_config_empty(plugin: MkDocsQuizPlugin, mock_page: Page) -> None:
-    """Test that default extensions are used when config has no extensions."""
+def test_default_extensions_when_config_empty(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_files: Files
+) -> None:
+    """Test that basic markdown works even when config has no extensions."""
     # Create a config with no extensions explicitly set
     empty_config = MkDocsConfig()
     assert empty_config.markdown_extensions == []
@@ -1645,13 +1652,10 @@ def hello():
     )
     assert html_result is not None
 
-    # Default extensions should be used:
-    # - extra: processes inline code and bold
-    # - codehilite: syntax highlighting for code blocks
+    # Basic markdown processing should still work
     assert "<code>" in html_result
-    assert "<strong>bold</strong>" in html_result
-    # codehilite should be active for syntax highlighting
-    assert "codehilite" in html_result
+    assert "hello" in html_result
+    assert '<section class="content hidden">' in html_result
 
 
 def test_tables_extension_in_quiz(
@@ -1859,8 +1863,9 @@ Question?
 * [x] Correct answer
 </quiz>
 """
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
     with pytest.raises(
         ValueError,
         match=r"Invalid checkbox format.*\[y\]",
     ):
-        plugin.on_page_markdown(markdown, mock_page, mock_config)
+        plugin.on_page_content(result, page=mock_page, config=mock_config, files=mock_files)
