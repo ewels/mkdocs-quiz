@@ -923,43 +923,16 @@
         }
       }
 
-      // Auto-submit on radio button selection if enabled (not for fill-in-blank)
-      // We listen to "click" and check e.detail > 0 to only submit on real
-      // pointer interactions (mouse click or touch tap). Arrow-key navigation
-      // between radio buttons fires synthetic clicks with detail === 0, which
-      // we skip to let users navigate freely. Keyboard submission (Space/Enter)
-      // is handled separately in the keydown handler below.
-      let autoSubmit = !isFillBlank && quiz.hasAttribute("data-auto-submit");
-      if (autoSubmit) {
+      // Auto-submit on radio button change if enabled (not for fill-in-blank)
+      if (!isFillBlank && quiz.hasAttribute("data-auto-submit")) {
         let radioButtons = fieldset.querySelectorAll('input[type="radio"]');
         radioButtons.forEach((radio) => {
           const handler = (e) => {
-            if (e.detail > 0) {
-              form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-            }
-          };
-          addTrackedEventListener(radio, "click", handler);
-        });
-      }
-
-      // Keyboard handling for quiz inputs:
-      // - Space: prevent page scroll, toggle input, auto-submit radios if enabled
-      // - Enter: auto-submit radios if enabled (consistent with Space)
-      if (!isFillBlank && fieldset) {
-        addTrackedEventListener(fieldset, "keydown", (e) => {
-          if (!e.target.matches("input[type='radio'], input[type='checkbox']")) return;
-
-          if (e.key === " ") {
-            e.preventDefault();
-            e.target.click();
-            if (autoSubmit && e.target.matches("input[type='radio']")) {
-              form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-            }
-          } else if (e.key === "Enter" && autoSubmit && e.target.matches("input[type='radio']")) {
-            e.preventDefault();
-            e.target.checked = true;
+            e.preventDefault(); // Prevent page scroll to top
+            // Trigger form submission with proper event options
             form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-          }
+          };
+          addTrackedEventListener(radio, "change", handler);
         });
       }
 
