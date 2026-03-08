@@ -924,17 +924,21 @@
       }
 
       // Auto-submit on radio button selection if enabled (not for fill-in-blank)
-      // Arrow keys on radio buttons fire both "click" and "change" events, so we
-      // can't use either directly. Instead, use "mouseup" for pointer interactions
-      // and handle keyboard submission from the keydown handler below.
+      // We listen to "click" and check e.detail > 0 to only submit on real
+      // pointer interactions (mouse click or touch tap). Arrow-key navigation
+      // between radio buttons fires synthetic clicks with detail === 0, which
+      // we skip to let users navigate freely. Keyboard submission (Space/Enter)
+      // is handled separately in the keydown handler below.
       let autoSubmit = !isFillBlank && quiz.hasAttribute("data-auto-submit");
       if (autoSubmit) {
         let radioButtons = fieldset.querySelectorAll('input[type="radio"]');
         radioButtons.forEach((radio) => {
-          const handler = () => {
-            form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+          const handler = (e) => {
+            if (e.detail > 0) {
+              form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+            }
           };
-          addTrackedEventListener(radio, "mouseup", handler);
+          addTrackedEventListener(radio, "click", handler);
         });
       }
 
@@ -953,6 +957,7 @@
             }
           } else if (e.key === "Enter" && autoSubmit && e.target.matches("input[type='radio']")) {
             e.preventDefault();
+            e.target.checked = true;
             form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
           }
         });
