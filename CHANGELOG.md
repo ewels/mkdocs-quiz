@@ -1,5 +1,17 @@
 # Changelog
 
+## **Version 1.6.2** (2026-03-08)
+
+### Bug Fixes
+
+- Fix auto-submit marking all answers as incorrect - [#49](https://github.com/ewels/mkdocs-quiz/pull/49)
+  - The `mouseup` event handler from the accessibility PR fired before radio buttons were checked, causing validation to always fail
+  - Reverted to `change` event listener; non-behavioral a11y improvements (ARIA, focus indicators) are preserved
+
+### Testing
+
+- Add Playwright browser tests for quiz answer validation (single-choice, multiple-choice, fill-in-the-blank)
+
 ## **Version 1.6.1** (2026-03-06)
 
 ### Improvements
