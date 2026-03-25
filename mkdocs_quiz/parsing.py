@@ -16,8 +16,14 @@ QUIZ_REGEX = r"<quiz>(.*?)</quiz>"
 # Pattern to match fill-in-the-blank placeholders: [[answer]]
 FILL_BLANK_REGEX = r"\[\[([^\]]+)\]\]"
 
+CHECKBOX_REGEX = re.compile(r"^[-*] \[(.?)\] (.*)$")
+
 # Checkbox answer pattern: - [x] Answer or * [x] Answer
 ANSWER_PATTERN = re.compile(r"^[-*]\s*\[([xX ]?)\]\s*(.*)$")
+
+# Per-answer feedback pattern: blockquote lines (with optional leading whitespace)
+# Example: > This is feedback text
+FEEDBACK_REGEX = re.compile(r"^\s*>\s?(.*)$")
 
 # Old v0.x syntax patterns (no longer supported)
 OLD_SYNTAX_PATTERNS = [
@@ -27,16 +33,45 @@ OLD_SYNTAX_PATTERNS = [
 
 __all__ = [
     "ANSWER_PATTERN",
+    "CHECKBOX_REGEX",
+    "FEEDBACK_REGEX",
     "FILL_BLANK_REGEX",
     "OLD_SYNTAX_PATTERNS",
     "QUIZ_END_TAG",
     "QUIZ_REGEX",
     "QUIZ_START_TAG",
+    "collect_feedback",
     "find_quizzes",
     "mask_code_blocks",
     "parse_answer",
     "unmask_code_blocks",
 ]
+
+
+def collect_feedback(lines: list[str], start_idx: int) -> tuple[str | None, int]:
+    """Collect per-answer feedback from blockquote lines following an answer.
+
+    Reads consecutive blockquote lines (``> text``) starting at *start_idx*.
+    Stops on any non-blockquote line (blank lines, next checkbox, other content).
+
+    Args:
+        lines: All lines in the quiz block.
+        start_idx: Index of the first potential feedback line.
+
+    Returns:
+        Tuple of (feedback text or None, index where collection stopped).
+    """
+    feedback_lines: list[str] = []
+    i = start_idx
+    while i < len(lines):
+        bq_match = FEEDBACK_REGEX.match(lines[i])
+        if bq_match:
+            feedback_lines.append(bq_match.group(1))
+            i += 1
+        else:
+            break
+    feedback = "\n".join(feedback_lines).rstrip() if feedback_lines else None
+    return feedback, i
 
 
 def mask_code_blocks(markdown: str) -> tuple[str, dict[str, str]]:

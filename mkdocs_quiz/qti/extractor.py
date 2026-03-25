@@ -9,7 +9,14 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from ..parsing import ANSWER_PATTERN, FILL_BLANK_REGEX, find_quizzes, mask_code_blocks, parse_answer
+from ..parsing import (
+    ANSWER_PATTERN,
+    FILL_BLANK_REGEX,
+    collect_feedback,
+    find_quizzes,
+    mask_code_blocks,
+    parse_answer,
+)
 from .models import Answer, Blank, Quiz, QuizCollection
 
 
@@ -146,24 +153,35 @@ def _parse_multiple_choice_quiz(
     if not question_text:
         return None
 
-    # Parse answers
+    # Parse answers and per-answer feedback
     answers: list[Answer] = []
     content_start_idx = len(lines)
 
-    for i, line in enumerate(lines[first_answer_idx:], start=first_answer_idx):
+    i = first_answer_idx
+    while i < len(lines):
+        line = lines[i]
         parsed = parse_answer(line)
         if parsed:
             is_correct, answer_text = parsed
-            answers.append(Answer(text=answer_text, is_correct=is_correct))
-            content_start_idx = i + 1
+            i += 1
+
+            # Collect optional per-answer feedback (blockquote lines immediately after)
+            feedback, i = collect_feedback(lines, i)
+            answers.append(Answer(text=answer_text, is_correct=is_correct, feedback=feedback))
+            content_start_idx = i
         elif line.strip():
             # Non-empty, non-answer line = start of content section
+            content_start_idx = i
             break
+        else:
+            # Blank line — skip but update content_start_idx
+            i += 1
+            content_start_idx = i
 
     if not answers:
         return None
 
-    # Content is everything after the last answer
+    # Content is everything after the last answer (and its feedback)
     content_lines = lines[content_start_idx:]
     content_text = "\n".join(content_lines).strip() if content_lines else None
 

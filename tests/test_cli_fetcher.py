@@ -188,6 +188,115 @@ No correct answer?
         assert correct_count == 2
 
 
+class TestPerAnswerFeedback:
+    """Tests for per-answer feedback parsing in CLI fetcher."""
+
+    def test_parse_quiz_with_per_answer_feedback(self) -> None:
+        """Test that per-answer feedback is parsed from blockquote lines."""
+        source = """
+        <quiz>
+        What is 2+2?
+        - [x] 4
+          > Correct!
+        - [ ] 3
+          > Nope, try again.
+        </quiz>
+        """
+        quiz = parse_quiz_from_source(source, "http://example.com", 0)
+        assert quiz is not None
+        assert len(quiz.answers) == 2
+        assert quiz.answers[0].feedback == "Correct!"
+        assert quiz.answers[1].feedback == "Nope, try again."
+
+    def test_parse_quiz_with_multi_line_feedback(self) -> None:
+        """Test that multi-line feedback is collected."""
+        source = """
+        <quiz>
+        Question?
+        - [x] Right
+          > Line 1
+          > Line 2
+        - [ ] Wrong
+        </quiz>
+        """
+        quiz = parse_quiz_from_source(source, "http://example.com", 0)
+        assert quiz is not None
+        assert quiz.answers[0].feedback == "Line 1\nLine 2"
+        assert quiz.answers[1].feedback is None
+
+    def test_parse_quiz_with_mixed_feedback(self) -> None:
+        """Test that answers without feedback have None."""
+        source = """
+        <quiz>
+        Question?
+        - [x] With feedback
+          > Great!
+        - [ ] No feedback
+        - [ ] Also with feedback
+          > Not quite.
+        </quiz>
+        """
+        quiz = parse_quiz_from_source(source, "http://example.com", 0)
+        assert quiz is not None
+        assert quiz.answers[0].feedback == "Great!"
+        assert quiz.answers[1].feedback is None
+        assert quiz.answers[2].feedback == "Not quite."
+
+    def test_parse_quiz_no_feedback(self) -> None:
+        """Test that quizzes without feedback have None on all answers."""
+        source = """
+        <quiz>
+        Question?
+        - [x] A
+        - [ ] B
+        </quiz>
+        """
+        quiz = parse_quiz_from_source(source, "http://example.com", 0)
+        assert quiz is not None
+        assert quiz.answers[0].feedback is None
+        assert quiz.answers[1].feedback is None
+
+    def test_parse_quiz_feedback_with_content(self) -> None:
+        """Test feedback is separate from quiz content section."""
+        source = """<quiz>
+What is Python?
+- [x] A programming language
+  > Correct!
+- [ ] A snake
+  > Well, also yes, but not in this context.
+
+---
+Python was created by Guido van Rossum.
+</quiz>"""
+        quiz = parse_quiz_from_source(source, "http://example.com", 0)
+        assert quiz is not None
+        assert quiz.answers[0].feedback == "Correct!"
+        assert quiz.answers[1].feedback == "Well, also yes, but not in this context."
+        assert quiz.content is not None
+        assert "Guido" in quiz.content
+
+    def test_fetch_local_file_with_feedback(self, tmp_path: Path) -> None:
+        """Test end-to-end: fetch from local file preserves per-answer feedback."""
+        quiz_file = tmp_path / "quiz.md"
+        quiz_file.write_text("""
+<quiz>
+What is 1+1?
+- [ ] 1
+  > Too low.
+- [x] 2
+  > Correct!
+- [ ] 3
+  > Too high.
+</quiz>
+        """)
+
+        quizzes = fetch_quizzes(str(quiz_file))
+        assert len(quizzes) == 1
+        assert quizzes[0].answers[0].feedback == "Too low."
+        assert quizzes[0].answers[1].feedback == "Correct!"
+        assert quizzes[0].answers[2].feedback == "Too high."
+
+
 class TestFetchQuizzes:
     """Tests for fetch_quizzes function."""
 

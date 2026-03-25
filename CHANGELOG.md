@@ -1,5 +1,51 @@
 # Changelog
 
+## **Version 1.6.2** (2026-03-08)
+
+### Bug Fixes
+
+- Fix auto-submit marking all answers as incorrect - [#49](https://github.com/ewels/mkdocs-quiz/pull/49)
+  - The `mouseup` event handler from the accessibility PR fired before radio buttons were checked, causing validation to always fail
+  - Reverted to `change` event listener; non-behavioral a11y improvements (ARIA, focus indicators) are preserved
+
+### Testing
+
+- Add Playwright browser tests for quiz answer validation (single-choice, multiple-choice, fill-in-the-blank)
+
+## **Version 1.6.1** (2026-03-06)
+
+### Improvements
+
+- Add per-answer feedback support to CLI runner and QTI export
+- Extract shared `collect_feedback()` helper into `parsing.py` to deduplicate feedback parsing across plugin, CLI, and QTI modules
+
+## **Version 1.6.0** (2026-03-06)
+
+> [!IMPORTANT]
+> Minimum MkDocs version bumped to >=1.5.0
+
+### New Features
+
+- **Per-answer feedback** - Show custom feedback messages for individual answers using blockquote syntax - [#45](https://github.com/ewels/mkdocs-quiz/pull/45) by @CallumWalley
+  - Each answer can have its own feedback message shown when selected
+  - Feedback displayed in styled boxes with answer label badges
+  - Orphaned feedback lines (separated by blank line from answer) raise an error to catch mistakes
+
+### Accessibility
+
+- Improve accessibility: focus indicators, keyboard navigation, and ARIA attributes - [#48](https://github.com/ewels/mkdocs-quiz/pull/48)
+  - `:focus-visible` styling for quiz radio buttons and checkboxes
+  - Space key no longer scrolls the page when selecting quiz options
+  - Enter key submits auto-submit radio quizzes
+  - Focus moves to feedback section after submission
+  - `aria-labelledby` on fieldset linking to question text
+  - `aria-label` on fill-in-the-blank inputs
+  - Quiz header deep-link visible on keyboard focus
+
+### Improvements
+
+- Deferred quiz processing: quiz HTML now generated in `on_page_content` instead of `on_page_markdown` - [#44](https://github.com/ewels/mkdocs-quiz/pull/44) by @CallumWalley
+
 ## **Version 1.5.4** (2026-01-30)
 
 ### Bug Fixes

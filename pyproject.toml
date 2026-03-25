@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mkdocs_quiz"
-version = "1.5.4"
+version = "1.6.2"
 description = "A MkDocs plugin to create interactive quizzes in your markdown."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -31,7 +31,7 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = [
-    "mkdocs>=1.0.0",
+    "mkdocs>=1.5.0",
     "importlib-resources>=5.0; python_version < '3.9'",
     "polib>=1.1.0",
     "questionary>=2.0.0",

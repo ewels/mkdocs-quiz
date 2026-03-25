@@ -145,7 +145,7 @@ def _parse_multiple_choice_quiz(content: str, identifier: str, source_url: str) 
     Returns:
         A Quiz object.
     """
-    from ..parsing import parse_answer
+    from ..parsing import collect_feedback, parse_answer
     from ..qti.models import Answer, Quiz
 
     lines = content.split("\n")
@@ -154,24 +154,44 @@ def _parse_multiple_choice_quiz(content: str, identifier: str, source_url: str) 
     answers: list[Answer] = []
     content_lines: list[str] = []
     found_first_answer = False
+    collecting_content = False
 
-    for line in lines:
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+
+        if collecting_content:
+            content_lines.append(line)
+            i += 1
+            continue
+
         parsed = parse_answer(line)
         if parsed:
             found_first_answer = True
             is_correct, answer_text = parsed
+            i += 1
+
+            # Collect optional per-answer feedback (blockquote lines immediately after)
+            feedback, i = collect_feedback(lines, i)
             answers.append(
                 Answer(
                     text=answer_text,
                     is_correct=is_correct,
                     identifier=f"answer_{len(answers)}",
+                    feedback=feedback,
                 )
             )
         elif not found_first_answer:
             question_lines.append(line)
-        elif found_first_answer and line.strip() and not parsed:
-            # Content after answers
+            i += 1
+        elif found_first_answer and line.strip():
+            # Non-empty, non-answer, non-feedback line after answers = content
+            collecting_content = True
             content_lines.append(line)
+            i += 1
+        else:
+            # Blank line after answers, skip
+            i += 1
 
     question_text = "\n".join(question_lines).strip()
     content_text = "\n".join(content_lines).strip() if content_lines else None
