@@ -127,33 +127,82 @@ class MkDocsQuizPlugin(BasePlugin):
         # Track if intro is present on each page
         self._has_intro: dict[str, bool] = {}
 
-    def on_env(self, env: Any, config: MkDocsConfig, files: Files) -> Any:
-        """Add our template directory to the Jinja2 environment.
+    def _get_quiz_progress_sidebar_html(self, t: TranslationManager) -> str:
+        """Generate the quiz progress sidebar HTML for Material theme.
 
-        This allows us to override the toc.html partial to add the quiz progress sidebar.
-        Only runs if using mkdocs material
+        This HTML is injected into the page content and positioned by quiz.js.
 
         Args:
-            env: The Jinja2 environment.
-            config: The MkDocs config object.
-            files: The files collection.
+            t: Translation manager for the current page.
 
         Returns:
-            The modified Jinja2 environment.
+            HTML string for the quiz progress sidebar.
         """
-        if config.theme.name == "material":
-            from jinja2 import ChoiceLoader, FileSystemLoader
+        quiz_progress = t.get("Quiz Progress")
+        answered = t.get("Answered:")
+        correct = t.get("Correct:")
+        reset = t.get("Reset")
 
-            # Get the path to our overrides directory
-            overrides_dir = Path(__file__).parent / "overrides"
+        sidebar_html = dedent(
+            f"""
+            <div id="quiz-progress-sidebar" aria-label="{quiz_progress}" style="display: none;">
+              <!-- mkdocs-quiz progress sidebar (desktop) -->
+              <label class="md-nav__title">
+                <span class="md-nav__icon md-icon"></span>
+                {quiz_progress}
+              </label>
+              <ul class="md-nav__list" data-md-component="quiz-progress">
+                <li class="md-nav__item">
+                  <div class="md-nav__link">
+                    <span class="md-ellipsis">
+                      {answered} <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span> (<span class="quiz-progress-answered-percentage">0%</span>)
+                    </span>
+                  </div>
+                </li>
+                <li class="md-nav__item">
+                  <div class="md-nav__link">
+                    <div class="quiz-progress-bar">
+                      <div class="quiz-progress-bar-incorrect" style="width: 0%"></div>
+                      <div class="quiz-progress-bar-correct" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </li>
+                <li class="md-nav__item">
+                  <div class="md-nav__link quiz-correct-reset">
+                    <span class="md-ellipsis">
+                      {correct} <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span> (<span class="quiz-progress-score-percentage">0%</span>)
+                    </span>
+                    <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
+                      {reset}
+                    </a>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <nav id="quiz-progress-mobile" class="quiz-progress-mobile md-nav" aria-label="{quiz_progress}" style="display: none;">
+              <!-- mkdocs-quiz progress sidebar (mobile) -->
+              <div class="quiz-progress-bar">
+                <div class="quiz-progress-bar-incorrect" style="width: 0%"></div>
+                <div class="quiz-progress-bar-correct" style="width: 0%"></div>
+              </div>
+              <div data-md-component="quiz-progress">
+                <div class="quiz-correct-reset">
+                  <span class="md-ellipsis">
+                    {answered} <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span>
+                  </span>
+                  <span class="md-ellipsis">
+                    {correct} <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span>
+                  </span>
+                  <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
+                    {reset}
+                  </a>
+                </div>
+              </div>
+            </nav>
+        """
+        ).strip()
 
-            # Add our templates with HIGHER priority so they're found first
-            # The ! prefix in our template will then load the next one in the chain
-            env.loader = ChoiceLoader([FileSystemLoader(str(overrides_dir)), env.loader])
-
-            log.debug("mkdocs-quiz: Added template overrides for quiz progress")
-
-        return env
+        return sidebar_html
 
     def _should_process_page(self, page: Page) -> bool:
         """Check if quizzes should be processed on this page.
@@ -1088,6 +1137,13 @@ class MkDocsQuizPlugin(BasePlugin):
             html = html.replace("<!-- mkdocs-quiz intro -->", intro_html)
             # Clean up
             del self._has_intro[page_key]
+
+        # Inject quiz progress sidebar for Material theme (will be positioned by JavaScript)
+        # This is injected directly into the HTML instead of using template overrides
+        # to avoid conflicts with custom theme templates (see #52)
+        if getattr(config.theme, "name", None) == "material":
+            quiz_progress_html = self._get_quiz_progress_sidebar_html(translation_manager)
+            html += quiz_progress_html
 
         # Add auto-numbering class if enabled
         auto_number_script: str = ""
