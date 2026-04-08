@@ -1,5 +1,15 @@
 # Changelog
 
+## **Version 1.6.3** (2026-04-09)
+
+### Bug Fixes
+
+- Fix conflicts with custom theme templates by replacing Jinja2 template overrides with direct HTML injection for the quiz progress sidebar - [#53](https://github.com/ewels/mkdocs-quiz/pull/53) by @CallumWalley
+
+### Improvements
+
+- Add visual formatting to answer indicators: correct answers shown in bold, wrong answers shown with strikethrough - [#51](https://github.com/ewels/mkdocs-quiz/pull/51) by @jen-reeve
+
 ## **Version 1.6.2** (2026-03-08)
 
 ### Bug Fixes
