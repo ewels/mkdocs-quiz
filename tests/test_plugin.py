@@ -673,28 +673,35 @@ Question?
     # when confetti config is false
 
 
-def test_material_theme_integration(plugin: MkDocsQuizPlugin, mock_files: Files) -> None:
-    """Test that Material theme template overrides are added."""
-    from unittest.mock import Mock
+def test_material_theme_integration(
+    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
+) -> None:
+    """Test that Material theme quiz progress sidebar is injected."""
+    from unittest.mock import MagicMock
 
-    from jinja2 import ChoiceLoader, DictLoader, Environment
-    from mkdocs.config.defaults import MkDocsConfig
-
-    # Create a mock environment
-    env = Environment(loader=DictLoader({}))
-
-    # Create proper config with mocked Material theme
-    config = MkDocsConfig()
-    mock_theme = Mock()
+    mock_theme = MagicMock(spec=dict)
     mock_theme.name = "material"
-    config["theme"] = mock_theme
+    mock_config["theme"] = mock_theme
 
-    # Call on_env
-    result_env = plugin.on_env(env, config, mock_files)
+    # Process a page with a quiz so on_page_content has something to inject
+    markdown = """
+<quiz>
+What is 1+1?
 
-    # Should add our template loader
-    assert result_env is not None
-    assert isinstance(result_env.loader, ChoiceLoader)  # ChoiceLoader was added
+- [ ] 1
+- [x] 2
+- [ ] 3
+</quiz>
+"""
+    plugin.on_page_markdown(markdown, page=mock_page, config=mock_config, files=mock_files)
+    html = plugin.on_page_content(
+        "<p>quiz content</p>", page=mock_page, config=mock_config, files=mock_files
+    )
+
+    # Should contain quiz progress sidebar HTML
+    assert html is not None
+    assert 'id="quiz-progress-sidebar"' in html
+    assert 'id="quiz-progress-mobile"' in html
 
 
 def test_show_progress_config(

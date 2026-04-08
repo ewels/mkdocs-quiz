@@ -138,23 +138,24 @@ class MkDocsQuizPlugin(BasePlugin):
         Returns:
             HTML string for the quiz progress sidebar.
         """
+        quiz_progress = t.get("Quiz Progress")
         answered = t.get("Answered:")
         correct = t.get("Correct:")
         reset = t.get("Reset")
 
         sidebar_html = dedent(
             f"""
-            <div id="quiz-progress-sidebar" aria-label="Quiz Progress" style="display: none;">
+            <div id="quiz-progress-sidebar" aria-label="{quiz_progress}" style="display: none;">
               <!-- mkdocs-quiz progress sidebar (desktop) -->
               <label class="md-nav__title">
                 <span class="md-nav__icon md-icon"></span>
-                <span data-quiz-translate="Quiz Progress">Quiz Progress</span>
+                {quiz_progress}
               </label>
               <ul class="md-nav__list" data-md-component="quiz-progress">
                 <li class="md-nav__item">
                   <div class="md-nav__link">
                     <span class="md-ellipsis">
-                      <span data-quiz-translate="{answered}">{answered}</span> <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span> (<span class="quiz-progress-answered-percentage">0%</span>)
+                      {answered} <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span> (<span class="quiz-progress-answered-percentage">0%</span>)
                     </span>
                   </div>
                 </li>
@@ -169,16 +170,16 @@ class MkDocsQuizPlugin(BasePlugin):
                 <li class="md-nav__item">
                   <div class="md-nav__link quiz-correct-reset">
                     <span class="md-ellipsis">
-                      <span data-quiz-translate="{correct}">{correct}</span> <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span> (<span class="quiz-progress-score-percentage">0%</span>)
+                      {correct} <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span> (<span class="quiz-progress-score-percentage">0%</span>)
                     </span>
                     <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
-                      <span data-quiz-translate="{reset}">{reset}</span>
+                      {reset}
                     </a>
                   </div>
                 </li>
               </ul>
             </div>
-            <nav id="quiz-progress-mobile" class="quiz-progress-mobile md-nav" aria-label="Quiz Progress" style="display: none;">
+            <nav id="quiz-progress-mobile" class="quiz-progress-mobile md-nav" aria-label="{quiz_progress}" style="display: none;">
               <!-- mkdocs-quiz progress sidebar (mobile) -->
               <div class="quiz-progress-bar">
                 <div class="quiz-progress-bar-incorrect" style="width: 0%"></div>
@@ -187,13 +188,13 @@ class MkDocsQuizPlugin(BasePlugin):
               <div data-md-component="quiz-progress">
                 <div class="quiz-correct-reset">
                   <span class="md-ellipsis">
-                    <span data-quiz-translate="{answered}">{answered}</span> <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span>
+                    {answered} <span class="quiz-progress-answered">0</span> / <span class="quiz-progress-total">0</span>
                   </span>
                   <span class="md-ellipsis">
-                    <span data-quiz-translate="{correct}">{correct}</span> <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span>
+                    {correct} <span class="quiz-progress-score">0</span> / <span class="quiz-progress-score-total">0</span>
                   </span>
                   <a href="#" class="quiz-reset-all-link" style="color: var(--md-primary-fg-color); text-decoration: none;">
-                    <span data-quiz-translate="{reset}">{reset}</span>
+                    {reset}
                   </a>
                 </div>
               </div>
@@ -1138,14 +1139,11 @@ class MkDocsQuizPlugin(BasePlugin):
             del self._has_intro[page_key]
 
         # Inject quiz progress sidebar for Material theme (will be positioned by JavaScript)
-        # This is injected directly into the HTML instead of using template overrides to avoid conflicts with custom theme templates
-        if config.theme.name == "material":
+        # This is injected directly into the HTML instead of using template overrides
+        # to avoid conflicts with custom theme templates (see #52)
+        if getattr(config.theme, "name", None) == "material":
             quiz_progress_html = self._get_quiz_progress_sidebar_html(translation_manager)
-            # Inject before </body> tag if present, otherwise append
-            if re.search(r"</body\s*>", html, re.IGNORECASE):
-                html = re.sub(r"(</body\s*>)", quiz_progress_html + r"\1", html, flags=re.IGNORECASE)
-            else:
-                html += quiz_progress_html
+            html += quiz_progress_html
 
         # Add auto-numbering class if enabled
         auto_number_script: str = ""

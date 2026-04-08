@@ -654,42 +654,6 @@ def _extract_js_strings(js_file: Path, catalog: Any) -> int:
     return count
 
 
-def _extract_html_strings(html_file: Path, catalog: Any) -> int:
-    """Extract translatable strings from HTML template files.
-
-    Looks for data-quiz-translate attributes in HTML elements.
-
-    Args:
-        html_file: Path to HTML file.
-        catalog: Babel catalog to add strings to.
-
-    Returns:
-        Number of strings extracted.
-    """
-    content = html_file.read_text(encoding="utf-8")
-    content_no_comments = re.sub(r"<!--.*?-->", "", content, flags=re.DOTALL)
-
-    pattern = r'data-quiz-translate="([^"]+)"'
-
-    count = 0
-    search_start = 0
-
-    for match in re.finditer(pattern, content_no_comments):
-        match_text = match.group(0)
-        pos = content.find(match_text, search_start)
-        if pos == -1:
-            continue
-
-        line_number = content[:pos].count("\n") + 1
-        search_start = pos + len(match_text)
-
-        relative_path = html_file.relative_to(Path(__file__).parent)
-        catalog.add(match.group(1), locations=[(str(relative_path), line_number)])
-        count += 1
-
-    return count
-
-
 @translations.command("update")
 def update_translations() -> None:
     """Extract strings from source and update all translation files.
@@ -734,16 +698,7 @@ def update_translations() -> None:
             js_count += _extract_js_strings(js_file, catalog)
         console.print(f"[green]Extracted {js_count} strings from JavaScript files[/green]")
 
-    # Step 3: Extract strings from HTML template files
-    html_count = 0
-    html_files = list(module_dir.glob("overrides/**/*.html"))
-    if html_files:
-        console.print("Extracting strings from HTML template files...")
-        for html_file in html_files:
-            html_count += _extract_html_strings(html_file, catalog)
-        console.print(f"[green]Extracted {html_count} strings from HTML template files[/green]")
-
-    total_count = count + js_count + html_count
+    total_count = count + js_count
 
     # Update catalog metadata
     now = datetime.now(timezone.utc)
