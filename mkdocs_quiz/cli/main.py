@@ -389,13 +389,13 @@ def export_qti(
     no_recursive: bool,
 ) -> None:
     """Export quizzes to QTI format for LMS import (Canvas, Blackboard, Moodle)."""
-    from .qti import (
+    from ..qti import (
         QTIExporter,
         QTIVersion,
         extract_quizzes_from_directory,
         extract_quizzes_from_file,
     )
-    from .qti.models import QuizCollection
+    from ..qti.models import QuizCollection
 
     # Validate and parse QTI version
     try:
