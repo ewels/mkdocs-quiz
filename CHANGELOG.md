@@ -1,5 +1,15 @@
 # Changelog
 
+## **Version 1.6.4** (2026-05-06)
+
+### Bug Fixes
+
+- Fix broken import for QTI export - [#55](https://github.com/ewels/mkdocs-quiz/issues/55)
+
+### Maintainance
+
+- Updated versions of the GitHub actions used, pinned commit shas.
+
 ## **Version 1.6.3** (2026-04-09)
 
 ### Bug Fixes
