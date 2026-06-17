@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import fnmatch
 import html
 import json
@@ -795,12 +794,17 @@ class MkDocsQuizPlugin(BasePlugin):
         # into every document the Markdown instance processes, which would
         # duplicate the appended snippet (e.g. an abbreviations file) into every
         # single fragment and leak its raw contents into the output (see #56).
-        # Strip `auto_append` for fragment conversion.
+        # Strip `auto_append` for fragment conversion, without mutating the
+        # shared `config.mdx_configs`.
         extension_configs = config.mdx_configs or {}
         snippets_config = extension_configs.get("pymdownx.snippets")
         if isinstance(snippets_config, dict) and "auto_append" in snippets_config:
-            extension_configs = copy.deepcopy(extension_configs)
-            extension_configs["pymdownx.snippets"].pop("auto_append", None)
+            extension_configs = {
+                **extension_configs,
+                "pymdownx.snippets": {
+                    k: v for k, v in snippets_config.items() if k != "auto_append"
+                },
+            }
 
         md_inst = md.Markdown(
             extensions=config.markdown_extensions,
