@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+- Fix `pymdownx.snippets` `auto_append` files (e.g. an abbreviations glossary) leaking into every quiz question and answer - [#56](https://github.com/ewels/mkdocs-quiz/issues/56)
+
 ## **Version 1.6.4** (2026-05-06)
 
 ### Bug Fixes

@@ -789,9 +789,26 @@ class MkDocsQuizPlugin(BasePlugin):
         The returned instance can be reused across fragments by calling `.reset()`
         between conversions.
         """
+        # Each quiz part (question, answers, content) is converted as its own
+        # mini-document. `pymdownx.snippets`' `auto_append` injects file content
+        # into every document the Markdown instance processes, which would
+        # duplicate the appended snippet (e.g. an abbreviations file) into every
+        # single fragment and leak its raw contents into the output (see #56).
+        # Strip `auto_append` for fragment conversion, without mutating the
+        # shared `config.mdx_configs`.
+        extension_configs = config.mdx_configs or {}
+        snippets_config = extension_configs.get("pymdownx.snippets")
+        if isinstance(snippets_config, dict) and "auto_append" in snippets_config:
+            extension_configs = {
+                **extension_configs,
+                "pymdownx.snippets": {
+                    k: v for k, v in snippets_config.items() if k != "auto_append"
+                },
+            }
+
         md_inst = md.Markdown(
             extensions=config.markdown_extensions,
-            extension_configs=config.mdx_configs or {},
+            extension_configs=extension_configs,
         )
 
         # Register MkDocs-specific processors used during full page rendering

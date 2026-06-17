@@ -1637,6 +1637,61 @@ def test_markdown_extensions_with_config_options(
     assert "<h2" in html_result
 
 
+def test_snippets_auto_append_not_injected_into_fragments(
+    plugin: MkDocsQuizPlugin,
+    mock_page: Page,
+    mock_config: MkDocsConfig,
+    mock_files: Files,
+    tmp_path,
+) -> None:
+    """Regression test for #56.
+
+    `pymdownx.snippets` `auto_append` injects file content into every document
+    the Markdown instance processes. Since each quiz part (question, answers,
+    content) is converted as its own fragment, the appended file (e.g. an
+    abbreviations glossary) must not be duplicated into every fragment.
+    """
+    # An abbreviations file like the one users auto-append globally. The second
+    # entry has a backslash in the key, which `abbr` cannot strip, so it would
+    # leak verbatim into the output if auto_append were applied to fragments.
+    abbr_file = tmp_path / "abbreviations.md"
+    abbr_file.write_text("*[HTML]: Hyper Text Markup Language\n*[C\\C++]: C family languages\n")
+
+    mock_config["markdown_extensions"] = ["abbr", "pymdownx.snippets"]
+    mock_config["mdx_configs"] = {
+        "pymdownx.snippets": {
+            "auto_append": [str(abbr_file)],
+            "base_path": [str(tmp_path)],
+        }
+    }
+
+    markdown = """
+<quiz>
+A new quiz
+- [ ] Answer A
+- [x] Answer B
+
+The correct answer is B
+</quiz>
+"""
+    result = plugin.on_page_markdown(markdown, mock_page, mock_config)
+    html_result = plugin.on_page_content(
+        result, page=mock_page, config=mock_config, files=mock_files
+    )
+    assert html_result is not None
+
+    # The quiz itself renders correctly
+    assert "A new quiz" in html_result
+    assert "Answer A" in html_result
+    assert "Answer B" in html_result
+
+    # The auto-appended abbreviation definitions must NOT leak into the output
+    assert "C family languages" not in html_result
+    assert "*[C" not in html_result
+    # No stray backslash from the unparseable abbreviation definition
+    assert "\\" not in strip_injected_assets(html_result)
+
+
 def test_default_extensions_when_config_empty(
     plugin: MkDocsQuizPlugin, mock_page: Page, mock_files: Files
 ) -> None:
