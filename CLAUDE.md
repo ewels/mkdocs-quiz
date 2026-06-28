@@ -10,7 +10,8 @@ MkDocs Quiz is a plugin for MkDocs that creates interactive quizzes directly in 
 
 Logo assets live in `docs/images/logo/` (horizontal, stacked, and icon arrangements, each in light/dark; the icon SVG is mode-agnostic). The SVGs are **outlined** (text converted to vector paths) so they have **no font dependency** — render identically without the font installed.
 
-- **Font:** [Sora](https://fonts.google.com/specimen/Sora) (Open Font License). Wordmark = weight 500 (Medium), letter-spacing -0.02em, lowercase; badge initial (`m`) = weight 700 (Bold).
+- **Font:** [Sora](https://fonts.google.com/specimen/Sora) (Open Font License). Wordmark = weight 500 (Medium), letter-spacing -0.02em, lowercase.
+- **Badge:** the corner badge on the correct answer carries the Material for MkDocs "M" logo mark (recoloured to the tile colour on a white disc).
 - **Brand colour:** `#4F78DB` (the tile, the filled radio bullet, and the `mkdocs` wordmark prefix in light mode). Dark-mode wordmark prefix: `#8AA8EE`.
 - **Wordmark `quiz` text:** `#13161F` (near-black ink) in light mode, `#EDEFF4` (off-white) in dark mode.
 
