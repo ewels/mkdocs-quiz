@@ -15,7 +15,7 @@
 
 A modern MkDocs plugin to create interactive quizzes directly in your markdown documentation. Perfect for educational content, tutorials, and documentation that requires user engagement.
 
-**📚 Documentation and examples: [https://ewels.github.io/mkdocs-quiz/](https://ewels.github.io/mkdocs-quiz/)**
+<p align="center"><strong>📚 Documentation and examples: <a href="https://ewels.github.io/mkdocs-quiz/">https://ewels.github.io/mkdocs-quiz/</a></strong></p>
 
 > [!TIP]
 > **Building with [Astro](https://astro.build/) instead?**<br>
