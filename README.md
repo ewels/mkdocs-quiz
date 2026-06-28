@@ -17,6 +17,10 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 
 **📚 Documentation and examples: [https://ewels.github.io/mkdocs-quiz/](https://ewels.github.io/mkdocs-quiz/)**
 
+> [!TIP]
+> **Building with [Astro](https://astro.build/) instead?**<br>
+> Try [**starlight-quiz**](https://ewels.github.io/starlight-quiz/), which uses the same markdown quiz syntax and works with both [Starlight](https://starlight.astro.build/) and vanilla Astro.
+
 ## Features
 
 - ✨ **Simple markdown syntax** - Create quizzes using GitHub-flavored markdown checkboxes

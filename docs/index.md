@@ -6,6 +6,10 @@
 
 A modern MkDocs plugin to create interactive quizzes directly in your markdown documentation. Perfect for educational content, tutorials, and documentation that requires user engagement.
 
+!!! astro "Building with Astro instead?"
+
+    Try [**starlight-quiz**](https://ewels.github.io/starlight-quiz/), which uses the same markdown quiz syntax and works with both [Starlight](https://starlight.astro.build/) and vanilla [Astro](https://astro.build/).
+
 ## Features
 
 - ✨ **Simple markdown syntax** - Create quizzes using GitHub-flavored markdown checkboxes

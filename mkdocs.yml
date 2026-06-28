@@ -31,6 +31,9 @@ theme:
     - search.share
     - toc.follow
 
+extra_css:
+  - stylesheets/extra.css
+
 plugins:
   - mkdocs_quiz
 
