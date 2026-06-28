@@ -7,6 +7,8 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
+  logo: images/logo/mkdocs-quiz-icon.svg
+  favicon: images/logo/mkdocs-quiz-icon.png
   palette:
     - scheme: default
       toggle:

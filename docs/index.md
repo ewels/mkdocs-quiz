@@ -1,4 +1,4 @@
-# MkDocs Quiz Plugin
+# ![mkdocs-quiz](images/logo/mkdocs-quiz-horizontal-light.svg#only-light){ width="640" } ![mkdocs-quiz](images/logo/mkdocs-quiz-horizontal-dark.svg#only-dark){ width="640" }
 
 [![PyPI version](https://badge.fury.io/py/mkdocs-quiz.svg)](https://badge.fury.io/py/mkdocs-quiz)
 [![Python versions](https://img.shields.io/pypi/pyversions/mkdocs-quiz.svg)](https://pypi.org/project/mkdocs-quiz/)

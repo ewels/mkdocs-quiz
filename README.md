@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/ewels/mkdocs-quiz/main/docs/images/logo/mkdocs-quiz-horizontal-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/ewels/mkdocs-quiz/main/docs/images/logo/mkdocs-quiz-horizontal-light.svg">
+    <img src="https://raw.githubusercontent.com/ewels/mkdocs-quiz/main/docs/images/logo/mkdocs-quiz-horizontal-light.svg" alt="mkdocs-quiz" width="640">
+  </picture>
+</p>
+
 # MkDocs Quiz Plugin
 
 [![PyPI version](https://badge.fury.io/py/mkdocs-quiz.svg)](https://badge.fury.io/py/mkdocs-quiz)

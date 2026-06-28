@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 MkDocs Quiz is a plugin for MkDocs that creates interactive quizzes directly in markdown documentation. It processes custom `<quiz>` tags in markdown files and converts them to interactive HTML/JS quiz elements. Supports both multiple-choice and fill-in-the-blank question types.
 
+## Branding
+
+Logo assets live in `docs/images/logo/` (horizontal, stacked, and icon arrangements, each in light/dark; the icon SVG is mode-agnostic). The SVGs are **outlined** (text converted to vector paths) so they have **no font dependency** — render identically without the font installed.
+
+- **Font:** [Sora](https://fonts.google.com/specimen/Sora) (Open Font License). Wordmark = weight 500 (Medium), letter-spacing -0.02em, lowercase; badge initial (`m`) = weight 700 (Bold).
+- **Brand colour:** `#4F78DB` (the tile, the filled radio bullet, and the `mkdocs` wordmark prefix in light mode). Dark-mode wordmark prefix: `#8AA8EE`.
+- **Wordmark `quiz` text:** `#13161F` (near-black ink) in light mode, `#EDEFF4` (off-white) in dark mode.
+
+If editing logos, prefer regenerating from source rather than hand-editing the outlined paths.
+
 ## Architecture
 
 ### Plugin System Integration
