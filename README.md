@@ -136,7 +136,7 @@ See the [CLI Runner documentation](https://ewels.github.io/mkdocs-quiz/cli-runne
 
 This package requires `mkdocs>=1.5,<2`, which prevents dependency upgrades from silently installing MkDocs 2.0. You can continue to use MkDocs 1.x with Material for MkDocs.
 
-`mkdocs-quiz` supports the compatible [ProperDocs](https://properdocs.org/) fork of MkDocs and [MaterialX](https://jaywhj.github.io/mkdocs-materialx/) fork of Material for MkDocs. Read more about the [MkDocs 2.0 changes](https://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/) and the [ProperDocs announcement](https://github.com/orgs/ProperDocs/discussions/33).
+`mkdocs-quiz` supports the compatible [ProperDocs](https://properdocs.org/) fork of MkDocs and [MaterialX](https://jaywhj.github.io/mkdocs-materialx/) fork of Material for MkDocs. Find more details about how to use these in the [mkdocs-quiz documentation](https://ewels.github.io/mkdocs-quiz/mkdocs-v2/#use-properdocs-and-materialx).
 
 ## Contributing
 
