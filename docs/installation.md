@@ -1,7 +1,10 @@
 # Installation
 
-mkdocs-quiz requires Python 3.8 or higher and [MkDocs](https://www.mkdocs.org/) 1.0.0 or higher.
-It's designed to work with [mkdocs-material](https://squidfunk.github.io/mkdocs-material/), and is not guaranteed to work with other mkdocs themes.
+mkdocs-quiz requires Python 3.9 or later and [MkDocs](https://www.mkdocs.org/) 1.5 or later. It supports MkDocs 1.x, but not MkDocs 2.
+
+The plugin supports both [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) and [MaterialX](https://jaywhj.github.io/mkdocs-materialx/). Do not install both themes in the same Python environment because they use the same `material` Python package.
+
+See [MkDocs v2 compatibility](mkdocs-v2.md) for supported stacks and migration options.
 
 === "pip"
 
@@ -40,6 +43,40 @@ It's designed to work with [mkdocs-material](https://squidfunk.github.io/mkdocs-
     cd mkdocs-quiz
     pip install -e ".[dev]"
     ```
+
+## Choose a Material theme
+
+=== "Material for MkDocs"
+
+    Install Material for MkDocs:
+
+    ```bash
+    pip install mkdocs-material
+    ```
+
+    Set the theme name in `mkdocs.yml`:
+
+    ```yaml
+    theme:
+      name: material
+    ```
+
+=== "MaterialX"
+
+    Install MaterialX:
+
+    ```bash
+    pip install mkdocs-materialx
+    ```
+
+    Set the MaterialX theme name in `mkdocs.yml` or `properdocs.yml`:
+
+    ```yaml
+    theme:
+      name: materialx
+    ```
+
+    MaterialX supports MkDocs 1.x and [ProperDocs](https://properdocs.org/). See the [MaterialX differences](https://jaywhj.github.io/mkdocs-materialx/differences.html) for migration details.
 
 ## Enabling the Plugin
 

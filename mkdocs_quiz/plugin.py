@@ -128,7 +128,7 @@ class MkDocsQuizPlugin(BasePlugin):
         self._has_intro: dict[str, bool] = {}
 
     def _get_quiz_progress_sidebar_html(self, t: TranslationManager) -> str:
-        """Generate the quiz progress sidebar HTML for Material theme.
+        """Generate the quiz progress sidebar HTML for supported Material themes.
 
         This HTML is injected into the page content and positioned by quiz.js.
 
@@ -1155,10 +1155,10 @@ class MkDocsQuizPlugin(BasePlugin):
             # Clean up
             del self._has_intro[page_key]
 
-        # Inject quiz progress sidebar for Material theme (will be positioned by JavaScript)
+        # Inject quiz progress sidebar for Material themes (will be positioned by JavaScript)
         # This is injected directly into the HTML instead of using template overrides
         # to avoid conflicts with custom theme templates (see #52)
-        if getattr(config.theme, "name", None) == "material":
+        if getattr(config.theme, "name", None) in {"material", "materialx"}:
             quiz_progress_html = self._get_quiz_progress_sidebar_html(translation_manager)
             html += quiz_progress_html
 

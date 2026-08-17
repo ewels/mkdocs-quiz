@@ -60,6 +60,7 @@ nav:
   - Overview: index.md
   - Getting Started:
       - Installation: installation.md
+      - MkDocs v2 compatibility: mkdocs-v2.md
       - Quick Start: quick-start.md
       - Configuration: configuration.md
   - Writing Quizzes:

@@ -4,7 +4,12 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/mkdocs-quiz.svg)](https://pypi.org/project/mkdocs-quiz/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+
 A modern MkDocs plugin to create interactive quizzes directly in your markdown documentation. Perfect for educational content, tutorials, and documentation that requires user engagement.
+
+!!! danger "MkDocs v2.0 is not supported"
+
+    The upcoming MkDocs v2.0 will remove plugin support, so it cannot run `mkdocs-quiz`. mkdocs-quiz pins MkDocs `<2`. See [MkDocs v2 compatibility](mkdocs-v2.md) for details and compatible alternatives to MkDocs.
 
 !!! astro "Building with Astro instead?"
 

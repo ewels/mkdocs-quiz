@@ -673,14 +673,19 @@ Question?
     # when confetti config is false
 
 
+@pytest.mark.parametrize("theme_name", ["material", "materialx"])
 def test_material_theme_integration(
-    plugin: MkDocsQuizPlugin, mock_page: Page, mock_config: MkDocsConfig, mock_files: Files
+    plugin: MkDocsQuizPlugin,
+    mock_page: Page,
+    mock_config: MkDocsConfig,
+    mock_files: Files,
+    theme_name: str,
 ) -> None:
-    """Test that Material theme quiz progress sidebar is injected."""
+    """Test that Material theme variants receive the quiz progress sidebar."""
     from unittest.mock import MagicMock
 
     mock_theme = MagicMock(spec=dict)
-    mock_theme.name = "material"
+    mock_theme.name = theme_name
     mock_config["theme"] = mock_theme
 
     # Process a page with a quiz so on_page_content has something to inject

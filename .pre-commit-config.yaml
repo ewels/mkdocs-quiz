@@ -30,7 +30,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          [types-PyYAML, types-Markdown, types-polib>=1.0.0, mkdocs>=1.4.0, polib>=1.1.0, babel>=2.9.0]
+          [types-PyYAML, types-Markdown, types-polib>=1.0.0, "mkdocs>=1.4.0,<2", polib>=1.1.0, babel>=2.9.0]
         args: [--ignore-missing-imports]
 
   - repo: local
@@ -41,4 +41,4 @@ repos:
         language: python
         pass_filenames: false
         files: \.po$
-        additional_dependencies: [mkdocs>=1.0.0, polib>=1.1.0, babel>=2.9.0]
+        additional_dependencies: ["mkdocs>=1.0.0,<2", polib>=1.1.0, babel>=2.9.0]
