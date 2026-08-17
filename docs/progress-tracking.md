@@ -4,7 +4,7 @@ MkDocs Quiz includes a progress tracking system that helps users monitor their q
 
 ## Progress Sidebar
 
-When a page has **two or more quizzes**, a progress tracker automatically appears in the right sidebar (on Material theme). It shows:
+When a page has **two or more quizzes**, a progress tracker automatically appears in the right sidebar on Material for MkDocs / MaterialX. It shows:
 
 - **Answered count**: How many quizzes have been completed
 - **Progress bar**: Visual representation of completion

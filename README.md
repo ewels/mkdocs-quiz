@@ -17,6 +17,9 @@ A modern MkDocs plugin to create interactive quizzes directly in your markdown d
 
 <p align="center"><strong>📚 Documentation and examples: <a href="https://ewels.github.io/mkdocs-quiz/">https://ewels.github.io/mkdocs-quiz/</a></strong></p>
 
+> [!IMPORTANT]
+> The upcoming MkDocs v2.0 will remove plugin support, so it cannot run `mkdocs-quiz`. mkdocs-quiz pins MkDocs &lt;v2.0. See [MkDocs v2 incompatability](#mkdocs-v2-incompatability) for details and compatible alternatives to MkDocs.
+
 > [!TIP]
 > **Building with [Astro](https://astro.build/) instead?**<br>
 > Try [**starlight-quiz**](https://ewels.github.io/starlight-quiz/), which uses the same markdown quiz syntax and works with both [Starlight](https://starlight.astro.build/) and vanilla Astro.
@@ -128,6 +131,12 @@ mkdocs-quiz run docs/quiz.md
 ![CLI Demo](https://raw.githubusercontent.com/ewels/mkdocs-quiz/main/docs/assets/cli-demo.gif)
 
 See the [CLI Runner documentation](https://ewels.github.io/mkdocs-quiz/cli-runner/) for more details.
+
+## MkDocs v2 incompatability
+
+This package requires `mkdocs>=1.5,<2`, which prevents dependency upgrades from silently installing MkDocs 2.0. You can continue to use MkDocs 1.x with Material for MkDocs.
+
+`mkdocs-quiz` supports the compatible [ProperDocs](https://properdocs.org/) fork of MkDocs and [MaterialX](https://jaywhj.github.io/mkdocs-materialx/) fork of Material for MkDocs. Read more about the [MkDocs 2.0 changes](https://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/) and the [ProperDocs announcement](https://github.com/orgs/ProperDocs/discussions/33).
 
 ## Contributing
 

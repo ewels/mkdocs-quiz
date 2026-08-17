@@ -108,7 +108,7 @@ The shuffling occurs in JavaScript at page load time, so users see a different o
 
 Controls the visibility of the progress tracker. When enabled, displays:
 
-- **Desktop**: Progress tracker in the right sidebar (TOC area) on Material theme
+- **Desktop**: Progress tracker in the right sidebar (TOC area) on Material for MkDocs / MaterialX
 - **Mobile**: Sticky progress bar at the top of the page
 - **Statistics**: Shows answered/total questions and correct/incorrect counts
 
@@ -123,7 +123,7 @@ Controls the position of the progress tracker in the Material theme sidebar. Opt
 - `"top"` - Appears above the Table of Contents (default)
 - `"bottom"` - Appears below the Table of Contents
 
-Useful for pages with substantial content where quizzes appear at the end. Only affects desktop sidebar positioning in Material theme.
+Useful for pages with substantial content where quizzes appear at the end. It only affects desktop sidebar positioning in Material for MkDocs / MaterialX.
 
 ### `confetti`
 
