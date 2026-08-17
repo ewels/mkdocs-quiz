@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## **Version 1.7.0** (2026-08-17)
+
+### Compatibility
+
+- Pin MkDocs to `>=1.5,<2` to prevent automatic upgrades to the incompatible MkDocs v2.0 release.
+- Add support for the MaterialX theme and the ProperDocs site generator - [#58](https://github.com/ewels/mkdocs-quiz/pull/58)
+- Add a CI build for the ProperDocs and MaterialX stack.
+
+### Bug Fixes
+
+- Fix duplicate progress trackers at viewport widths from 960px to 1219px.
+
 ## **Version 1.6.5** (2026-06-17)
 
 ### Bug Fixes
