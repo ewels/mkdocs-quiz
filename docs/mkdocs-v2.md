@@ -54,15 +54,8 @@ Material for MkDocs / MaterialX use the same `material` Python package. Install 
 
 The mkdocs-quiz CI tests run on both stacks and I will do my best to keep the plugin working with both for as long as I can.
 
-## Why mkdocs-quiz cannot depend on either package
-
-Python package metadata cannot express a dependency for "`mkdocs` _or_ `properdocs`", it has to pick one. For now I'm keeping the dependency as `mkdocs>=1.5,<2`: ProperDocs users must install `properdocs` separately. This can leave the pinned MkDocs package installed but unused when you build with the `properdocs` command.
-
-In the future we may remove the `mkdocs` dependency entirely and switch to `properdocs`.
-
 ## Further reading
 
 - [What MkDocs 2.0 means for your documentation projects](https://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/)
-- [ProperDocs announcement](https://github.com/orgs/ProperDocs/discussions/33)
 - [ProperDocs documentation](https://properdocs.org/)
 - [MaterialX differences and migration notes](https://jaywhj.github.io/mkdocs-materialx/differences.html)
