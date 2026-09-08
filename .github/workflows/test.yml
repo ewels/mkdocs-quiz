@@ -43,6 +43,10 @@ jobs:
         run: |
           mypy mkdocs_quiz
 
+      - name: Check translation completeness
+        run: |
+          python -m mkdocs_quiz.cli translations check
+
       - name: Start MkDocs server
         run: |
           mkdocs serve --dev-addr 127.0.0.1:8765 &
@@ -129,6 +133,8 @@ jobs:
           quiz run --help
           quiz translations --help
           quiz export --help
+          # Locale files must be packaged; this fails if package-data misses them
+          quiz translations check
 
       - name: Test Python imports
         run: |

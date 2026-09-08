@@ -590,3 +590,47 @@ def test_extra_alternate_no_match_uses_theme_language() -> None:
 def mock_config() -> MkDocsConfig:
     """Create a mock config object."""
     return MkDocsConfig()
+
+
+class TestTranslationsCLI:
+    """Tests for the `mkdocs-quiz translations` commands.
+
+    These guard the locale path resolution: the CLI lives in `mkdocs_quiz/cli/`, so
+    resolving paths from `Path(__file__).parent` silently points at a directory with no
+    locales in it and makes `translations check` a no-op.
+    """
+
+    def test_package_dir_contains_locales(self) -> None:
+        """PACKAGE_DIR should be the package root, not the cli subpackage."""
+        from mkdocs_quiz.cli.main import PACKAGE_DIR
+
+        assert PACKAGE_DIR.name == "mkdocs_quiz"
+        assert (PACKAGE_DIR / "locales" / "mkdocs_quiz.pot").is_file()
+
+    def test_check_passes_for_bundled_translations(self) -> None:
+        """`translations check` should find and validate the bundled .po files."""
+        from click.testing import CliRunner
+
+        from mkdocs_quiz.cli.main import cli
+
+        result = CliRunner().invoke(cli, ["translations", "check"])
+        assert result.exit_code == 0, result.output
+        assert "All translation files are complete!" in result.output
+        # Every bundled language should have been checked, not silently skipped.
+        for po_file in (Path(__file__).parent.parent / "mkdocs_quiz" / "locales").glob("*.po"):
+            assert f"Language: {po_file.stem}" in result.output
+
+    def test_extractor_ignores_identifiers_ending_in_t(self, tmp_path: Path) -> None:
+        """`alt.get("link")` must not be mistaken for a `t.get()` translation call."""
+        from babel.messages.catalog import Catalog
+
+        from mkdocs_quiz.cli.main import _extract_python_strings
+
+        source = tmp_path / "sample.py"
+        source.write_text(
+            'link = alt.get("link", "")\nlabel = t.get("Submit")\n',
+            encoding="utf-8",
+        )
+        catalog = Catalog()
+        _extract_python_strings(source, catalog)
+        assert {str(entry.id) for entry in catalog if entry.id} == {"Submit"}

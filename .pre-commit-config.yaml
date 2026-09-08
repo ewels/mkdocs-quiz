@@ -38,7 +38,9 @@ repos:
       - id: check-translations
         name: Check translation completeness
         entry: python -m mkdocs_quiz.cli translations check
-        language: python
+        # Runs against the checkout itself (`pip install -e ".[dev]"`) so that the
+        # locale files being committed are the ones checked. An isolated hook env
+        # would validate a stale copy of them instead.
+        language: system
         pass_filenames: false
-        files: \.po$
-        additional_dependencies: ["mkdocs>=1.0.0,<2", polib>=1.1.0, babel>=2.9.0]
+        files: \.(po|pot)$

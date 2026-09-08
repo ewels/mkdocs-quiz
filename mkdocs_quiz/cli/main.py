@@ -32,6 +32,19 @@ click.rich_click.COMMAND_GROUPS = {
     ]
 }
 
+# Root of the installed ``mkdocs_quiz`` package (this module lives in ``mkdocs_quiz/cli/``).
+# Translation source strings, locale files and JS assets are all resolved from here, and
+# the ``.pot`` source references are recorded relative to it.
+PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def _source_location(path: Path) -> str:
+    """Path recorded in ``.pot`` source references, relative to the package root."""
+    try:
+        return str(path.relative_to(PACKAGE_DIR))
+    except ValueError:
+        return path.name
+
 
 def _fetch_quizzes_or_exit(path: str) -> list[Quiz]:
     """Fetch quizzes from path, printing errors and exiting on failure."""
@@ -488,8 +501,7 @@ def init_translation(language: str, output: str | None) -> None:
         sys.exit(1)
 
     # Get path to built-in template
-    module_dir = Path(__file__).parent
-    template_path = module_dir / "locales" / "mkdocs_quiz.pot"
+    template_path = PACKAGE_DIR / "locales" / "mkdocs_quiz.pot"
 
     # Determine output path
     if output is None:
@@ -575,8 +587,9 @@ def _extract_python_strings(py_file: Path, catalog: Any) -> int:
     # Remove line comments
     content_no_docstrings = re.sub(r"#.*?$", "", content_no_docstrings, flags=re.MULTILINE)
 
-    # Pattern to match t.get() - must be t.get() specifically
-    pattern = r't\.get\(\s*(["\'])((?:[^\1\\]|\\.)*?)\1'
+    # Pattern to match t.get() - must be t.get() specifically. The lookbehind stops
+    # identifiers that merely end in "t" (e.g. ``alt.get("link")``) from matching.
+    pattern = r'(?<![A-Za-z0-9_])t\.get\(\s*(["\'])((?:[^\1\\]|\\.)*?)\1'
 
     count = 0
     search_start = 0
@@ -596,8 +609,8 @@ def _extract_python_strings(py_file: Path, catalog: Any) -> int:
         string_content = match.group(2)
         string_content = string_content.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
 
-        relative_path = py_file.relative_to(Path(__file__).parent)
-        catalog.add(string_content, locations=[(str(relative_path), line_number)])
+        relative_path = _source_location(py_file)
+        catalog.add(string_content, locations=[(relative_path, line_number)])
         count += 1
 
     return count
@@ -647,8 +660,8 @@ def _extract_js_strings(js_file: Path, catalog: Any) -> int:
                 string_content.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
             )
 
-            relative_path = js_file.relative_to(Path(__file__).parent)
-            catalog.add(string_content, locations=[(str(relative_path), line_number)])
+            relative_path = _source_location(js_file)
+            catalog.add(string_content, locations=[(relative_path, line_number)])
             count += 1
 
     return count
@@ -673,8 +686,7 @@ def update_translations() -> None:
         sys.exit(1)
 
     # Get paths
-    module_dir = Path(__file__).parent
-    locales_dir = module_dir / "locales"
+    locales_dir = PACKAGE_DIR / "locales"
     pot_file = locales_dir / "mkdocs_quiz.pot"
 
     # Step 1: Extract strings from Python source code
@@ -682,7 +694,7 @@ def update_translations() -> None:
     catalog = Catalog(project="mkdocs-quiz", version=__version__)
 
     # Extract from Python files using custom pattern
-    py_files = list(module_dir.rglob("*.py"))
+    py_files = list(PACKAGE_DIR.rglob("*.py"))
     count = 0
     for py_file in py_files:
         count += _extract_python_strings(py_file, catalog)
@@ -691,7 +703,7 @@ def update_translations() -> None:
 
     # Step 2: Extract strings from JavaScript files
     js_count = 0
-    js_files = list(module_dir.glob("js/**/*.js"))
+    js_files = list(PACKAGE_DIR.glob("js/**/*.js"))
     if js_files:
         console.print("Extracting strings from JavaScript files...")
         for js_file in js_files:
@@ -756,9 +768,13 @@ def update_translations() -> None:
 @translations.command("check")
 def check_translations() -> None:
     """Check translation completeness and validity."""
-    module_dir = Path(__file__).parent
-    locales_dir = module_dir / "locales"
+    locales_dir = PACKAGE_DIR / "locales"
     pot_file = locales_dir / "mkdocs_quiz.pot"
+
+    if not pot_file.is_file():
+        console.print(f"[red]Error: translation template not found: {pot_file}[/red]")
+        console.print("Run 'mkdocs-quiz translations update' to generate it")
+        sys.exit(1)
 
     # Load template to get expected strings
     pot = polib.pofile(str(pot_file))
@@ -766,6 +782,10 @@ def check_translations() -> None:
 
     # Find all .po files (excluding en if it exists)
     po_files = [f for f in locales_dir.glob("*.po") if f.stem.lower() != "en"]
+
+    if not po_files:
+        console.print(f"[red]Error: no translation files found in {locales_dir}[/red]")
+        sys.exit(1)
 
     console.print("[bold]Checking translation files...[/bold]\n")
 
