@@ -12,6 +12,7 @@
 
 ### CI/CD
 
+- Replace pre-commit with [prek](https://prek.j178.dev) and run the lint checks in CI through it, so CI and the git hooks cannot drift apart
 - Fix the test workflow, the mypy pre-commit hook and the translations pre-commit hook, none of which were running - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
 
 ### Maintainance

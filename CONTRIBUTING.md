@@ -19,10 +19,10 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e ".[dev]"
 ```
 
-3. Set up pre-commit hooks:
+3. Set up the git hooks:
 
 ```bash
-pre-commit install
+prek install
 ```
 
 4. Test with the documentation site:
@@ -43,11 +43,11 @@ We use several tools to maintain code quality:
 
 ### Running Quality Checks
 
-Most checks run automatically via pre-commit hooks. To run manually:
+Most checks run automatically via git hooks. To run manually:
 
 ```bash
 # Run all checks
-pre-commit run --all-files
+prek run --all-files
 
 # Or run individual tools
 ruff format mkdocs_quiz tests
@@ -56,16 +56,16 @@ mypy mkdocs_quiz
 pytest tests/ -v --cov=mkdocs_quiz
 ```
 
-### Pre-commit Hooks
+### Git Hooks
 
-This project uses pre-commit hooks to automatically check code quality before committing:
+This project uses [prek](https://prek.j178.dev) to run the hooks in `prek.toml` before each commit:
 
 ```bash
-# Install pre-commit hooks
-pre-commit install
+# Install the git hooks
+prek install
 
 # Run hooks manually
-pre-commit run --all-files
+prek run --all-files
 ```
 
 The hooks will automatically:
@@ -183,7 +183,7 @@ git checkout -b feature/my-new-feature
 ```
 
 2. Make your changes and ensure:
-   - Pre-commit hooks are installed (they'll check everything automatically)
+   - The prek git hooks are installed (they'll check everything automatically)
    - Type hints are added for new code
    - Tests are added/updated for new features
    - All tests pass
@@ -218,7 +218,7 @@ git push origin feature/my-new-feature
 - Keep functions focused and concise
 - Use descriptive variable names
 
-Pre-commit hooks will automatically format your code and catch common issues before you commit.
+The prek git hooks will automatically format your code and catch common issues before you commit.
 
 ## Reporting Issues
 

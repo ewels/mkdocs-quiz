@@ -7,6 +7,25 @@ on:
     branches: [main]
 
 jobs:
+  # Ruff, prettier, mypy and the translation check all run from prek.toml, so
+  # CI and the local git hooks cannot disagree about versions or arguments.
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
+      # The check-translations hook is `language: system`, so it needs the
+      # package importable in the same environment prek runs in.
+      - run: pip install -e ".[dev]"
+
+      - run: prek run --all-files --show-diff-on-failure
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -14,10 +33,10 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -28,25 +47,6 @@ jobs:
 
       - name: Install Playwright browsers
         run: python -m playwright install --with-deps chromium
-
-      - name: Lint and check formatting with ruff
-        run: |
-          ruff check mkdocs_quiz tests
-          ruff format --check mkdocs_quiz tests
-
-      # Run prettier directly rather than through an action: actionsx/prettier
-      # was deleted from GitHub and no longer resolves. Version pinned to match
-      # the prettier hook in .pre-commit-config.yaml so the two cannot disagree.
-      - name: Check formatting with prettier
-        run: npx --yes prettier@4.0.0-alpha.8 --check "mkdocs_quiz/**/*.{js,css}"
-
-      - name: Type check with mypy
-        run: |
-          mypy mkdocs_quiz
-
-      - name: Check translation completeness
-        run: |
-          python -m mkdocs_quiz.cli translations check
 
       # --no-livereload: every page mkdocs serves otherwise carries a livereload
       # script that long-polls the server, and those requests pile up across a
@@ -66,14 +66,14 @@ jobs:
           pytest tests/ -v --cov=mkdocs_quiz --cov-report=xml --cov-report=term
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         if: matrix.python-version == '3.11'
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
 
       - name: Upload screenshots on failure
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: playwright-screenshots-${{ matrix.python-version }}
@@ -84,10 +84,10 @@ jobs:
   test-materialx:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
 
@@ -112,10 +112,10 @@ jobs:
   test-wheel-install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.11"
 
