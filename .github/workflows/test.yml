@@ -34,10 +34,11 @@ jobs:
           ruff check mkdocs_quiz tests
           ruff format --check mkdocs_quiz tests
 
+      # Run prettier directly rather than through an action: actionsx/prettier
+      # was deleted from GitHub and no longer resolves. Version pinned to match
+      # the prettier hook in .pre-commit-config.yaml so the two cannot disagree.
       - name: Check formatting with prettier
-        uses: actionsx/prettier@3d9f7c3fa44c9cb819e68292a328d7f4384be206 # v3
-        with:
-          args: --check "mkdocs_quiz/**/*.{js,css}"
+        run: npx --yes prettier@4.0.0-alpha.8 --check "mkdocs_quiz/**/*.{js,css}"
 
       - name: Type check with mypy
         run: |

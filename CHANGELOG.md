@@ -15,6 +15,7 @@
 - `translations update` now refreshes the source references of existing strings instead of only adding new ones, so `.po` files stop drifting from the code.
 - Regenerate `mkdocs_quiz.pot` and all `.po` source references (no translated strings changed).
 - Run `translations check` in CI so incomplete translations fail the build.
+- Fix the test workflow failing to start at all: the `actionsx/prettier` action it used has been deleted from GitHub. Prettier now runs directly via `npx`, pinned to the version the pre-commit hook uses.
 - Fix the mypy pre-commit hook, which aborted before checking any project code: `python_version` was pinned to 3.8, which current mypy releases reject.
 - Add `pymdown-extensions` to the `dev` extra so the `pymdownx.snippets` regression test can run without installing the `docs` extra.
 - Drop the dead Python 3.8 compatibility shim and the `importlib-resources` dependency it needed; the project has required Python 3.9+ since v1.3.0.
