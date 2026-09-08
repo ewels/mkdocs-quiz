@@ -8,8 +8,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
@@ -22,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # Dereference symlinks and convert to lowercase
       - name: Dereference symlinks and ensure lowercase
@@ -52,6 +52,9 @@ jobs:
           path: ./site
 
   deploy:
+    permissions:
+      pages: write # Required to deploy to GitHub Pages
+      id-token: write # Required to verify the deployment origin
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

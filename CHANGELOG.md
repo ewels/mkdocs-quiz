@@ -14,6 +14,7 @@
 
 - Replace pre-commit with [prek](https://prek.j178.dev) and run the lint checks in CI through it, so CI and the git hooks cannot drift apart
 - Add `actionlint` and `codespell` hooks, and fix the typos and the unquoted `$GITHUB_ENV` they found
+- Tighten workflow permissions and stop `actions/checkout` persisting credentials, clearing every zizmor finding
 - Run prettier 3.9.6 rather than the 2024 alpha the archived `mirrors-prettier` pin installed
 - Fix the test workflow, the mypy pre-commit hook and the translations pre-commit hook, none of which were running - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
 
