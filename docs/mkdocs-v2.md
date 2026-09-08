@@ -4,7 +4,7 @@ MkDocs v2.0 will remove the plugin system. It cannot run `mkdocs-quiz` or other 
 
 The `mkdocs-quiz` dependency is pinned to `mkdocs>=1.5,<2`. This prevents a routine dependency upgrade from silently installing MkDocs v2.0.
 
-Additionally, Material for MkDocs is now in Maintainance Mode, with [end-of-life scheduled](https://github.com/squidfunk/mkdocs-material/issues/8523) for November 5, 2026.
+Additionally, Material for MkDocs is now in Maintenance Mode, with [end-of-life scheduled](https://github.com/squidfunk/mkdocs-material/issues/8523) for November 5, 2026.
 
 Going forward, users of the `mkdocs-quiz` plugin have a few options:
 

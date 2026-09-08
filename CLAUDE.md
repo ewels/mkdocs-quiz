@@ -221,7 +221,7 @@ MkDocs Quiz supports internationalization through `.po` translation files. All u
    - `mkdocs-quiz translations init <language>` - Initialize new language
    - `mkdocs-quiz translations update` - Extract strings from source and update all .po files
    - `mkdocs-quiz translations check` - Validate completeness and detect orphaned keys
-   - Pre-commit hook validates translations automatically
+   - A prek hook validates translations automatically
 
 **Adding New Translatable Strings:**
 
@@ -240,7 +240,7 @@ When adding new user-facing text:
 
 ```bash
 pip install -e ".[dev]"
-pre-commit install  # Auto-formats and lints on commit
+prek install  # Auto-formats and lints on commit
 ```
 
 ### Testing
@@ -262,11 +262,11 @@ mkdocs serve
 
 ### Code Quality
 
-Pre-commit hooks run automatically on `git commit`. To run manually:
+The [prek](https://prek.j178.dev) hooks in `prek.toml` run automatically on `git commit`. To run manually:
 
 ```bash
 # All checks
-pre-commit run --all-files
+prek run --all-files
 
 # Individual tools
 ruff format mkdocs_quiz tests  # Format Python
@@ -279,7 +279,7 @@ mkdocs-quiz translations check # Check translation completeness
 ### Translation Management
 
 ```bash
-# Check translation completeness (runs in pre-commit)
+# Check translation completeness (runs as a prek hook)
 mkdocs-quiz translations check
 
 # Initialize new language

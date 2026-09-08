@@ -46,7 +46,7 @@ dev = [
     "pymdown-extensions>=9.0",  # tests/test_plugin.py exercises pymdownx.snippets
     "ruff>=0.8.0",
     "mypy>=1.0.0",
-    "pre-commit>=3.0.0",
+    "prek>=0.4.12",
     "babel>=2.9.0",
     "types-polib>=1.0.0",
     "types-Markdown",
@@ -90,6 +90,7 @@ select = [
     "C4",  # flake8-comprehensions
     "UP",  # pyupgrade
     "SIM", # flake8-simplify
+    "T10", # flake8-debugger (replaces the debug-statements hook)
     "RUF", # ruff-specific rules
 ]
 ignore = [

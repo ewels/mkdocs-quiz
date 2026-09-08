@@ -140,7 +140,7 @@ Validates translation completeness and detects issues:
 mkdocs-quiz translations check
 ```
 
-This command is also run automatically in pre-commit hooks.
+This command is also run automatically by the prek git hooks.
 
 ### `mkdocs-quiz translations init`
 

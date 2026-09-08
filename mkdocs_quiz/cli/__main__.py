@@ -1,6 +1,6 @@
 """Allow the CLI to be run as ``python -m mkdocs_quiz.cli``.
 
-Used by the ``check-translations`` pre-commit hook and CI, which need to run the
+Used by the ``check-translations`` prek hook and CI, which need to run the
 CLI straight from a source checkout without installing the package.
 """
 

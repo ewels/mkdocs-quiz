@@ -1,0 +1,108 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+minimum_prek_version = "0.4.12"
+
+# Pin `rev` to commit hashes on `prek update`, so a moved tag cannot change
+# what the hooks run.
+[update]
+freeze = true
+
+# prek reimplements these in Rust, so they need no cloned repo or hook env.
+[[repos]]
+repo = "builtin"
+hooks = [
+  { id = "trailing-whitespace", args = ["--markdown-linebreak-ext=md"] },
+  { id = "end-of-file-fixer" },
+  # No `--unsafe` needed: prek's builtin parses YAML for syntax only, so
+  # mkdocs.yml's `!!python/name:` tags do not trip it up.
+  { id = "check-yaml" },
+  {
+    id = "check-added-large-files",
+    args = ["--maxkb=1000"]
+  },
+  { id = "check-merge-conflict" },
+  { id = "check-toml" }
+]
+
+[[repos]]
+repo = "https://github.com/astral-sh/ruff-pre-commit"
+rev = "321478e58f4938179c6b86e4ddfa923d1547a49b"  # frozen: v0.16.6
+# ruff 0.16 formats Python blocks inside Markdown too, which fights prettier
+# over the same files. Keep ruff on Python and leave Markdown to prettier.
+hooks = [
+  {
+    id = "ruff-check",
+    args = ["--fix"],
+    types_or = ["python", "pyi", "jupyter"]
+  },
+  {
+    id = "ruff-format",
+    types_or = ["python", "pyi", "jupyter"]
+  }
+]
+
+[[repos]]
+repo = "https://github.com/pre-commit/mirrors-prettier"
+rev = "f12edd9c7be1c20cfa42420fd0e6df71e42b51ea"  # frozen: v4.0.0-alpha.8
+hooks = [
+  {
+    id = "prettier",
+    # The mirror is archived and its pinned rev would install a 2024 prettier
+    # alpha, so use it as a hook shim only and choose the version here.
+    additional_dependencies = ["prettier@3.9.6"],
+    types_or = [
+      "javascript",
+      "css",
+      "json",
+      "yaml",
+      "markdown"
+    ]
+  }
+]
+
+[[repos]]
+repo = "https://github.com/rhysd/actionlint"
+rev = "914e7df21a07ef503a81201c76d2b11c789d3fca"  # frozen: v1.7.12
+hooks = [
+  { id = "actionlint" }
+]
+
+[[repos]]
+repo = "https://github.com/codespell-project/codespell"
+rev = "57b21406f092110c18776e39b0bda50d37c945c8"  # frozen: v2.4.3
+hooks = [
+  {
+    id = "codespell",
+    files = '\.md$'
+  }
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "mypy",
+    name = "mypy",
+    # `language: system` over the mypy mirror: the mirror needs every runtime
+    # dependency repeated as `additional_dependencies`, which then drifts from
+    # pyproject.toml. This checks the package as CI does, against the deps the
+    # dev environment already has (`pip install -e ".[dev]"`).
+    entry = "mypy mkdocs_quiz",
+    language = "system",
+    types = ["python"],
+    pass_filenames = false
+  },
+  {
+    id = "check-translations",
+    name = "Check translation completeness",
+    entry = "python -m mkdocs_quiz.cli translations check",
+    # Runs against the checkout itself (`pip install -e ".[dev]"`) so that the
+    # locale files being committed are the ones checked. An isolated hook env
+    # would validate a stale copy of them instead.
+    language = "system",
+    pass_filenames = false,
+    files = '\.(po|pot)$'
+  }
+]
