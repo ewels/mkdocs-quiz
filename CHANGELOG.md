@@ -13,9 +13,11 @@
 ### CI/CD
 
 - Replace pre-commit with [prek](https://prek.j178.dev) and run the lint checks in CI through it, so CI and the git hooks cannot drift apart
+- Add `actionlint` and `codespell` hooks, and fix the typos and the unquoted `$GITHUB_ENV` they found
+- Run prettier 3.9.6 rather than the 2024 alpha the archived `mirrors-prettier` pin installed
 - Fix the test workflow, the mypy pre-commit hook and the translations pre-commit hook, none of which were running - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
 
-### Maintainance
+### Maintenance
 
 - Drop the leftover Python 3.8 compatibility shim and the `importlib-resources` dependency - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
 
@@ -43,7 +45,7 @@
 
 - Fix broken import for QTI export - [#55](https://github.com/ewels/mkdocs-quiz/issues/55)
 
-### Maintainance
+### Maintenance
 
 - Updated versions of the GitHub actions used, pinned commit shas.
 
@@ -213,7 +215,7 @@ Many thanks to @dunossauro for testing the plugin and reporting issues!
   - All UI-element strings are now wrapped in translation functions
   - Translations handled with `.po` files, plus `mkdocs-quiz translations` helper CLI commands
   - Initially released with translations for a subset of those [supported by mkdocs-material](https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/):
-    - Brazilian Portugese by @dunossauro - [#17](https://github.com/ewels/mkdocs-quiz/issues/17)
+    - Brazilian Portuguese by @dunossauro - [#17](https://github.com/ewels/mkdocs-quiz/issues/17)
     - French, Spanish, Swedish, German, Norwegian, Chinese (simplified), Korean, Esperanto, Hindi, Indonesian, Japanese all done automatically by @Claude - please submit a PR if something sounds wrong!
     - New language contributions welcome!
 - Fixed plugin name in documentation - [#12](https://github.com/ewels/mkdocs-quiz/issues/12)

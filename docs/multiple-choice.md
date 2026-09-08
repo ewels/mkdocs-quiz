@@ -248,7 +248,7 @@ receive the standard 'Correct' or 'Incorrect'.
 ### Formatting
 
 The formatting requirements for the per-answer feedback is quite strict.
-The `>` markdown must come _immediately_ after an answer (no blank newlines inbetween).
+The `>` markdown must come _immediately_ after an answer (no blank newlines in between).
 
 Getting this wrong has two possible scenarios:
 

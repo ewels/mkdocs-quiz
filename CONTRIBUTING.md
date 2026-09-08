@@ -37,8 +37,10 @@ mkdocs serve
 We use several tools to maintain code quality:
 
 - **Ruff**: Python code formatting and linting
-- **Prettier**: JavaScript and CSS formatting
+- **Prettier**: JavaScript, CSS, YAML and Markdown formatting
 - **MyPy**: Static type checking
+- **actionlint**: GitHub Actions workflow linting
+- **codespell**: Spell checking for Markdown
 - **Pytest**: Testing
 
 ### Running Quality Checks
