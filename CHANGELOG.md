@@ -21,6 +21,7 @@
 ### Maintenance
 
 - Drop the leftover Python 3.8 compatibility shim and the `importlib-resources` dependency - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
+- Declare `markdown`, `pyyaml` and `rich` as direct dependencies, rather than relying on `mkdocs` and `rich-click` to pull them in
 
 ## **Version 1.7.0** (2026-08-17)
 

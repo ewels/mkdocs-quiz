@@ -31,10 +31,13 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = [
+    "markdown>=3.3.6",
     "mkdocs>=1.5.0,<2",
     "polib>=1.1.0",
+    "pyyaml>=5.1",
     "questionary>=2.0.0",
     "requests>=2.25.0",
+    "rich>=12",
     "rich-click>=1.7.0",
 ]
 
