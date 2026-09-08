@@ -5,7 +5,7 @@ These tests require a local mkdocs server running.
 To run locally:
     pip install -e ".[dev,docs]"
     playwright install chromium
-    mkdocs serve --dev-addr 127.0.0.1:8765 &
+    mkdocs serve --no-livereload --dev-addr 127.0.0.1:8765 &
     pytest tests/test_fill_blank_width.py -v
 """
 

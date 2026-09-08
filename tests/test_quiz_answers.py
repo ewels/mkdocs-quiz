@@ -7,7 +7,7 @@ like the mouseup auto-submit bug where all answers were marked wrong.
 To run locally:
     pip install -e ".[dev,docs]"
     playwright install chromium
-    mkdocs serve --dev-addr 127.0.0.1:8765 &
+    mkdocs serve --no-livereload --dev-addr 127.0.0.1:8765 &
     pytest tests/test_quiz_answers.py -v
 """
 

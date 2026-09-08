@@ -48,10 +48,18 @@ jobs:
         run: |
           python -m mkdocs_quiz.cli translations check
 
+      # --no-livereload: every page mkdocs serves otherwise carries a livereload
+      # script that long-polls the server, and those requests pile up across a
+      # browser-test run until a navigation times out.
       - name: Start MkDocs server
         run: |
-          mkdocs serve --dev-addr 127.0.0.1:8765 &
-          sleep 5
+          mkdocs serve --no-livereload --dev-addr 127.0.0.1:8765 &
+          for _ in $(seq 30); do
+            curl -sf -o /dev/null http://127.0.0.1:8765/mkdocs-quiz/ && break
+            sleep 1
+          done
+          # Fail here rather than as 30 confusing test errors if it never came up.
+          curl -sf -o /dev/null http://127.0.0.1:8765/mkdocs-quiz/
 
       - name: Test with pytest
         run: |
