@@ -14,38 +14,39 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:628
+#: plugin.py:586 plugin.py:960
 msgid "Submit"
 msgstr "Send inn"
 
+#: plugin.py:516
 msgid "Answer"
 msgstr "Svar"
 
-#: plugin.py:643
+#: plugin.py:582 plugin.py:975
 msgid "Question {n}"
 msgstr "Spørsmål {n}"
 
-#: plugin.py:673
+#: plugin.py:134 plugin.py:1005
 msgid "Quiz Progress"
 msgstr "Pågående quiz"
 
-#: plugin.py:674
+#: plugin.py:1006
 msgid "questions answered"
 msgstr "spørsmål besvart"
 
-#: plugin.py:675
+#: plugin.py:1007
 msgid "correct"
 msgstr "riktig"
 
-#: plugin.py:676
+#: plugin.py:1008
 msgid "Quiz Complete!"
 msgstr "Quiz fullført!"
 
-#: plugin.py:677 plugin.py:717
+#: plugin.py:1009 plugin.py:1049
 msgid "Reset quiz"
 msgstr "Tilbakestill quiz"
 
-#: plugin.py:714
+#: plugin.py:1046
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -53,61 +54,61 @@ msgstr ""
 "Quiz resultatene blir liggende i nettleserens lokale lagring og vil bestå "
 "mellom økter."
 
-#: js/quiz.js:334
+#: js/quiz.js:333
 msgid "Outstanding! You aced it!"
 msgstr "Utmerket! Du er virkelig et ess!"
 
-#: js/quiz.js:337
+#: js/quiz.js:336
 msgid "Great job! You really know your stuff!"
 msgstr "Bra jobba! Det her var du flink på!"
 
-#: js/quiz.js:340
+#: js/quiz.js:339
 msgid "Good effort! Keep learning!"
 msgstr "Godt forsøk! Dette emnet kan du mye om!"
 
-#: js/quiz.js:343
+#: js/quiz.js:342
 msgid "Not bad, but there's room for improvement!"
 msgstr "Ikke verst, men det finnes rom for forbedring!"
 
-#: js/quiz.js:346
+#: js/quiz.js:345
 msgid "Better luck next time! Keep trying!"
 msgstr "Bedre lykke neste gang! Ikke gi opp!"
 
-#: js/quiz.js:462
+#: js/quiz.js:461 js/quiz.js:615 js/quiz.js:628
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr ""
 "Er du sikker på at du vil tilbakestille quizen? Dette vil slette fremgangen "
 "din."
 
-#: js/quiz.js:579
+#: js/quiz.js:691
 msgid "Try Again"
 msgstr "Prøv igjen"
 
-#: js/quiz.js:617 js/quiz.js:755
+#: js/quiz.js:563
 msgid "Correct answer!"
 msgstr "Riktig svar!"
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer. Please try again."
 msgstr "Feil svar. Vennligst prøv igjen."
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer."
 msgstr "Feil svar."
 
-#: overrides/main.html
+#: plugin.py:135
 msgid "Answered:"
 msgstr "Besvart:"
 
-#: overrides/main.html
+#: plugin.py:136
 msgid "Correct:"
 msgstr "Riktig:"
 
-#: overrides/main.html
+#: plugin.py:137
 msgid "Reset"
 msgstr "Tilbakestill"
 
-#: js/quiz.js:677
+#: js/quiz.js:781
 msgid "(empty)"
 msgstr "(tom)"

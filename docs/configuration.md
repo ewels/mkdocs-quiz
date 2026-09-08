@@ -185,6 +185,7 @@ Built-in languages include:
 - `ko` - Korean
 - `no` - Norwegian
 - `pt-BR` - Portuguese (Brazilian)
+- `ru` - Russian
 - `sv` - Swedish
 - `zh` - Chinese (Simplified)
 

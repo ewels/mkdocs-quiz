@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Translations
+
+- Add Russian translation by @dragomano - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
+
+### Bug Fixes
+
+- Fix the `mkdocs-quiz translations` commands, which looked for locale files in the wrong directory - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
+
+### CI/CD
+
+- Fix the test workflow, the mypy pre-commit hook and the translations pre-commit hook, none of which were running - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
+
+### Maintainance
+
+- Drop the leftover Python 3.8 compatibility shim and the `importlib-resources` dependency - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
+
 ## **Version 1.7.0** (2026-08-17)
 
 ### Compatibility

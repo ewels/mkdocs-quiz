@@ -294,7 +294,7 @@ python -m build  # Creates dist/mkdocs_quiz-*.whl and .tar.gz
 
 ## Code Style
 
-- **Python**: Ruff (formatter + linter), 100 char line length, Python 3.8+ compatible
+- **Python**: Ruff (formatter + linter), 100 char line length, Python 3.9+ compatible
 - **JavaScript/CSS**: Prettier with 100 char print width
 - **Type hints**: Required for all Python function signatures
 - **Imports**: `from __future__ import annotations` for forward compatibility

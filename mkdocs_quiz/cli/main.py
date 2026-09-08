@@ -32,6 +32,19 @@ click.rich_click.COMMAND_GROUPS = {
     ]
 }
 
+# Root of the installed ``mkdocs_quiz`` package (this module lives in ``mkdocs_quiz/cli/``).
+# Translation source strings, locale files and JS assets are all resolved from here, and
+# the ``.pot`` source references are recorded relative to it.
+PACKAGE_DIR = Path(__file__).parent.parent
+
+
+def _source_location(path: Path) -> str:
+    """Path recorded in ``.pot`` source references, relative to the package root."""
+    try:
+        return str(path.relative_to(PACKAGE_DIR))
+    except ValueError:
+        return path.name
+
 
 def _fetch_quizzes_or_exit(path: str) -> list[Quiz]:
     """Fetch quizzes from path, printing errors and exiting on failure."""
@@ -488,8 +501,7 @@ def init_translation(language: str, output: str | None) -> None:
         sys.exit(1)
 
     # Get path to built-in template
-    module_dir = Path(__file__).parent
-    template_path = module_dir / "locales" / "mkdocs_quiz.pot"
+    template_path = PACKAGE_DIR / "locales" / "mkdocs_quiz.pot"
 
     # Determine output path
     if output is None:
@@ -575,8 +587,9 @@ def _extract_python_strings(py_file: Path, catalog: Any) -> int:
     # Remove line comments
     content_no_docstrings = re.sub(r"#.*?$", "", content_no_docstrings, flags=re.MULTILINE)
 
-    # Pattern to match t.get() - must be t.get() specifically
-    pattern = r't\.get\(\s*(["\'])((?:[^\1\\]|\\.)*?)\1'
+    # Pattern to match t.get() - must be t.get() specifically. The lookbehind stops
+    # identifiers that merely end in "t" (e.g. ``alt.get("link")``) from matching.
+    pattern = r'(?<![A-Za-z0-9_])t\.get\(\s*(["\'])((?:[^\1\\]|\\.)*?)\1'
 
     count = 0
     search_start = 0
@@ -596,8 +609,8 @@ def _extract_python_strings(py_file: Path, catalog: Any) -> int:
         string_content = match.group(2)
         string_content = string_content.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
 
-        relative_path = py_file.relative_to(Path(__file__).parent)
-        catalog.add(string_content, locations=[(str(relative_path), line_number)])
+        relative_path = _source_location(py_file)
+        catalog.add(string_content, locations=[(relative_path, line_number)])
         count += 1
 
     return count
@@ -647,8 +660,8 @@ def _extract_js_strings(js_file: Path, catalog: Any) -> int:
                 string_content.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
             )
 
-            relative_path = js_file.relative_to(Path(__file__).parent)
-            catalog.add(string_content, locations=[(str(relative_path), line_number)])
+            relative_path = _source_location(js_file)
+            catalog.add(string_content, locations=[(relative_path, line_number)])
             count += 1
 
     return count
@@ -673,8 +686,7 @@ def update_translations() -> None:
         sys.exit(1)
 
     # Get paths
-    module_dir = Path(__file__).parent
-    locales_dir = module_dir / "locales"
+    locales_dir = PACKAGE_DIR / "locales"
     pot_file = locales_dir / "mkdocs_quiz.pot"
 
     # Step 1: Extract strings from Python source code
@@ -682,7 +694,7 @@ def update_translations() -> None:
     catalog = Catalog(project="mkdocs-quiz", version=__version__)
 
     # Extract from Python files using custom pattern
-    py_files = list(module_dir.rglob("*.py"))
+    py_files = list(PACKAGE_DIR.rglob("*.py"))
     count = 0
     for py_file in py_files:
         count += _extract_python_strings(py_file, catalog)
@@ -691,7 +703,7 @@ def update_translations() -> None:
 
     # Step 2: Extract strings from JavaScript files
     js_count = 0
-    js_files = list(module_dir.glob("js/**/*.js"))
+    js_files = list(PACKAGE_DIR.glob("js/**/*.js"))
     if js_files:
         console.print("Extracting strings from JavaScript files...")
         for js_file in js_files:
@@ -721,33 +733,43 @@ def update_translations() -> None:
     # Step 4: Update all .po files
     po_files = list(locales_dir.glob("*.po"))
     console.print(f"Updating {len(po_files)} translation file(s)...")
+    translator = _get_translator_info()
     for po_file in po_files:
         # Use polib directly instead of babel for updating
         po = polib.pofile(str(po_file))
+        added = 0
 
-        # Merge new strings from catalog
+        # Merge new strings from catalog, and refresh the source references of
+        # existing ones so they follow the code rather than drifting out of date.
         for entry in catalog:
             if entry.id:
+                # babel records line numbers as ints, polib as strings
+                occurrences = [(filename, str(line)) for filename, line in entry.locations]
                 existing = po.find(str(entry.id))
-                if not existing:
+                if existing:
+                    existing.occurrences = occurrences
+                else:
                     po.append(
-                        polib.POEntry(msgid=str(entry.id), msgstr="", occurrences=entry.locations)
+                        polib.POEntry(msgid=str(entry.id), msgstr="", occurrences=occurrences)
                     )
+                    added += 1
 
-        # Update revision date
-        now = datetime.now(timezone.utc)
-        po.metadata["PO-Revision-Date"] = now.strftime("%Y-%m-%d %H:%M%z")
-
-        # Update Last-Translator from git config if available
-        translator = _get_translator_info()
-        if translator:
-            po.metadata["Last-Translator"] = translator
+        # Only claim authorship of files whose translatable content changed - refreshing
+        # source references is not a translation, and must not overwrite the credit of
+        # whoever actually wrote the translations.
+        if added:
+            now = datetime.now(timezone.utc)
+            po.metadata["PO-Revision-Date"] = now.strftime("%Y-%m-%d %H:%M%z")
+            if translator:
+                po.metadata["Last-Translator"] = translator
 
         # Remove Language-Team placeholder (not needed for most projects)
         if "Language-Team" in po.metadata:
             del po.metadata["Language-Team"]
 
         po.save(str(po_file))
+        if added:
+            console.print(f"  {po_file.name}: {added} new string(s) to translate")
 
     console.print(f"[green]Updated {len(po_files)} file(s)[/green]")
     console.print("Translate new strings and run 'mkdocs-quiz translations check' to verify")
@@ -756,9 +778,13 @@ def update_translations() -> None:
 @translations.command("check")
 def check_translations() -> None:
     """Check translation completeness and validity."""
-    module_dir = Path(__file__).parent
-    locales_dir = module_dir / "locales"
+    locales_dir = PACKAGE_DIR / "locales"
     pot_file = locales_dir / "mkdocs_quiz.pot"
+
+    if not pot_file.is_file():
+        console.print(f"[red]Error: translation template not found: {pot_file}[/red]")
+        console.print("Run 'mkdocs-quiz translations update' to generate it")
+        sys.exit(1)
 
     # Load template to get expected strings
     pot = polib.pofile(str(pot_file))
@@ -766,6 +792,10 @@ def check_translations() -> None:
 
     # Find all .po files (excluding en if it exists)
     po_files = [f for f in locales_dir.glob("*.po") if f.stem.lower() != "en"]
+
+    if not po_files:
+        console.print(f"[red]Error: no translation files found in {locales_dir}[/red]")
+        sys.exit(1)
 
     console.print("[bold]Checking translation files...[/bold]\n")
 

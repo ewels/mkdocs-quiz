@@ -213,6 +213,7 @@ mkdocs_quiz/
     ko.po             # Korean
     no.po             # Norwegian
     pt-BR.po          # Portuguese (Brazilian)
+    ru.po             # Russian
     sv.po             # Swedish
     zh.po             # Chinese (Simplified)
 ```

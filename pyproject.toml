@@ -32,7 +32,6 @@ classifiers = [
 ]
 dependencies = [
     "mkdocs>=1.5.0,<2",
-    "importlib-resources>=5.0; python_version < '3.9'",
     "polib>=1.1.0",
     "questionary>=2.0.0",
     "requests>=2.25.0",
@@ -44,6 +43,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-playwright>=0.4.0",
+    "pymdown-extensions>=9.0",  # tests/test_plugin.py exercises pymdownx.snippets
     "ruff>=0.8.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
@@ -78,7 +78,7 @@ mkdocs_quiz = ["css/*", "js/*", "js/vendor/*", "overrides/*", "locales/*.po", "l
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = [
@@ -105,7 +105,9 @@ line-ending = "lf"
 known-first-party = ["mkdocs_quiz"]
 
 [tool.mypy]
-python_version = "3.8"
+# No python_version pin: current mypy releases only accept 3.10+, but the project
+# supports 3.9 (see requires-python). Left unset, mypy checks against whichever
+# interpreter it runs on, so the CI matrix covers every supported version.
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

@@ -12,38 +12,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.8\n"
 
-#: plugin.py:628
+#: plugin.py:586 plugin.py:960
 msgid "Submit"
 msgstr "Enviar"
 
+#: plugin.py:516
 msgid "Answer"
 msgstr "Resposta"
 
-#: plugin.py:643
+#: plugin.py:582 plugin.py:975
 msgid "Question {n}"
 msgstr "Questão {n}"
 
-#: plugin.py:673
+#: plugin.py:134 plugin.py:1005
 msgid "Quiz Progress"
 msgstr "Progresso do quiz"
 
-#: plugin.py:674
+#: plugin.py:1006
 msgid "questions answered"
 msgstr "questões respondidas"
 
-#: plugin.py:675
+#: plugin.py:1007
 msgid "correct"
 msgstr "correto"
 
-#: plugin.py:676
+#: plugin.py:1008
 msgid "Quiz Complete!"
 msgstr "Quiz completo!"
 
-#: plugin.py:677 plugin.py:717
+#: plugin.py:1009 plugin.py:1049
 msgid "Reset quiz"
 msgstr "Reiniciar quiz"
 
-#: plugin.py:714
+#: plugin.py:1046
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -51,60 +52,60 @@ msgstr ""
 "Os resultados do quiz são salvos no local storage do seu browser e serão "
 "persistidos entre as sessões."
 
-#: js/quiz.js:334
+#: js/quiz.js:333
 msgid "Outstanding! You aced it!"
 msgstr "Excelente! Você arrasou!"
 
-#: js/quiz.js:337
+#: js/quiz.js:336
 msgid "Great job! You really know your stuff!"
 msgstr "Excelente trabalho! Você realmente entende do assunto!"
 
-#: js/quiz.js:340
+#: js/quiz.js:339
 msgid "Good effort! Keep learning!"
 msgstr "Bom trabalho! Continue aprendendo!"
 
-#: js/quiz.js:343
+#: js/quiz.js:342
 msgid "Not bad, but there's room for improvement!"
 msgstr "Nada mal, mas há espaço para melhorias!"
 
-#: js/quiz.js:346
+#: js/quiz.js:345
 msgid "Better luck next time! Keep trying!"
 msgstr "Boa sorte na próxima vez! Continue tentando!"
 
-#: js/quiz.js:462
+#: js/quiz.js:461 js/quiz.js:615 js/quiz.js:628
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr ""
 "Tem certeza de que deseja reiniciar o teste? Isso apagará seu progresso."
 
-#: js/quiz.js:579
+#: js/quiz.js:691
 msgid "Try Again"
 msgstr "Tente novamente"
 
-#: js/quiz.js:617 js/quiz.js:755
+#: js/quiz.js:563
 msgid "Correct answer!"
 msgstr "Resposta correta!"
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer. Please try again."
 msgstr "Resposta incorreta. Tente de novo."
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer."
 msgstr "Resposta incorreta."
 
-#: overrides/main.html
+#: plugin.py:135
 msgid "Answered:"
 msgstr "Respondido:"
 
-#: overrides/main.html
+#: plugin.py:136
 msgid "Correct:"
 msgstr "Correto:"
 
-#: overrides/main.html
+#: plugin.py:137
 msgid "Reset"
 msgstr "Reiniciar"
 
-#: js/quiz.js:677
+#: js/quiz.js:781
 msgid "(empty)"
 msgstr "(vazio)"
