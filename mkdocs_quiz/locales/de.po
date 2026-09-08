@@ -14,39 +14,39 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:593 plugin.py:967
+#: plugin.py:586 plugin.py:960
 msgid "Submit"
 msgstr "Absenden"
 
-#: plugin.py:523
+#: plugin.py:516
 msgid "Answer"
 msgstr "Antwort"
 
-#: plugin.py:589 plugin.py:982
+#: plugin.py:582 plugin.py:975
 msgid "Question {n}"
 msgstr "Frage {n}"
 
-#: plugin.py:141 plugin.py:1012
+#: plugin.py:134 plugin.py:1005
 msgid "Quiz Progress"
 msgstr "Quiz-Fortschritt"
 
-#: plugin.py:1013
+#: plugin.py:1006
 msgid "questions answered"
 msgstr "Fragen beantwortet"
 
-#: plugin.py:1014
+#: plugin.py:1007
 msgid "correct"
 msgstr "richtig"
 
-#: plugin.py:1015
+#: plugin.py:1008
 msgid "Quiz Complete!"
 msgstr "Quiz abgeschlossen!"
 
-#: plugin.py:1016 plugin.py:1056
+#: plugin.py:1009 plugin.py:1049
 msgid "Reset quiz"
 msgstr "Quiz zurücksetzen"
 
-#: plugin.py:1053
+#: plugin.py:1046
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -97,15 +97,15 @@ msgstr "Falsche Antwort. Bitte versuche es erneut."
 msgid "Incorrect answer."
 msgstr "Falsche Antwort."
 
-#: plugin.py:142
+#: plugin.py:135
 msgid "Answered:"
 msgstr "Beantwortet:"
 
-#: plugin.py:143
+#: plugin.py:136
 msgid "Correct:"
 msgstr "Richtig:"
 
-#: plugin.py:144
+#: plugin.py:137
 msgid "Reset"
 msgstr "Zurücksetzen"
 

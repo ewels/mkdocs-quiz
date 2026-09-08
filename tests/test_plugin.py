@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from mkdocs.config.defaults import MkDocsConfig
 from mkdocs.structure.files import Files
@@ -1647,7 +1649,7 @@ def test_snippets_auto_append_not_injected_into_fragments(
     mock_page: Page,
     mock_config: MkDocsConfig,
     mock_files: Files,
-    tmp_path,
+    tmp_path: Path,
 ) -> None:
     """Regression test for #56.
 

@@ -13,39 +13,39 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: plugin.py:593 plugin.py:967
+#: plugin.py:586 plugin.py:960
 msgid "Submit"
 msgstr "제출"
 
-#: plugin.py:523
+#: plugin.py:516
 msgid "Answer"
 msgstr "답변"
 
-#: plugin.py:589 plugin.py:982
+#: plugin.py:582 plugin.py:975
 msgid "Question {n}"
 msgstr "문제 {n}"
 
-#: plugin.py:141 plugin.py:1012
+#: plugin.py:134 plugin.py:1005
 msgid "Quiz Progress"
 msgstr "퀴즈 진행 상황"
 
-#: plugin.py:1013
+#: plugin.py:1006
 msgid "questions answered"
 msgstr "답변한 문제"
 
-#: plugin.py:1014
+#: plugin.py:1007
 msgid "correct"
 msgstr "정답"
 
-#: plugin.py:1015
+#: plugin.py:1008
 msgid "Quiz Complete!"
 msgstr "퀴즈 완료!"
 
-#: plugin.py:1016 plugin.py:1056
+#: plugin.py:1009 plugin.py:1049
 msgid "Reset quiz"
 msgstr "퀴즈 초기화"
 
-#: plugin.py:1053
+#: plugin.py:1046
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -92,15 +92,15 @@ msgstr "오답입니다. 다시 시도해 주세요."
 msgid "Incorrect answer."
 msgstr "오답입니다."
 
-#: plugin.py:142
+#: plugin.py:135
 msgid "Answered:"
 msgstr "답변함:"
 
-#: plugin.py:143
+#: plugin.py:136
 msgid "Correct:"
 msgstr "정답:"
 
-#: plugin.py:144
+#: plugin.py:137
 msgid "Reset"
 msgstr "초기화"
 

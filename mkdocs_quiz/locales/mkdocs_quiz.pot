@@ -8,60 +8,60 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mkdocs-quiz 1.7.0\n"
 "Report-Msgid-Bugs-To: Phil Ewels <phil.ewels@seqera.io>\n"
-"POT-Creation-Date: 2026-09-08 05:38+0000\n"
-"PO-Revision-Date: 2026-09-08 05:38+0000\n"
+"POT-Creation-Date: 2026-09-08 05:48+0000\n"
+"PO-Revision-Date: 2026-09-08 05:48+0000\n"
 "Last-Translator: Phil Ewels <phil.ewels@seqera.io>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: plugin.py:141 plugin.py:1012
+#: plugin.py:134 plugin.py:1005
 msgid "Quiz Progress"
 msgstr ""
 
-#: plugin.py:142
+#: plugin.py:135
 msgid "Answered:"
 msgstr ""
 
-#: plugin.py:143
+#: plugin.py:136
 msgid "Correct:"
 msgstr ""
 
-#: plugin.py:144
+#: plugin.py:137
 msgid "Reset"
 msgstr ""
 
-#: plugin.py:523
+#: plugin.py:516
 msgid "Answer"
 msgstr ""
 
-#: plugin.py:589 plugin.py:982
+#: plugin.py:582 plugin.py:975
 #, python-brace-format
 msgid "Question {n}"
 msgstr ""
 
-#: plugin.py:593 plugin.py:967
+#: plugin.py:586 plugin.py:960
 msgid "Submit"
 msgstr ""
 
-#: plugin.py:1013
+#: plugin.py:1006
 msgid "questions answered"
 msgstr ""
 
-#: plugin.py:1014
+#: plugin.py:1007
 msgid "correct"
 msgstr ""
 
-#: plugin.py:1015
+#: plugin.py:1008
 msgid "Quiz Complete!"
 msgstr ""
 
-#: plugin.py:1016 plugin.py:1056
+#: plugin.py:1009 plugin.py:1049
 msgid "Reset quiz"
 msgstr ""
 
-#: plugin.py:1053
+#: plugin.py:1046
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."

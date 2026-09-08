@@ -13,39 +13,39 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: plugin.py:593 plugin.py:967
+#: plugin.py:586 plugin.py:960
 msgid "Submit"
 msgstr "提交"
 
-#: plugin.py:523
+#: plugin.py:516
 msgid "Answer"
 msgstr "答案"
 
-#: plugin.py:589 plugin.py:982
+#: plugin.py:582 plugin.py:975
 msgid "Question {n}"
 msgstr "问题 {n}"
 
-#: plugin.py:141 plugin.py:1012
+#: plugin.py:134 plugin.py:1005
 msgid "Quiz Progress"
 msgstr "测验进度"
 
-#: plugin.py:1013
+#: plugin.py:1006
 msgid "questions answered"
 msgstr "已回答的问题"
 
-#: plugin.py:1014
+#: plugin.py:1007
 msgid "correct"
 msgstr "正确"
 
-#: plugin.py:1015
+#: plugin.py:1008
 msgid "Quiz Complete!"
 msgstr "测验完成！"
 
-#: plugin.py:1016 plugin.py:1056
+#: plugin.py:1009 plugin.py:1049
 msgid "Reset quiz"
 msgstr "重置测验"
 
-#: plugin.py:1053
+#: plugin.py:1046
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -92,15 +92,15 @@ msgstr "回答错误，请重试。"
 msgid "Incorrect answer."
 msgstr "回答错误。"
 
-#: plugin.py:142
+#: plugin.py:135
 msgid "Answered:"
 msgstr "已回答:"
 
-#: plugin.py:143
+#: plugin.py:136
 msgid "Correct:"
 msgstr "正确:"
 
-#: plugin.py:144
+#: plugin.py:137
 msgid "Reset"
 msgstr "重置"
 

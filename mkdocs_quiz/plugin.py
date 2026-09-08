@@ -7,7 +7,7 @@ import html
 import json
 import logging
 import re
-import sys
+from importlib.resources import files
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
@@ -25,6 +25,7 @@ from mkdocs.structure.pages import (
     _RelativePathTreeprocessor,
 )
 
+from . import css, js
 from .parsing import (
     CHECKBOX_REGEX,
     FEEDBACK_REGEX,
@@ -36,14 +37,6 @@ from .parsing import (
     unmask_code_blocks,
 )
 from .translations import TranslationManager
-
-# Compatibility import for Python 3.8
-if sys.version_info >= (3, 9):
-    from importlib.resources import files
-else:
-    from importlib_resources import files
-
-from . import css, js
 
 log = logging.getLogger("mkdocs.plugins.mkdocs_quiz")
 

@@ -743,12 +743,14 @@ def update_translations() -> None:
         # existing ones so they follow the code rather than drifting out of date.
         for entry in catalog:
             if entry.id:
+                # babel records line numbers as ints, polib as strings
+                occurrences = [(filename, str(line)) for filename, line in entry.locations]
                 existing = po.find(str(entry.id))
                 if existing:
-                    existing.occurrences = entry.locations
+                    existing.occurrences = occurrences
                 else:
                     po.append(
-                        polib.POEntry(msgid=str(entry.id), msgstr="", occurrences=entry.locations)
+                        polib.POEntry(msgid=str(entry.id), msgstr="", occurrences=occurrences)
                     )
                     added += 1
 
