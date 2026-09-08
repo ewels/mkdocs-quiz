@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## **Version 1.7.1** (2026-09-08)
 
 ### Translations
 
@@ -12,15 +12,16 @@
 
 ### CI/CD
 
-- Replace pre-commit with [prek](https://prek.j178.dev) and run the lint checks in CI through it, so CI and the git hooks cannot drift apart
-- Add `actionlint` and `codespell` hooks, and fix the typos and the unquoted `$GITHUB_ENV` they found
-- Tighten workflow permissions and stop `actions/checkout` persisting credentials, clearing every zizmor finding
-- Run prettier 3.9.6 rather than the 2024 alpha the archived `mirrors-prettier` pin installed
+- Replace pre-commit with [prek](https://prek.j178.dev) and run the lint checks in CI through it, so CI and the git hooks cannot drift apart - [#72](https://github.com/ewels/mkdocs-quiz/pull/72)
+- Add `actionlint` and `codespell` hooks, and fix the typos and the unquoted `$GITHUB_ENV` they found - [#72](https://github.com/ewels/mkdocs-quiz/pull/72)
+- Tighten workflow permissions and stop `actions/checkout` persisting credentials, clearing every zizmor finding - [#72](https://github.com/ewels/mkdocs-quiz/pull/72)
+- Run prettier 3.9.6 rather than the 2024 alpha the archived `mirrors-prettier` pin installed - [#72](https://github.com/ewels/mkdocs-quiz/pull/72)
 - Fix the test workflow, the mypy pre-commit hook and the translations pre-commit hook, none of which were running - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
 
 ### Maintenance
 
 - Drop the leftover Python 3.8 compatibility shim and the `importlib-resources` dependency - [#71](https://github.com/ewels/mkdocs-quiz/pull/71)
+- Declare `markdown`, `pyyaml` and `rich` as direct dependencies, rather than relying on `mkdocs` and `rich-click` to pull them in
 
 ## **Version 1.7.0** (2026-08-17)
 
