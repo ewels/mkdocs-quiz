@@ -14,38 +14,39 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:628
+#: plugin.py:593 plugin.py:967
 msgid "Submit"
 msgstr "Enviar"
 
+#: plugin.py:523
 msgid "Answer"
 msgstr "Respuesta"
 
-#: plugin.py:643
+#: plugin.py:589 plugin.py:982
 msgid "Question {n}"
 msgstr "Pregunta {n}"
 
-#: plugin.py:673
+#: plugin.py:141 plugin.py:1012
 msgid "Quiz Progress"
 msgstr "Progreso del cuestionario"
 
-#: plugin.py:674
+#: plugin.py:1013
 msgid "questions answered"
 msgstr "preguntas respondidas"
 
-#: plugin.py:675
+#: plugin.py:1014
 msgid "correct"
 msgstr "correctas"
 
-#: plugin.py:676
+#: plugin.py:1015
 msgid "Quiz Complete!"
 msgstr "¡Cuestionario completado!"
 
-#: plugin.py:677 plugin.py:717
+#: plugin.py:1016 plugin.py:1056
 msgid "Reset quiz"
 msgstr "Reiniciar cuestionario"
 
-#: plugin.py:714
+#: plugin.py:1053
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -53,61 +54,61 @@ msgstr ""
 "Los resultados del cuestionario se guardan en el almacenamiento local de tu "
 "navegador y persistirán entre sesiones."
 
-#: js/quiz.js:334
+#: js/quiz.js:333
 msgid "Outstanding! You aced it!"
 msgstr "¡Excepcional! ¡Lo has clavado!"
 
-#: js/quiz.js:337
+#: js/quiz.js:336
 msgid "Great job! You really know your stuff!"
 msgstr "¡Buen trabajo! ¡Realmente conoces el tema!"
 
-#: js/quiz.js:340
+#: js/quiz.js:339
 msgid "Good effort! Keep learning!"
 msgstr "¡Buen esfuerzo! ¡Sigue aprendiendo!"
 
-#: js/quiz.js:343
+#: js/quiz.js:342
 msgid "Not bad, but there's room for improvement!"
 msgstr "¡No está mal, pero hay margen de mejora!"
 
-#: js/quiz.js:346
+#: js/quiz.js:345
 msgid "Better luck next time! Keep trying!"
 msgstr "¡Mejor suerte la próxima vez! ¡Sigue intentándolo!"
 
-#: js/quiz.js:462
+#: js/quiz.js:461 js/quiz.js:615 js/quiz.js:628
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr ""
 "¿Estás seguro de que quieres reiniciar el cuestionario? Esto borrará tu "
 "progreso."
 
-#: js/quiz.js:579
+#: js/quiz.js:691
 msgid "Try Again"
 msgstr "Intentar de nuevo"
 
-#: js/quiz.js:617 js/quiz.js:755
+#: js/quiz.js:563
 msgid "Correct answer!"
 msgstr "¡Respuesta correcta!"
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer. Please try again."
 msgstr "Respuesta incorrecta. Por favor, inténtalo de nuevo."
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer."
 msgstr "Respuesta incorrecta."
 
-#: overrides/main.html
+#: plugin.py:142
 msgid "Answered:"
 msgstr "Respondidas:"
 
-#: overrides/main.html
+#: plugin.py:143
 msgid "Correct:"
 msgstr "Correctas:"
 
-#: overrides/main.html
+#: plugin.py:144
 msgid "Reset"
 msgstr "Reiniciar"
 
-#: js/quiz.js:677
+#: js/quiz.js:781
 msgid "(empty)"
 msgstr "(vacío)"

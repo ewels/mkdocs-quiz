@@ -13,96 +13,97 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: plugin.py:628
+#: plugin.py:593 plugin.py:967
 msgid "Submit"
 msgstr "제출"
 
+#: plugin.py:523
 msgid "Answer"
 msgstr "답변"
 
-#: plugin.py:643
+#: plugin.py:589 plugin.py:982
 msgid "Question {n}"
 msgstr "문제 {n}"
 
-#: plugin.py:673
+#: plugin.py:141 plugin.py:1012
 msgid "Quiz Progress"
 msgstr "퀴즈 진행 상황"
 
-#: plugin.py:674
+#: plugin.py:1013
 msgid "questions answered"
 msgstr "답변한 문제"
 
-#: plugin.py:675
+#: plugin.py:1014
 msgid "correct"
 msgstr "정답"
 
-#: plugin.py:676
+#: plugin.py:1015
 msgid "Quiz Complete!"
 msgstr "퀴즈 완료!"
 
-#: plugin.py:677 plugin.py:717
+#: plugin.py:1016 plugin.py:1056
 msgid "Reset quiz"
 msgstr "퀴즈 초기화"
 
-#: plugin.py:714
+#: plugin.py:1053
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
 msgstr "퀴즈 결과는 브라우저의 로컬 저장소에 저장되며 세션 간에 유지됩니다."
 
-#: js/quiz.js:334
+#: js/quiz.js:333
 msgid "Outstanding! You aced it!"
 msgstr "훌륭합니다! 완벽하게 해냈어요!"
 
-#: js/quiz.js:337
+#: js/quiz.js:336
 msgid "Great job! You really know your stuff!"
 msgstr "잘했어요! 정말 잘 알고 계시네요!"
 
-#: js/quiz.js:340
+#: js/quiz.js:339
 msgid "Good effort! Keep learning!"
 msgstr "좋은 노력이에요! 계속 학습하세요!"
 
-#: js/quiz.js:343
+#: js/quiz.js:342
 msgid "Not bad, but there's room for improvement!"
 msgstr "나쁘지 않아요, 하지만 개선의 여지가 있어요!"
 
-#: js/quiz.js:346
+#: js/quiz.js:345
 msgid "Better luck next time! Keep trying!"
 msgstr "다음에는 더 잘할 거예요! 계속 도전하세요!"
 
-#: js/quiz.js:462
+#: js/quiz.js:461 js/quiz.js:615 js/quiz.js:628
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr "정말 퀴즈를 초기화하시겠습니까? 진행 상황이 삭제됩니다."
 
-#: js/quiz.js:579
+#: js/quiz.js:691
 msgid "Try Again"
 msgstr "다시 시도"
 
-#: js/quiz.js:617 js/quiz.js:755
+#: js/quiz.js:563
 msgid "Correct answer!"
 msgstr "정답입니다!"
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer. Please try again."
 msgstr "오답입니다. 다시 시도해 주세요."
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer."
 msgstr "오답입니다."
 
-#: overrides/main.html
+#: plugin.py:142
 msgid "Answered:"
 msgstr "답변함:"
 
-#: overrides/main.html
+#: plugin.py:143
 msgid "Correct:"
 msgstr "정답:"
 
-#: overrides/main.html
+#: plugin.py:144
 msgid "Reset"
 msgstr "초기화"
 
-#: js/quiz.js:677
+#: js/quiz.js:781
 msgid "(empty)"
 msgstr "(비어 있음)"

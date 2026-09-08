@@ -11,6 +11,9 @@
 - Fix `mkdocs-quiz translations` commands resolving locale paths against `mkdocs_quiz/cli/` instead of the package root, which made `translations check` crash and `translations init` fail to find the template.
 - Fix the string extractor matching any identifier ending in `t` (e.g. `alt.get("link")`) as a `t.get()` translation call.
 - Fix the `check-translations` pre-commit hook, which could not run at all (`mkdocs_quiz.cli` had no `__main__`).
+- Fix `translations update` overwriting every `.po` file's `Last-Translator` with whoever ran the command, even for files it did not change.
+- `translations update` now refreshes the source references of existing strings instead of only adding new ones, so `.po` files stop drifting from the code.
+- Regenerate `mkdocs_quiz.pot` and all `.po` source references (no translated strings changed).
 - Run `translations check` in CI so incomplete translations fail the build.
 
 ## **Version 1.7.0** (2026-08-17)

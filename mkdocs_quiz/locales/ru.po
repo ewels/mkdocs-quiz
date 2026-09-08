@@ -14,40 +14,40 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:564 plugin.py:934
+#: plugin.py:589 plugin.py:982
 #, python-brace-format
 msgid "Question {n}"
 msgstr "Вопрос {n}"
 
-#: plugin.py:568
+#: plugin.py:593 plugin.py:967
 msgid "Submit"
 msgstr "Отправить"
 
-#: plugin.py
+#: plugin.py:523
 msgid "Answer"
 msgstr "Ответ"
 
-#: overrides/main.html:12 plugin.py:964
+#: plugin.py:141 plugin.py:1012
 msgid "Quiz Progress"
 msgstr "Прогресс викторины"
 
-#: plugin.py:965
+#: plugin.py:1013
 msgid "questions answered"
 msgstr "вопросов отвечено"
 
-#: plugin.py:966
+#: plugin.py:1014
 msgid "correct"
 msgstr "верно"
 
-#: plugin.py:967
+#: plugin.py:1015
 msgid "Quiz Complete!"
 msgstr "Викторина завершена!"
 
-#: plugin.py:968 plugin.py:1008
+#: plugin.py:1016 plugin.py:1056
 msgid "Reset quiz"
 msgstr "Сбросить викторину"
 
-#: plugin.py:1005
+#: plugin.py:1053
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -55,59 +55,59 @@ msgstr ""
 "Результаты викторины сохраняются в локальном хранилище браузера и "
 "сохраняются между сеансами."
 
-#: js/quiz.js:335
+#: js/quiz.js:333
 msgid "Outstanding! You aced it!"
 msgstr "Отлично! Вы ответили правильно на все вопросы!"
 
-#: js/quiz.js:338
+#: js/quiz.js:336
 msgid "Great job! You really know your stuff!"
 msgstr "Отличная работа! Вы отлично разбираетесь в этом!"
 
-#: js/quiz.js:341
+#: js/quiz.js:339
 msgid "Good effort! Keep learning!"
 msgstr "Отличная попытка! Продолжайте учиться!"
 
-#: js/quiz.js:344
+#: js/quiz.js:342
 msgid "Not bad, but there's room for improvement!"
 msgstr "Неплохо, но есть над чем поработать!"
 
-#: js/quiz.js:347
+#: js/quiz.js:345
 msgid "Better luck next time! Keep trying!"
 msgstr "В следующий раз повезёт больше! Продолжайте попытки!"
 
-#: js/quiz.js:463
+#: js/quiz.js:461 js/quiz.js:615 js/quiz.js:628
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr "Хотите сбросить викторину? Это приведёт к удалению вашего прогресса."
 
-#: js/quiz.js:586
+#: js/quiz.js:691
 msgid "Try Again"
 msgstr "Попробовать ещё"
 
-#: js/quiz.js:624 js/quiz.js:734 js/quiz.js:901 js/quiz.js:973
+#: js/quiz.js:563
 msgid "Correct answer!"
 msgstr "Правильный ответ!"
 
-#: js/quiz.js:668 js/quiz.js:783 js/quiz.js:909 js/quiz.js:995
+#: js/quiz.js:564
 msgid "Incorrect answer. Please try again."
 msgstr "Неверный ответ. Попробуйте ещё раз."
 
-#: js/quiz.js:668 js/quiz.js:783 js/quiz.js:909 js/quiz.js:995
+#: js/quiz.js:564
 msgid "Incorrect answer."
 msgstr "Неверный ответ."
 
-#: js/quiz.js:677
+#: js/quiz.js:781
 msgid "(empty)"
 msgstr "(пусто)"
 
-#: overrides/main.html:18 overrides/main.html:55
+#: plugin.py:142
 msgid "Answered:"
 msgstr "Отвечено:"
 
-#: overrides/main.html:33 overrides/main.html:58
+#: plugin.py:143
 msgid "Correct:"
 msgstr "Верно:"
 
-#: overrides/main.html:36 overrides/main.html:61
+#: plugin.py:144
 msgid "Reset"
 msgstr "Сброс"

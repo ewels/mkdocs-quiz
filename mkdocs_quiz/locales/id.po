@@ -13,38 +13,39 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: plugin.py:628
+#: plugin.py:593 plugin.py:967
 msgid "Submit"
 msgstr "Kirim"
 
+#: plugin.py:523
 msgid "Answer"
 msgstr "Jawaban"
 
-#: plugin.py:643
+#: plugin.py:589 plugin.py:982
 msgid "Question {n}"
 msgstr "Pertanyaan {n}"
 
-#: plugin.py:673
+#: plugin.py:141 plugin.py:1012
 msgid "Quiz Progress"
 msgstr "Progres Kuis"
 
-#: plugin.py:674
+#: plugin.py:1013
 msgid "questions answered"
 msgstr "pertanyaan terjawab"
 
-#: plugin.py:675
+#: plugin.py:1014
 msgid "correct"
 msgstr "benar"
 
-#: plugin.py:676
+#: plugin.py:1015
 msgid "Quiz Complete!"
 msgstr "Kuis Selesai!"
 
-#: plugin.py:677 plugin.py:717
+#: plugin.py:1016 plugin.py:1056
 msgid "Reset quiz"
 msgstr "Atur ulang kuis"
 
-#: plugin.py:714
+#: plugin.py:1053
 msgid ""
 "Quiz results are saved to your browser's local storage and will persist "
 "between sessions."
@@ -52,61 +53,61 @@ msgstr ""
 "Hasil kuis disimpan di penyimpanan lokal browser Anda dan akan tetap ada di "
 "antara sesi."
 
-#: js/quiz.js:334
+#: js/quiz.js:333
 msgid "Outstanding! You aced it!"
 msgstr "Luar biasa! Anda berhasil dengan sempurna!"
 
-#: js/quiz.js:337
+#: js/quiz.js:336
 msgid "Great job! You really know your stuff!"
 msgstr "Kerja bagus! Anda benar-benar menguasai materi ini!"
 
-#: js/quiz.js:340
+#: js/quiz.js:339
 msgid "Good effort! Keep learning!"
 msgstr "Usaha yang baik! Terus belajar!"
 
-#: js/quiz.js:343
+#: js/quiz.js:342
 msgid "Not bad, but there's room for improvement!"
 msgstr "Tidak buruk, tapi masih ada ruang untuk perbaikan!"
 
-#: js/quiz.js:346
+#: js/quiz.js:345
 msgid "Better luck next time! Keep trying!"
 msgstr "Semoga lebih baik lain kali! Terus mencoba!"
 
-#: js/quiz.js:462
+#: js/quiz.js:461 js/quiz.js:615 js/quiz.js:628
 msgid ""
 "Are you sure you want to reset the quiz? This will clear your progress."
 msgstr ""
 "Apakah Anda yakin ingin mengatur ulang kuis? Ini akan menghapus progres "
 "Anda."
 
-#: js/quiz.js:579
+#: js/quiz.js:691
 msgid "Try Again"
 msgstr "Coba Lagi"
 
-#: js/quiz.js:617 js/quiz.js:755
+#: js/quiz.js:563
 msgid "Correct answer!"
 msgstr "Jawaban benar!"
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer. Please try again."
 msgstr "Jawaban salah. Silakan coba lagi."
 
-#: js/quiz.js:664 js/quiz.js:777
+#: js/quiz.js:564
 msgid "Incorrect answer."
 msgstr "Jawaban salah."
 
-#: overrides/main.html
+#: plugin.py:142
 msgid "Answered:"
 msgstr "Dijawab:"
 
-#: overrides/main.html
+#: plugin.py:143
 msgid "Correct:"
 msgstr "Benar:"
 
-#: overrides/main.html
+#: plugin.py:144
 msgid "Reset"
 msgstr "Atur ulang"
 
-#: js/quiz.js:677
+#: js/quiz.js:781
 msgid "(empty)"
 msgstr "(kosong)"

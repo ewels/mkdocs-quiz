@@ -733,33 +733,41 @@ def update_translations() -> None:
     # Step 4: Update all .po files
     po_files = list(locales_dir.glob("*.po"))
     console.print(f"Updating {len(po_files)} translation file(s)...")
+    translator = _get_translator_info()
     for po_file in po_files:
         # Use polib directly instead of babel for updating
         po = polib.pofile(str(po_file))
+        added = 0
 
-        # Merge new strings from catalog
+        # Merge new strings from catalog, and refresh the source references of
+        # existing ones so they follow the code rather than drifting out of date.
         for entry in catalog:
             if entry.id:
                 existing = po.find(str(entry.id))
-                if not existing:
+                if existing:
+                    existing.occurrences = entry.locations
+                else:
                     po.append(
                         polib.POEntry(msgid=str(entry.id), msgstr="", occurrences=entry.locations)
                     )
+                    added += 1
 
-        # Update revision date
-        now = datetime.now(timezone.utc)
-        po.metadata["PO-Revision-Date"] = now.strftime("%Y-%m-%d %H:%M%z")
-
-        # Update Last-Translator from git config if available
-        translator = _get_translator_info()
-        if translator:
-            po.metadata["Last-Translator"] = translator
+        # Only claim authorship of files whose translatable content changed - refreshing
+        # source references is not a translation, and must not overwrite the credit of
+        # whoever actually wrote the translations.
+        if added:
+            now = datetime.now(timezone.utc)
+            po.metadata["PO-Revision-Date"] = now.strftime("%Y-%m-%d %H:%M%z")
+            if translator:
+                po.metadata["Last-Translator"] = translator
 
         # Remove Language-Team placeholder (not needed for most projects)
         if "Language-Team" in po.metadata:
             del po.metadata["Language-Team"]
 
         po.save(str(po_file))
+        if added:
+            console.print(f"  {po_file.name}: {added} new string(s) to translate")
 
     console.print(f"[green]Updated {len(po_files)} file(s)[/green]")
     console.print("Translate new strings and run 'mkdocs-quiz translations check' to verify")
