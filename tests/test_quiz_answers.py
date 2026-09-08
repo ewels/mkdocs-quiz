@@ -23,10 +23,23 @@ if TYPE_CHECKING:
 BASE_URL = "http://127.0.0.1:8765/mkdocs-quiz"
 
 
+def goto(page: Page, path: str = "") -> None:
+    """Navigate to a docs page, without waiting on third-party assets.
+
+    The docs theme pulls Roboto from fonts.googleapis.com and an emoji from
+    jsDelivr. `page.goto` waits for the `load` event by default, which includes
+    those, so one stalled third-party request fails the test with a navigation
+    timeout. The quiz JS initialises on DOMContentLoaded, so that is all these
+    behavioural tests need. (The width tests in test_fill_blank_width.py do wait
+    for `load` on purpose - font metrics affect what they measure.)
+    """
+    page.goto(f"{BASE_URL}/{path}", wait_until="domcontentloaded")
+
+
 @pytest.fixture(autouse=True)
 def clear_local_storage(page: Page) -> None:
     """Clear localStorage before each test to avoid persisted quiz state."""
-    page.goto(BASE_URL)
+    goto(page)
     page.evaluate("window.localStorage.clear()")
 
 
@@ -35,7 +48,7 @@ class TestSingleChoiceAutoSubmit:
 
     def test_correct_answer_marked_correct(self, page: Page) -> None:
         """Selecting the correct radio button should mark the quiz as correct."""
-        page.goto(f"{BASE_URL}/multiple-choice/")
+        goto(page, "multiple-choice/")
         page.wait_for_selector(".quiz")
 
         # First quiz: "What is the answer to the following sum? 2+2" -> correct answer is "4"
@@ -57,7 +70,7 @@ class TestSingleChoiceAutoSubmit:
 
     def test_wrong_answer_marked_incorrect(self, page: Page) -> None:
         """Selecting a wrong radio button should mark the quiz as incorrect."""
-        page.goto(f"{BASE_URL}/multiple-choice/")
+        goto(page, "multiple-choice/")
         page.wait_for_selector(".quiz")
 
         quiz = page.locator(".quiz").first
@@ -82,7 +95,7 @@ class TestMultipleChoiceSubmit:
 
     def test_all_correct_answers_marked_correct(self, page: Page) -> None:
         """Selecting all correct checkboxes and submitting should be correct."""
-        page.goto(f"{BASE_URL}/multiple-choice/")
+        goto(page, "multiple-choice/")
         page.wait_for_selector(".quiz")
 
         # Find a checkbox quiz (second quiz: "Which of these are even numbers?")
@@ -116,7 +129,7 @@ class TestMultipleChoiceSubmit:
 
     def test_partial_correct_answers_marked_incorrect(self, page: Page) -> None:
         """Selecting only some correct checkboxes should be incorrect."""
-        page.goto(f"{BASE_URL}/multiple-choice/")
+        goto(page, "multiple-choice/")
         page.wait_for_selector(".quiz")
 
         quizzes = page.locator(".quiz").all()
@@ -151,7 +164,7 @@ class TestFillInTheBlank:
 
     def test_correct_fill_in_blank(self, page: Page) -> None:
         """Typing the correct answer should mark fill-in-blank as correct."""
-        page.goto(f"{BASE_URL}/fill-in-blank/")
+        goto(page, "fill-in-blank/")
         page.wait_for_selector(".quiz")
 
         quiz = page.locator(".quiz").first
@@ -176,7 +189,7 @@ class TestFillInTheBlank:
 
     def test_wrong_fill_in_blank(self, page: Page) -> None:
         """Typing a wrong answer should mark fill-in-blank as incorrect."""
-        page.goto(f"{BASE_URL}/fill-in-blank/")
+        goto(page, "fill-in-blank/")
         page.wait_for_selector(".quiz")
 
         quiz = page.locator(".quiz").first
@@ -197,7 +210,7 @@ class TestFillInTheBlank:
 
     def test_case_insensitive_fill_in_blank(self, page: Page) -> None:
         """Fill-in-blank answers should be case insensitive."""
-        page.goto(f"{BASE_URL}/fill-in-blank/")
+        goto(page, "fill-in-blank/")
         page.wait_for_selector(".quiz")
 
         quiz = page.locator(".quiz").first
