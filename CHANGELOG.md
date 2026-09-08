@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Translations
+
+- Add Russian translation by @dragomano - [starlight-quiz#2](https://github.com/ewels/starlight-quiz/pull/2)
+
 ## **Version 1.7.0** (2026-08-17)
 
 ### Compatibility

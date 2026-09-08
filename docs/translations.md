@@ -37,6 +37,7 @@ Quelles sont les meilleures pâtisseries ?
 - **Korean** (`ko`)
 - **Norwegian** (`no`)
 - **Portuguese (Brazilian)** (`pt-BR`)
+- **Russian** (`ru`)
 - **Spanish** (`es`)
 - **Swedish** (`sv`)
 
